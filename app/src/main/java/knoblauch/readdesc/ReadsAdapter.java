@@ -47,6 +47,17 @@ public class ReadsAdapter extends BaseAdapter {
         }
     }
 
+    /**
+     * @brief - Used by external elements to remove a read from the internal list.
+     * @param desc - the read to remove.
+     */
+    public void removeItem(ReadDesc desc) {
+        if (desc != null) {
+            m_reads.remove(desc);
+        }
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return m_reads.size();

@@ -7,4 +7,8 @@
 
     <dimen name="read_item_title_size">30dp</dimen>
     <dimen name="read_item_desc_size">20dp</dimen>
+
+    <string name="read_item_ctx_menu_open">Open</string>
+    <string name="read_item_ctx_menu_delete">Delete</string>
+    <string name="read_item_ctx_menu_source">Open source</string>
 </resources>

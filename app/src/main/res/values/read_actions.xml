@@ -7,4 +7,8 @@
 
     <dimen name="read_actions_title_size">30dp</dimen>
     <dimen name="read_actions_desc_size">20dp</dimen>
+
+    <string name="delete_read_confirmation_text">Are you sure you want to delete %1$s ?</string>
+    <string name="delete_read_confirmation_yes">Sure</string>
+    <string name="delete_read_confirmation_no">Nope</string>
 </resources>
