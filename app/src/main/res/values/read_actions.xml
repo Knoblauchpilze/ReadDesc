@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="create_read_title">"Create new read"</string>
+    <string name="read_actions_condensed_title">Create</string>
+    <string name="delete_reads">"Clear all reads"</string>
+    <string name="delete_reads_condensed_title">Clear</string>
+
+    <dimen name="read_actions_title_size">30dp</dimen>
+    <dimen name="read_actions_desc_size">20dp</dimen>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reads_column_name">"name"</string>
+    <string name="reads_column_source">"source"</string>
+    <string name="reads_column_date">"date"</string>
+    <string name="reads_column_completion">"completion"</string>
+
+    <dimen name="read_item_title_size">30dp</dimen>
+    <dimen name="read_item_desc_size">20dp</dimen>
+</resources>
