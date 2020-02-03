@@ -1,12 +1,9 @@
 package knoblauch.readdesc;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
 
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -20,7 +17,7 @@ import android.widget.ListView;
 
 import java.util.Stack;
 
-public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, Dialog.OnClickListener {
+public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, DeleteReadItemDialog.NoticeDialogListener {
 
     /**
      * @brief - Convenience enumeration describing the possible actions to take in the
@@ -63,7 +60,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         setContentView(R.layout.activity_main);
 
         // Create the adapter to display recent reads.
-        m_reads = new ReadsAdapter(this, 10);
+        m_reads = new ReadsAdapter(this, 10, this);
 
         // Create the pending operations list.
         m_pendingOps = new Stack<>();
@@ -81,33 +78,48 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     @Override
+    public void onReadItemViewClick(int resource, int id) {
+        // We've been called because the specified view has been clicked. This should be
+        // related to a list item
+        ReadDesc desc = m_reads.getItem(id);
+
+        Log.i("main", "Clicked on read item menu at " + id + " view id being " + resource + ", play: " + R.id.read_item_play + " read is " + desc.getName());
+
+        // Check the type of resource that has been clicked: this will tell us what to do
+        // with the read description.
+        switch (resource) {
+            case R.id.read_item_name:
+            case R.id.read_item_play:
+                performAction(AppAction.OpenRead, desc);
+                break;
+            case R.id.read_item_source:
+                performAction(AppAction.OpenSource, desc);
+                break;
+            case R.id.read_item_delete:
+                performAction(AppAction.Delete, desc);
+                break;
+            default:
+                // Unknown action.
+                break;
+        }
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // We need to detect which element has been clicked. Depending on this we will
         // start the corresponding activity. As most of the action will need the read
         // that has been clicked on, we retrieve it beforehand.
         ReadDesc read = m_reads.getItem(position);
 
-        // TODO: The `view.getId()` does not work in case of the `read_item_play` for
-        // example because it is the view created by the adapter which is selected.
-        // so instead we should find a way to get the precise object that was clicked
-        // (if it exists, we might need to actually connect some stuff when creating
-        // the view in the `ReadsAdapter`) and work from there.
-        // This resource might help:
-        // https://stackoverflow.com/questions/21421821/how-to-sense-what-has-been-clicked-within-an-android-list-view-element
-
-        Log.i("main", "Clicked on item menu at " + position + " view id being " + view.getId() + ", play: " + R.id.read_item_play + " read is " + read.getName());
-
         switch (view.getId()) {
-            case R.id.read_item_play:
-                performAction(AppAction.OpenRead, read);
-                break;
-            case R.id.read_item_source:
-                performAction(AppAction.OpenSource, read);
-                break;
-            case R.id.read_item_delete:
             case R.id.read_delete_menu_opt:
                 performAction(AppAction.Delete, read);
                 break;
+            case R.id.read_view_menu_opt:
+                performAction(AppAction.OpenSource, read);
+                break;
+            case R.id.read_open_menu_opt:
+                performAction(AppAction.OpenRead, read);
             default:
                 // Do nothing.
                 break;
@@ -178,49 +190,33 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     @Override
-    public Dialog onCreateDialog (int id) {
-        // We want to create a dialog box with a confirmation and cancellation option. This
-        // will be used for all the possible interactions in this activity.
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        // Retrieve the read's name from the input identifier.
-        Resources res = getResources();
-        ReadDesc read = m_reads.getItem(id);
-        String text = String.format(res.getString(R.string.delete_read_confirmation_text), read.getName());
-
-        // Build the dialog.
-        builder
-        .setMessage(text)
-        .setPositiveButton(R.string.delete_read_confirmation_yes, this)
-        .setNegativeButton(R.string.delete_read_confirmation_no, this);
-
-        return builder.create();
-    }
-
-
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
+    public void onDialogPositiveClick(DialogFragment dialog) {
         // Nothing to do if the internal list of pending operations is empty.
         if (m_pendingOps.empty()) {
             return;
         }
 
-        // We need to check which button has been checked to perform the needed operation.
-        // Note that we will use the first operation registered internally and assume that
-        // this is the one associated to the dialog.
-        if (which == DialogInterface.BUTTON_POSITIVE) {
-            // Process the action.
-            Pair<AppAction, ReadDesc> op = m_pendingOps.pop();
+        // Process the action.
+        Pair<AppAction, ReadDesc> op = m_pendingOps.pop();
 
-            switch (op.first) {
-                case Delete:
-                case DeleteAll:
-                    deleteRead(op.second);
-                    break;
-                default:
-                    // Other actions do not require anything to be done.
-                    break;
-            }
+        switch (op.first) {
+            case Delete:
+            case DeleteAll:
+                deleteRead(op.second);
+                break;
+            default:
+                // Other actions do not require anything to be done.
+                break;
+        }
+    }
+
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        // The dialog was dismissed, we need to remove the most recent pending
+        // operations so that the next one can be processed.
+        if (!m_pendingOps.empty()) {
+            m_pendingOps.pop();
         }
     }
 
@@ -262,7 +258,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
      */
     private void registerAction(AppAction action, ReadDesc desc) {
         // Add the corresponding action to the internal stack.
-        m_pendingOps.push(new Pair(action, desc));
+        m_pendingOps.push(new Pair<>(action, desc));
     }
 
     /**
@@ -287,8 +283,9 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
                 // the user confirms we will process it and discard it otherwise.
                 registerAction(action, desc);
 
-                // Show the dialog.
-                showDialog(0);
+                // Create an instance of the delete read item dialog fragment and show it.
+                DialogFragment dialog = new DeleteReadItemDialog(desc, this, this);
+                dialog.show(getSupportFragmentManager(), "DeleteDialogFor" + desc.getName());
                 break;
             case DeleteAll:
             case OpenRead:

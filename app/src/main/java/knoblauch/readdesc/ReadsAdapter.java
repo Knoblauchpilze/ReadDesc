@@ -5,9 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
-
-import androidx.annotation.RequiresPermission;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +21,9 @@ public class ReadsAdapter extends BaseAdapter {
         public TextView sourceView;
         public TextView dateView;
         public TextView completionView;
+
+        public ImageView play;
+        public ImageView delete;
     }
 
     /**
@@ -34,11 +36,28 @@ public class ReadsAdapter extends BaseAdapter {
      */
     private Context m_context;
 
-    public ReadsAdapter(Context context, int readsCount) {
+    /**
+     * @brief - The listener (potentially null) to which notifications for clicks on specific
+     *          items of reads should be sent.
+     */
+    private ReadItemClickListener m_listener;
+
+    /**
+     * @brief - Creates a new read adapter with the specified context and click listener.
+     * @param context - the context into which views will be instantiated. Usually indicates
+     *                  the parent activity where a list of the data contained in this item
+     *                  will be displayed.
+     * @param readsCount - the number of reads to create.
+     * @param listener - a custom listener which might want to be notified of clicks on some
+     *                   specific buttons of each individual read.
+     */
+    public ReadsAdapter(Context context, int readsCount, ReadItemClickListener listener) {
         super();
 
         // Save the internal inflater.
         m_context = context;
+
+        m_listener = listener;
 
         // Generate random reads.
         m_reads = new ArrayList<>();
@@ -70,12 +89,12 @@ public class ReadsAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        // TODO: Imprpove this when the `ReadDesc` class is actually able to provide an identifier.
+        // TODO: Improve this when the `ReadDesc` class is actually able to provide an identifier.
         return position;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         // Empty view by default.
         ReadDescViewHolder holder;
 
@@ -92,6 +111,43 @@ public class ReadsAdapter extends BaseAdapter {
             holder.sourceView = convertView.findViewById(R.id.read_item_source);
             holder.dateView= convertView.findViewById(R.id.read_item_date);
             holder.completionView= convertView.findViewById(R.id.read_item_completion);
+
+            holder.play = convertView.findViewById(R.id.read_item_play);
+            holder.delete = convertView.findViewById(R.id.read_item_delete);
+
+            // Register listeners.
+            holder.nameView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (m_listener != null) {
+                        m_listener.onReadItemViewClick(R.id.read_item_name, position);
+                    }
+                }
+            });
+            holder.sourceView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (m_listener != null) {
+                        m_listener.onReadItemViewClick(R.id.read_item_source, position);
+                    }
+                }
+            });
+            holder.play.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (m_listener != null) {
+                        m_listener.onReadItemViewClick(R.id.read_item_play, position);
+                    }
+                }
+            });
+            holder.delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (m_listener != null) {
+                        m_listener.onReadItemViewClick(R.id.read_item_delete, position);
+                    }
+                }
+            });
 
             convertView.setTag(holder);
         }
