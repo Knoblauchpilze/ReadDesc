@@ -1,14 +1,16 @@
-package knoblauch.readdesc;
+package knoblauch.readdesc.gui.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-public class CreateReadActivity extends AppCompatActivity {
+import knoblauch.readdesc.R;
+
+public class ReadActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_read);
+        setContentView(R.layout.activity_read);
     }
 }

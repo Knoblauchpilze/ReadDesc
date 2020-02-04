@@ -1,4 +1,4 @@
-package knoblauch.readdesc;
+package knoblauch.readdesc.gui;
 
 public interface ReadItemClickListener {
 
@@ -12,5 +12,5 @@ public interface ReadItemClickListener {
      *             be used in the read adapter to fetch the corresponding read. It is
      *             linked to the `resource` provided as first argument of this slot.
      */
-    void onReadItemViewClick(int resource, int id);
+    void onReadItemViewClick(int resource, int id, String name);
 }

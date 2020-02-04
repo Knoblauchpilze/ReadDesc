@@ -1,4 +1,4 @@
-package knoblauch.readdesc;
+package knoblauch.readdesc.gui;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -8,6 +8,9 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+
+import knoblauch.readdesc.R;
+import knoblauch.readdesc.model.ReadDesc;
 
 public class DeleteReadItemDialog extends DialogFragment {
 

@@ -3,9 +3,6 @@
     <item android:id="@+id/create_new_read_menu_opt"
           android:title="@string/create_read_title"
           android:titleCondensed="@string/read_actions_condensed_title"/>
-    <item android:id="@+id/delete_all_menu_opt"
-          android:title="@string/delete_reads"
-          android:titleCondensed="@string/delete_reads_condensed_title"/>
     <item android:id="@+id/settings_menu_opt"
           android:title="@string/settings_title"/>
 </menu>

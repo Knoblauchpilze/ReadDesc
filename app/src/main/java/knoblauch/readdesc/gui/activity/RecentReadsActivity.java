@@ -1,4 +1,4 @@
-package knoblauch.readdesc;
+package knoblauch.readdesc.gui.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
@@ -17,6 +17,12 @@ import android.widget.ListView;
 
 import java.util.Stack;
 
+import knoblauch.readdesc.R;
+import knoblauch.readdesc.gui.DeleteReadItemDialog;
+import knoblauch.readdesc.gui.ReadItemClickListener;
+import knoblauch.readdesc.gui.ReadsAdapter;
+import knoblauch.readdesc.model.ReadDesc;
+
 public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, DeleteReadItemDialog.NoticeDialogListener {
 
     /**
@@ -26,8 +32,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     private enum AppAction {
         OpenRead,
         OpenSource,
-        Delete,
-        DeleteAll
+        Delete
     }
 
     /**
@@ -78,12 +83,12 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     @Override
-    public void onReadItemViewClick(int resource, int id) {
+    public void onReadItemViewClick(int resource, int id, String name) {
         // We've been called because the specified view has been clicked. This should be
         // related to a list item
         ReadDesc desc = m_reads.getItem(id);
 
-        Log.i("main", "Clicked on read item menu at " + id + " view id being " + resource + ", play: " + R.id.read_item_play + " read is " + desc.getName());
+        Log.i("main", "Clicked on read item menu at " + id + " view id being " + resource + ", play: " + R.id.read_item_play + " read is " + desc.getName() + " (name: " + name + ")");
 
         // Check the type of resource that has been clicked: this will tell us what to do
         // with the read description.
@@ -146,9 +151,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             case R.id.create_new_read_menu_opt:
                 openActivity(MenuAction.CreateRead);
                 return true;
-            case R.id.delete_all_menu_opt:
-                performAction(AppAction.DeleteAll, null);
-                return true;
             case R.id.settings_menu_opt:
                 openActivity(MenuAction.Settings);
                 return true;
@@ -201,7 +203,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
 
         switch (op.first) {
             case Delete:
-            case DeleteAll:
                 deleteRead(op.second);
                 break;
             default:
@@ -287,7 +288,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
                 DialogFragment dialog = new DeleteReadItemDialog(desc, this, this);
                 dialog.show(getSupportFragmentManager(), "DeleteDialogFor" + desc.getName());
                 break;
-            case DeleteAll:
             case OpenRead:
             case OpenSource:
             default:
