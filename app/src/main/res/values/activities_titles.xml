@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="read_activity_title">Reading</string>
+    <string name="settings_activity_title">Settings</string>
+    <string name="create_read_activity_title">Create read</string>
+    <string name="recent_reads_activity_title">Recent</string>
+</resources>

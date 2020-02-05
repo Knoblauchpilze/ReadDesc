@@ -9,10 +9,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".gui.activity.ReadActivity"></activity>
-        <activity android:name=".gui.activity.CreateReadActivity" />
-        <activity android:name=".gui.activity.SettingsActivity" />
-        <activity android:name=".gui.activity.RecentReadsActivity">
+        <activity
+            android:name=".gui.activity.ReadActivity"
+            android:label="@string/read_activity_title"/>
+        <activity
+            android:name=".gui.activity.CreateReadActivity"
+            android:label="@string/create_read_activity_title" />
+        <activity
+            android:name=".gui.activity.SettingsActivity"
+            android:label="@string/settings_activity_title" />
+        <activity
+            android:name=".gui.activity.RecentReadsActivity"
+            android:label="@string/recent_reads_activity_title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

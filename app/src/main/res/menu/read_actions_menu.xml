@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/create_new_read_menu_opt"
-          android:title="@string/create_read_title"
+          android:title="@string/create_read_activity_title"
           android:titleCondensed="@string/read_actions_condensed_title"/>
     <item android:id="@+id/settings_menu_opt"
-          android:title="@string/settings_title"/>
+          android:title="@string/settings_activity_title"/>
 </menu>
