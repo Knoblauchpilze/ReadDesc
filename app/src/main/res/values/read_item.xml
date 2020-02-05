@@ -5,10 +5,14 @@
     <string name="reads_column_date">"date"</string>
     <string name="reads_column_completion">"completion"</string>
 
-    <dimen name="read_item_title_size">30dp</dimen>
-    <dimen name="read_item_desc_size">20dp</dimen>
+    <dimen name="read_item_title_size">30sp</dimen>
+    <dimen name="read_item_desc_size">20sp</dimen>
 
     <string name="read_item_ctx_menu_open">Open</string>
     <string name="read_item_ctx_menu_delete">Delete</string>
     <string name="read_item_ctx_menu_source">Open source</string>
+
+    <string name="start_read_img_desc">Start reading</string>
+    <string name="delete_read_img_desc">Delete read</string>
+    <string name="read_item_thumbnail_img_desc">Read thumbnail</string>
 </resources>

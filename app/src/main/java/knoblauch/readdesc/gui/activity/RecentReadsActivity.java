@@ -62,7 +62,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_recent_reads);
 
         // Create the adapter to display recent reads.
         m_reads = new ReadsAdapter(this, 10, this);

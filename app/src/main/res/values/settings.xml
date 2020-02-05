@@ -1,2 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <dimen name="settings_general_menu_title_size">30sp</dimen>
+    <dimen name="settings_general_menu_opt_size">20sp</dimen>
+    <dimen name="settings_general_secondary_opt_size">15sp</dimen>
+
+    <string name="settings_text_flip_title">Word flip interval</string>
+    <string name="settings_word_flip_unit">ms</string>
+    <string name="settings_bg_color_text">Read background color</string>
+    <string name="settings_text_color_text">Read text color</string>
+
+    <string name="settings_read_location_title">Read storage location</string>
+    <string name="settings_default_read_storage_location">"Documents/reads</string>
+    <string name="settings_storage_browse">Browse</string>
+
+    <dimen name="settings_component_margin">10dp</dimen>
+    <dimen name="title_to_content_margin">15dp</dimen>
+
+    <string name="settings_red_color_text">"Red"</string>
+    <string name="settings_green_color_text">"Green"</string>
+    <string name="settings_blue_color_text">"Blue"</string>
+
+    <string name="settings_color_preview_text">Preview</string>
+    <color name="settings_default_bg_color">#303030</color>
+    <color name="settings_default_text_color">#FFF700</color>
+</resources>
