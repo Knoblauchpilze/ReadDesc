@@ -26,8 +26,8 @@ import knoblauch.readdesc.model.ReadDesc;
 public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, DeleteReadItemDialog.NoticeDialogListener {
 
     /**
-     * @brief - Convenience enumeration describing the possible actions to take in the
-     *          application. Not all actions might be interpreted by all the activities.
+     * Convenience enumeration describing the possible actions to take in the
+     * application. Not all actions might be interpreted by all the activities.
      */
     private enum AppAction {
         OpenRead,
@@ -36,9 +36,9 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     /**
-     * @brief - The possible menu actions for this view. This corresponds to the possible
-     *          actions that are always available to the user no matter what the current
-     *          activity is.
+     * The possible menu actions for this view. This corresponds to the possible
+     * actions that are always available to the user no matter what the current
+     * activity is.
      */
     private enum MenuAction {
         CreateRead,
@@ -46,16 +46,16 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     /**
-     * @brief - The adapter containing all the reads to be displayed by this activity.
+     * The adapter containing all the reads to be displayed by this activity.
      */
     private ReadsAdapter m_reads;
 
     /**
-     * @brief - The list of pending operations that are awaiting dialog confirmation. We
-     *          process them using a LIFO system because we assume that confirmations are
-     *          the result of some process: if a new process awaits a confirmation this
-     *          probably means that the operation to be processed was a consequence of an
-     *          existing operation (and should thus be processed first).
+     * The list of pending operations that are awaiting dialog confirmation. We
+     * process them using a LIFO system because we assume that confirmations are
+     * the result of some process: if a new process awaits a confirmation this
+     * probably means that the operation to be processed was a consequence of an
+     * existing operation (and should thus be processed first).
      */
     Stack<Pair<AppAction, ReadDesc>> m_pendingOps;
 
@@ -83,12 +83,12 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     @Override
-    public void onReadItemViewClick(int resource, int id, String name) {
+    public void onReadItemViewClick(int resource, int id) {
         // We've been called because the specified view has been clicked. This should be
         // related to a list item
         ReadDesc desc = m_reads.getItem(id);
 
-        Log.i("main", "Clicked on read item menu at " + id + " view id being " + resource + ", play: " + R.id.read_item_play + " read is " + desc.getName() + " (name: " + name + ")");
+        Log.i("main", "Clicked on read item menu at " + id + " view id being " + resource + ", play: " + R.id.read_item_play + " read is " + desc.getName());
 
         // Check the type of resource that has been clicked: this will tell us what to do
         // with the read description.
@@ -201,13 +201,8 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // Process the action.
         Pair<AppAction, ReadDesc> op = m_pendingOps.pop();
 
-        switch (op.first) {
-            case Delete:
-                deleteRead(op.second);
-                break;
-            default:
-                // Other actions do not require anything to be done.
-                break;
+        if (op.first == AppAction.Delete) {
+            deleteRead(op.second);
         }
     }
 
@@ -222,7 +217,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     /**
-     * @brief  - Used to create and display a new activity related to the specified action.
+     * Used to create and display a new activity related to the specified action.
      * @param action - the menu action describing the activity to create.
      */
     private void openActivity(MenuAction action) {
@@ -237,22 +232,18 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             case Settings:
                 act = new Intent(RecentReadsActivity.this, SettingsActivity.class);
                 break;
-            default:
-                break;
         }
 
         // Launch the activity if we could find the corresponding view.
-        if (act != null) {
-            startActivity(act);
-        }
+        startActivity(act);
     }
 
     /**
-     * @brief - Used to perform the registration of the action in the internal list of pending
-     *          operations to perform. This mechanism is used to work around the fact that the
-     *          dialogs are asynchronous: in case we want a confirmation we thus have to wait
-     *          for the user to answer before taking any actions. Actions are stored in order
-     *          of their creation and are performed as soon as an answer is received.
+     * Used to perform the registration of the action in the internal list of pending
+     * operations to perform. This mechanism is used to work around the fact that the
+     * dialogs are asynchronous: in case we want a confirmation we thus have to wait
+     * for the user to answer before taking any actions. Actions are stored in order
+     * of their creation and are performed as soon as an answer is received.
      * @param action - the action to perform.
      * @param desc - the read associated to the action (might be null if the action does not
      *               need any read).
@@ -263,9 +254,9 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     /**
-     * @brief - Used to perform the specified action with the current data available in the
-     *          activity. This usually means retrieving in some way the current selected or
-     *          at least current read.
+     * Used to perform the specified action with the current data available in the
+     * activity. This usually means retrieving in some way the current selected or
+     * at least current read.
      * @param action - the action to perform.
      * @param desc - the read on which the action should be performed. Note that this value
      *               might be null in case of some actions that can be applied on all the
@@ -297,10 +288,10 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     }
 
     /**
-     * @brief - Called whenever a deletion of the input read should be performed. At this
-     *          point we already displayed an alert dialog and we are sure that the read
-     *          should be deleted. We will handle both the deletion of the read from the
-     *          data model and from the list of items representing the reads.
+     * Called whenever a deletion of the input read should be performed. At this
+     * point we already displayed an alert dialog and we are sure that the read
+     * should be deleted. We will handle both the deletion of the read from the
+     * data model and from the list of items representing the reads.
      * @param desc - the read description to delete.
      */
     private void deleteRead(ReadDesc desc) {

@@ -15,43 +15,44 @@ import knoblauch.readdesc.model.ReadDesc;
 public class DeleteReadItemDialog extends DialogFragment {
 
     /**
-     * @brief - The read description attached to this dialog.
+     * The read description attached to this dialog.
      */
     private ReadDesc m_read;
 
     /**
-     * @brief - The context executing this dialog. Usually the parent
-     *          activity creating the dialog.
+     * The context executing this dialog. Usually the parent
+     * activity creating the dialog.
      */
     private Context m_context;
 
     /**
-     * @brief - The activity that creates an instance of this dialog fragment
-     *           must implement this interface in order to receive these event
-     *           allbacks. Each method passes the DialogFragment in case the
-     *           host needs to query it.
+     * The activity that creates an instance of this dialog fragment
+     * must implement this interface in order to receive these event
+     * callbacks. Each method passes the DialogFragment in case the
+     * host needs to query it.
      */
     public interface NoticeDialogListener {
+
         /***
-         * @bief - Fired in case the positive option has been chosen on the dialog.
+         * Fired in case the positive option has been chosen on the dialog.
          * @param dialog - the dialog that emitted the positive option.
          */
         void onDialogPositiveClick(DialogFragment dialog);
 
         /**
-         * @brief - Fired in case the negative option has been chosen.
+         * Fired in case the negative option has been chosen.
          * @param dialog - the dialog that emitted this option.
          */
         void onDialogNegativeClick(DialogFragment dialog);
     }
 
     /**
-     * @brief - Internal variable to notify of options chosen in this dialog.
+     * Internal variable to notify of options chosen in this dialog.
      */
     private NoticeDialogListener m_listener;
 
     /**
-     * @brief - Creates a fragment dialog with the specified read attached to it.
+     * Creates a fragment dialog with the specified read attached to it.
      * @param read - the read attached to this dialog.
      * @param context - the context into which this dialog is created.
      * @param listener - the potential listener to notify of options chosen in
