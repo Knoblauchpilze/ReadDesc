@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import knoblauch.readdesc.R;
 
@@ -39,6 +40,19 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
      */
     private ColorSeekBars m_textColor;
 
+    /**
+     * Holds the text view displaying the current word flip interval expressed
+     * in terms of units defined in the layout itself. Used to update the value
+     * whenever the user changes the seek bar allowing to control this setting.
+     */
+    private TextView m_wordFlipText;
+
+    /**
+     * Holds the seek bar allowing to control the word flip interval. Used to
+     * easily detect changes from this element.
+     */
+    private SeekBar m_wordFlipValue;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Create using the parent handler.
@@ -46,6 +60,16 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
         // Assign the main content.
         setContentView(R.layout.activity_settings);
+
+        // Initialize the word flip interval.
+        m_wordFlipText = findViewById(R.id.settings_word_flip_value);
+        m_wordFlipValue = findViewById(R.id.settings_word_flip_seek_bar);
+
+        int defWordFlip = getResources().getInteger(R.integer.settings_default_world_flip);
+        m_wordFlipValue.setProgress(defWordFlip);
+        m_wordFlipValue.setOnSeekBarChangeListener(this);
+
+        m_wordFlipText.setText("" + defWordFlip + getResources().getString(R.string.settings_word_flip_unit));
 
         // Save relevant views in order to be able to change the suited properties.
         // Also we need to connect signals from various sliders.
@@ -92,7 +116,14 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         // We only want to react to changed started by the user.
         if (fromUser) {
             // Determine which switch bar has generated the event. When this is done we
-            // can use it to update the background color from the preview button.
+            // can use it to update the background color from the preview button or to
+            // change the text displaying the word flip interval.
+            if (seekBar == m_wordFlipValue) {
+                m_wordFlipText.setText("" + progress + getResources().getString(R.string.settings_word_flip_unit));
+
+                return;
+            }
+
             boolean valid = false;
             Button prev = null;
             int r = 0, g = 0, b = 0;

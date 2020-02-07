@@ -28,6 +28,7 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:id="@+id/settings_word_flip_value"
                 android:layout_weight="40"
                 android:text="@string/settings_word_flip_unit"
                 android:textSize="@dimen/settings_general_menu_opt_size"/>
@@ -35,8 +36,10 @@
             <SeekBar
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/settings_seek_bar"
-                android:layout_weight="60"/>
+                android:id="@+id/settings_word_flip_seek_bar"
+                android:layout_weight="60"
+                android:min="@integer/settings_min_world_flip_interval"
+                android:max="@integer/settings_max_world_flip_interval"/>
 
         </LinearLayout>
 

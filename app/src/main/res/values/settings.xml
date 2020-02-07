@@ -21,6 +21,11 @@
     <string name="settings_blue_color_text">"Blue"</string>
 
     <string name="settings_color_preview_text">Preview</string>
+
+    <integer name="settings_min_world_flip_interval">50</integer>
+    <integer name="settings_default_world_flip">200</integer>
+    <integer name="settings_max_world_flip_interval">1000</integer>
+
     <color name="settings_default_bg_color">#303030</color>
     <color name="settings_default_text_color">#FFF700</color>
 </resources>
