@@ -5,6 +5,8 @@ import androidx.core.content.ContextCompat;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -109,6 +111,19 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
         m_bgColor.preview.setBackgroundColor(bg);
         m_textColor.preview.setBackgroundColor(text);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Call base handler.
+        super.onCreateOptionsMenu(menu);
+
+        // Inflate the options menu as described in the corresponding resource.
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.settings_actions_menu, menu);
+
+        // The menu was created.
+        return true;
     }
 
     @Override

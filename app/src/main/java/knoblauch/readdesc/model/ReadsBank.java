@@ -8,10 +8,10 @@ import java.util.List;
 public class ReadsBank {
 
     /**
-     * @brief - Describe the ordering to apply to the reads inside this bank. This means that
-     *          upon loading all the reads they will be organized using the specified value.
-     *          It helps having some nice filtering options when displaying all the reads that
-     *          the user created.
+     * Describe the ordering to apply to the reads inside this bank. This means that
+     * upon loading all the reads they will be organized using the specified value.
+     * It helps having some nice filtering options when displaying all the reads that
+     * the user created.
      */
     public enum Ordering {
         Alphabetical,
@@ -20,19 +20,19 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Internal utility class used whenever the collection of reads should be sorted.
-     *          It uses the provided ordering to compare reads between each other.
+     * Internal utility class used whenever the collection of reads should be sorted.
+     * It uses the provided ordering to compare reads between each other.
      */
     private class ReadComparator implements Comparator<ReadDesc> {
 
         /**
-         * @brief - The ordering to apply when comparing reads.
+         * The ordering to apply when comparing reads.
          */
         private Ordering m_order;
 
         /**
-         * @brief - Used to create a new comparator with the specified ordering. This value is
-         *          applied when comparing reads.
+         * Used to create a new comparator with the specified ordering. This value is
+         * applied when comparing reads.
          * @param order - the ordering to apply to compare reads.
          */
         ReadComparator(Ordering order) {
@@ -51,7 +51,7 @@ public class ReadsBank {
                 case LastAccessed:
                     return o1.getLastAccessedDate().compareTo(o2.getLastAccessedDate());
                 case CreationDate:
-                    return o1.getCreationDate().compareTo(o1.getCreationDate());
+                    return o1.getCreationDate().compareTo(o2.getCreationDate());
                 case Alphabetical:
                 default:
                     // Assume alphabetical order in case the ordering is unknown.
@@ -61,31 +61,31 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Describe the available reads in the application. This list is populated with
-     *          the data from previous execution where the user might have added some reads
-     *          from various resources. This is the main resource of the application and is
-     *          used for virtually any data displayed in activities.
+     * Describe the available reads in the application. This list is populated with
+     * the data from previous execution where the user might have added some reads
+     * from various resources. This is the main resource of the application and is
+     * used for virtually any data displayed in activities.
      */
     private List<ReadDesc> m_reads;
 
     /**
-     * @brief - Temporary variable allowing to store how many reads should be created upon
-     *          creating such an object.
-     *          TODO: Remove this ASAP.
+     * Temporary variable allowing to store how many reads should be created upon
+     * creating such an object.
+     * TODO: Remove this ASAP.
      */
     private int m_count;
 
     /**
-     * @brief - Used to describe the local ordering applied to the reads. This ordering is
-     *          also reflected when picking a read with the `getRead` method so it usually
-     *          is translated into visual ordering of the components.
+     * Used to describe the local ordering applied to the reads. This ordering is
+     * also reflected when picking a read with the `getRead` method so it usually
+     * is translated into visual ordering of the components.
      */
     private Ordering m_ordering;
 
     /**
-     * @brief - Perform the load of the reads descriptions in the internal collection from
-     *          the storage location. This usually means fetching data from local disk and
-     *          retrieving the last state of each one of them.
+     * Perform the load of the reads descriptions in the internal collection from
+     * the storage location. This usually means fetching data from local disk and
+     * retrieving the last state of each one of them.
      */
     private void load() {
         // Allocate the internal reads array.
@@ -128,10 +128,10 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Performs the ordering of the reads using the internal `m_order` value.
-     *          Assumes that the reads are already loaded and does nothing to do so.
-     *          The internal `m_reads` collection is modified to reflect the desired
-     *          ordering.
+     * Performs the ordering of the reads using the internal `m_order` value.
+     * Assumes that the reads are already loaded and does nothing to do so.
+     * The internal `m_reads` collection is modified to reflect the desired
+     * ordering.
      */
     private void orderReads() {
         // Sort through the generic algorithm.
@@ -139,9 +139,9 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Create a new reads bank with the specified number of reads to create. For now
-     *          it is not populated with actual data but this should be changed ASAP (i.e. as
-     *          soon as we learn how to actually persist information to the disk).
+     * Create a new reads bank with the specified number of reads to create. For now
+     * it is not populated with actual data but this should be changed ASAP (i.e. as
+     * soon as we learn how to actually persist information to the disk).
      * @param order - the order to apply to reads upon being loaded. This will also be applied
      *                when fetching a read through the `getRead` interface so it usually also
      *                translate into visual ordering of the reads.
@@ -159,12 +159,12 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Used to retrieve the read description at index `id`. Note that if there
-     *          are not enough reads in this bank to satisfy the requested index a `null`
-     *          value is returned. Similarly if the provided index is negative `null` is
-     *          also returned.
-     *          Otherwise the read description corresponding to the `id` slot is returned
-     *          when sorting using the provided ordering.
+     * Used to retrieve the read description at index `id`. Note that if there
+     * are not enough reads in this bank to satisfy the requested index a `null`
+     * value is returned. Similarly if the provided index is negative `null` is
+     * also returned.
+     * Otherwise the read description corresponding to the `id` slot is returned
+     * when sorting using the provided ordering.
      * @param id - the index of the read to retrieve.
      * @return - `null` if the provided `id` does not correspond to any valid read or the
      *           corresponding read if available.
@@ -180,7 +180,7 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Return the current number of reads registered in this bank.
+     * Return the current number of reads registered in this bank.
      * @return - the number of reads registered in this object.
      */
     public int size() {
@@ -188,11 +188,11 @@ public class ReadsBank {
     }
 
     /**
-     * @brief - Attempt to remove the input read from the internal collection. In case the
-     *          read is invalid or cannot be found in this bank this method returns `false`.
+     * Attempt to remove the input read from the internal collection. In case the
+     * read is invalid or cannot be found in this bank this method returns `false`.
      * @param desc - the read description to remove.
-     * @return - `true` if the read could be found and was successfully removed and `false`
-     *           otherwise.
+     * @return - `true` if the read could be found and was successfully removed and
+     *           `false` otherwise.
      */
     public boolean remove(ReadDesc desc) {
         // In case the input read is `null` do nothing.
