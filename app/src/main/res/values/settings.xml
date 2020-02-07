@@ -10,7 +10,7 @@
 
     <!-- Options titles -->
     <string name="settings_text_flip_title">Word flip interval</string>
-    <string name="settings_word_flip_unit">ms</string>
+    <string name="settings_word_flip_text">%1$d ms</string>
     <string name="settings_bg_color_text">Read background color</string>
     <string name="settings_text_color_text">Read text color</string>
 
@@ -32,8 +32,4 @@
 
     <color name="settings_default_bg_color">#303030</color>
     <color name="settings_default_text_color">#FFF700</color>
-
-    <!-- Menu options -->
-    <string name="settings_menu_reset_title">Reset to default</string>
-    <string name="settings_menu_apply_title">Apply</string>
 </resources>

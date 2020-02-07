@@ -2,18 +2,22 @@ package knoblauch.readdesc.gui.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
 
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import knoblauch.readdesc.R;
+import knoblauch.readdesc.gui.NotifierDialog;
+import knoblauch.readdesc.gui.ResetPreferencesDialog;
 
-public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
+public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NotifierDialog.NoticeDialogListener {
 
     /**
      * Describe a useful collection of seek bars representing the possible channels
@@ -55,6 +59,13 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
      */
     private SeekBar m_wordFlipValue;
 
+    /**
+     * Holds the text view representing the string for the storage location of
+     * distant read source. This will be used to fetch locally the remote reads
+     * so that the user can read them even when not connected to the internet.
+     */
+    private TextView m_readStorageLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Create using the parent handler.
@@ -71,7 +82,12 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_wordFlipValue.setProgress(defWordFlip);
         m_wordFlipValue.setOnSeekBarChangeListener(this);
 
-        m_wordFlipText.setText("" + defWordFlip + getResources().getString(R.string.settings_word_flip_unit));
+        String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), defWordFlip);
+        m_wordFlipText.setText(wordFlip);
+
+        // Initialize the read storage location.
+        m_readStorageLocation = findViewById(R.id.settings_read_storage_location);
+        m_readStorageLocation.setText(R.string.settings_default_read_storage_location);
 
         // Save relevant views in order to be able to change the suited properties.
         // Also we need to connect signals from various sliders.
@@ -127,6 +143,60 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Check which menu item has been selected and perform the appropriate action.
+        switch (item.getItemId()) {
+            case R.id.settings_menu_apply:
+                // TODO: Handle this.
+                return true;
+            case R.id.settings_menu_reset:
+                // Create a dialog to ask the user for confirmation. Dialogs in android
+                // are asynchronous so we should not expect to do anything here. Instead
+                // we will wait for the specific slots to be called indicating that the
+                // dialog was confirmed.
+                DialogFragment dialog = new ResetPreferencesDialog(this, this);
+                dialog.show(getSupportFragmentManager(), "ResetPrefDialog");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+        // Reset word flip interval.
+        int defWordFlip = getResources().getInteger(R.integer.settings_default_world_flip);
+        m_wordFlipValue.setProgress(defWordFlip);
+
+        String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), defWordFlip);
+        m_wordFlipText.setText(wordFlip);
+
+        // Reset read storage location.
+        m_readStorageLocation.setText(R.string.settings_default_read_storage_location);
+
+        // Reset background and text colors.
+        int bg = ContextCompat.getColor(this, R.color.settings_default_bg_color);
+        int text = ContextCompat.getColor(this, R.color.settings_default_text_color);
+
+        m_bgColor.red.setProgress(Color.red(bg));
+        m_bgColor.green.setProgress(Color.green(bg));
+        m_bgColor.blue.setProgress(Color.blue(bg));
+
+        m_textColor.red.setProgress(Color.red(text));
+        m_textColor.green.setProgress(Color.green(text));
+        m_textColor.blue.setProgress(Color.blue(text));
+
+        m_bgColor.preview.setBackgroundColor(bg);
+        m_textColor.preview.setBackgroundColor(text);
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        // The user refused to reset the settings to default. Nothing more to do.
+    }
+
+
+    @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         // We only want to react to changed started by the user.
         if (fromUser) {
@@ -134,7 +204,8 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
             // can use it to update the background color from the preview button or to
             // change the text displaying the word flip interval.
             if (seekBar == m_wordFlipValue) {
-                m_wordFlipText.setText("" + progress + getResources().getString(R.string.settings_word_flip_unit));
+                String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), progress);
+                m_wordFlipText.setText(wordFlip);
 
                 return;
             }

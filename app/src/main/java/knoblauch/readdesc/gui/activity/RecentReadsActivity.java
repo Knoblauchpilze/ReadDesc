@@ -19,11 +19,12 @@ import java.util.Stack;
 
 import knoblauch.readdesc.R;
 import knoblauch.readdesc.gui.DeleteReadItemDialog;
+import knoblauch.readdesc.gui.NotifierDialog;
 import knoblauch.readdesc.gui.ReadItemClickListener;
 import knoblauch.readdesc.gui.ReadsAdapter;
 import knoblauch.readdesc.model.ReadDesc;
 
-public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, DeleteReadItemDialog.NoticeDialogListener {
+public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, NotifierDialog.NoticeDialogListener {
 
     /**
      * Convenience enumeration describing the possible actions to take in the
