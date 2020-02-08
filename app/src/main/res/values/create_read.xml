@@ -29,4 +29,8 @@
     <string name="new_read_file_title">From file</string>
     <string name="new_read_website_title">From web page</string>
     <string name="new_read_e_book_title">From e-book</string>
+
+    <!-- Buttons -->
+    <string name="new_read_cancel_title">Cancel</string>
+    <string name="new_read_accept_title">Create</string>
 </resources>

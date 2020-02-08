@@ -121,7 +121,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             case R.id.read_delete_menu_opt:
                 performAction(AppAction.Delete, read);
                 break;
-            case R.id.read_view_menu_opt:
+            case R.id.read_open_source_menu_opt:
                 performAction(AppAction.OpenSource, read);
                 break;
             case R.id.read_open_menu_opt:
@@ -182,9 +182,12 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
                 performAction(AppAction.Delete, m_reads.getItem((int)info.id));
                 return true;
             case R.id.read_open_menu_opt:
-            case R.id.read_view_menu_opt:
+                performAction(AppAction.OpenRead, m_reads.getItem((int)info.id));
+                return true;
+            case R.id.read_open_source_menu_opt:
+                performAction(AppAction.OpenSource, m_reads.getItem((int)info.id));
+                return true;
             default:
-                // TODO: Should handle this.
                 break;
         }
 
@@ -283,7 +286,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             case OpenRead:
             case OpenSource:
             default:
-                // TODO: Implementation.
+                // TODO: Implement opening of source/read.
                 break;
         }
     }

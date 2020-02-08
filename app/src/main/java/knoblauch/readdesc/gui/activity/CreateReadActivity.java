@@ -3,7 +3,8 @@ package knoblauch.readdesc.gui.activity;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -13,8 +14,84 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 
 import knoblauch.readdesc.R;
+import knoblauch.readdesc.model.ReadDesc;
 
-public class CreateReadActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
+public class CreateReadActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, Button.OnClickListener, TextWatcher {
+
+    /**
+     * Private class used to implement the `TextWatcher` interface in order to detect
+     * changes to the source of the read.
+     */
+    private class SourceTextWatcher implements TextWatcher {
+
+        /**
+         * Holds the current text watched by this listener.
+         */
+        private String m_text;
+
+        /**
+         * Create a new source text watcher. The text is by default set to the input
+         * string upon building the object and can be changed later with the `setText`
+         * method if needed.
+         * @param text - the text to assign to this watcher.
+         */
+        SourceTextWatcher(String text) {
+            setText(text);
+        }
+
+        /**
+         * Used to reset the text associated to the producer watched by this object to
+         * a known value. This can be useful to keep things synchronized when the text
+         * edit listened to by this watcher is modified programmatically. Note that it
+         * should be used with care as it might bring inconsistencies between the edit
+         * text and the watcher.
+         */
+        void setText(String text) {
+            m_text = text;
+        }
+
+        /**
+         * Return the texts associated to this watcher. This is the result accumulated
+         * so far by listening to the producers used by this watcher.
+         * @return - the text that should be displayed in the producer.
+         */
+        String getText() {
+            return m_text;
+        }
+
+        /**
+         * Allow to determine whether the text contained in this watcher is empty.
+         * @return - `true` if the internal text is empty and `false` otherwise.
+         */
+        boolean isEmpty() {
+            return getText().isEmpty();
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            // Nothing to do here, we prefer to react through the `onTextChanged` method.
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            // Update the internal text.
+            m_text = s.toString();
+
+            // Also we need to update the status of the `accept` button in the parent
+            // class.
+            if (m_text.isEmpty()) {
+                m_accept.setEnabled(false);
+            }
+            else if (!m_readName.getText().toString().isEmpty()) {
+                m_accept.setEnabled(true);
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            // Nothing to do here, we prefer to react through the `onTextChanged` method.
+        }
+    }
 
     /**
      * Holds the properties needed to create a read with each mode. This basically
@@ -43,6 +120,15 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
     }
 
     /**
+     * Holds the current desired type of the read. This is directly linked to the
+     * radio button currently active in this view. Note that this value is updated
+     * each time the user selects a new button. It is also used to determine which
+     * kind of value should be fetched for the source of the read more easily than
+     * to loop through the possible types.
+     */
+    ReadDesc.Type m_type;
+
+    /**
      * Holds the text edit representing the name of the read to create. Filled by
      * the user to provide an identifier for the read.
      */
@@ -67,10 +153,29 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
     CreationModeProps m_eBookProps;
 
     /**
+     * Defines a text watcher used to react on modification of the text of the desired
+     * source of the read. Depending on the type of the read it will automatically bind
+     * to the correct producer.
+     */
+    SourceTextWatcher m_sourceWatcher;
+
+    /**
      * Holds the properties used to reference graphic elements controlling the selection
      * of a thumbnail.
      */
     ThumbnailSelectionProps m_thumbnail;
+
+    /**
+     * Holds a reference to the cancellation button. Hitting this button will finish the
+     * activity and bring back to the recent reads screen.
+     */
+    Button m_cancel;
+
+    /**
+     * Holds a reference to the cancellation button. Only possible to use it when the
+     * name of the read contains at least a letter and when a source has been selected.
+     */
+    Button m_accept;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,12 +185,17 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         // Assign the main content.
         setContentView(R.layout.activity_create_read);
 
+        // Default type is a file read.
+        m_type = ReadDesc.Type.File;
+
         // Retrieve views so that we can react to the actions of the user.
         m_readName = findViewById(R.id.new_read_name);
 
         m_fileProps = new CreationModeProps();
         m_websiteProps = new CreationModeProps();
         m_eBookProps = new CreationModeProps();
+
+        m_sourceWatcher = new SourceTextWatcher("");
 
         m_fileProps.active = findViewById(R.id.new_read_file);
         m_fileProps.source= findViewById(R.id.new_read_file_source);
@@ -108,13 +218,29 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         m_thumbnail.source = findViewById(R.id.new_read_thumbnail_location);
         m_thumbnail.browse = findViewById(R.id.new_read_thumbnail_browse);
 
+        m_cancel = findViewById(R.id.new_read_cancel);
+        m_accept = findViewById(R.id.new_read_accept);
+
         // Register to relevant signals to be able to detect actions in the
         // interface.
+        m_readName.addTextChangedListener(this);
+
         m_fileProps.active.setOnCheckedChangeListener(this);
         m_websiteProps.active.setOnCheckedChangeListener(this);
         m_eBookProps.active.setOnCheckedChangeListener(this);
 
+        m_fileProps.source.addTextChangedListener(m_sourceWatcher);
+        m_websiteProps.source.addTextChangedListener(m_sourceWatcher);
+        m_eBookProps.source.addTextChangedListener(m_sourceWatcher);
+
         m_thumbnail.active.setOnCheckedChangeListener(this);
+
+        m_fileProps.browse.setOnClickListener(this);
+        m_websiteProps.browse.setOnClickListener(this);
+        m_eBookProps.browse.setOnClickListener(this);
+
+        m_cancel.setOnClickListener(this);
+        m_accept.setOnClickListener(this);
     }
 
     @Override
@@ -159,6 +285,82 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             m_websiteProps.layout.setVisibility(wVis);
             m_eBookProps.layout.setVisibility(eVis);
         }
+
+        // Update the read type and the text use for the source or the read. We will also
+        // de/activate the `create` button based on whether the read has a valid name and
+        // a valid source.
+        if (fVis != View.GONE) {
+            m_type = ReadDesc.Type.File;
+            m_sourceWatcher.setText(m_fileProps.source.getText().toString());
+        }
+        if (wVis != View.GONE) {
+            m_type = ReadDesc.Type.Webpage;
+            m_sourceWatcher.setText(m_websiteProps.source.getText().toString());
+        }
+        if (eVis != View.GONE) {
+            m_type = ReadDesc.Type.Ebook;
+            m_sourceWatcher.setText(m_eBookProps.source.getText().toString());
+        }
+
+        m_accept.setEnabled(!m_readName.getText().toString().isEmpty() && !m_sourceWatcher.isEmpty());
     }
 
+    @Override
+    public void onClick(View v) {
+        // Detect which button has been clicked. We need to handle both the cases where the
+        // user either cancelled or validated the creation of the read and when a request to
+        // set the source of the read should be processed.
+
+        // Handle cancellation.
+        if (v == m_cancel) {
+            // Terminate the activity, the user does not want to create a read after all.
+            finish();
+        }
+
+        // Handle creation of the read.
+        // TODO: Handle the creation of the read.
+
+        // Handle the request to browse for a new source of the read.
+        if (v == m_fileProps.browse) {
+            // TODO: Open file browser.
+        }
+
+        if (v == m_websiteProps.browse) {
+            // TODO: Open browser to navigate to the page.
+        }
+
+        if (v == m_eBookProps.browse) {
+            // TODO: Open file browser to select e-book.
+        }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        // Nothing to do: we will react on the `onTextChanged` event.
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        // Determine whether we have a valid char sequence in which case we need to enable
+        // the `create` button if the source is valid.
+
+        // If the text for the read's name is empty we can't possibly activate the `accept`
+        // button.
+        if (s.toString().isEmpty()) {
+            m_accept.setEnabled(false);
+
+            return;
+        }
+
+        // Otherwise, check whether the source is valid: if this the case we can enable
+        // the `accept` button.
+        if (!m_sourceWatcher.isEmpty()) {
+            m_accept.setEnabled(true);
+        }
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+        // Nothing to do: we will react on the `onTextChanged` event.
+    }
 }

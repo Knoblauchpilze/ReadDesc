@@ -199,6 +199,35 @@
 
         </LinearLayout>
 
+        <View style="@style/Divider"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/new_read_component_margin">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/new_read_cancel"
+                android:textAllCaps="false"
+                android:text="@string/new_read_cancel_title"
+                android:textSize="@dimen/new_read_general_secondary_opt_size"
+                android:layout_marginStart="@dimen/new_read_component_margin"
+                android:layout_alignParentStart="true"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/new_read_accept"
+                android:textAllCaps="false"
+                android:text="@string/new_read_accept_title"
+                android:textSize="@dimen/new_read_general_secondary_opt_size"
+                android:enabled="false"
+                android:layout_marginEnd="@dimen/new_read_component_margin"
+                android:layout_alignParentEnd="true"/>
+
+        </RelativeLayout>
 
     </LinearLayout>
 

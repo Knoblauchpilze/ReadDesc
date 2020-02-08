@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/read_open_menu_opt"
           android:title="@string/read_item_ctx_menu_open"/>
-    <item android:id="@+id/read_view_menu_opt"
+    <item android:id="@+id/read_open_source_menu_opt"
         android:title="@string/read_item_ctx_menu_source"/>
     <item android:id="@+id/read_delete_menu_opt"
           android:title="@string/read_item_ctx_menu_delete"/>
