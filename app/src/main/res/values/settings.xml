@@ -6,7 +6,7 @@
     <dimen name="settings_general_secondary_opt_size">15sp</dimen>
 
     <dimen name="settings_component_margin">10dp</dimen>
-    <dimen name="title_to_content_margin">15dp</dimen>
+    <dimen name="settings_title_to_content_margin">15dp</dimen>
 
     <!-- Options titles -->
     <string name="settings_text_flip_title">Word flip interval</string>

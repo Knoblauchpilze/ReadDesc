@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Layout properties -->
+    <dimen name="new_read_general_menu_title_size">30sp</dimen>
+    <dimen name="new_read_general_menu_opt_size">20sp</dimen>
+    <dimen name="new_read_general_secondary_opt_size">15sp</dimen>
+
+    <dimen name="new_read_component_margin">10dp</dimen>
+    <dimen name="new_read_title_to_content_margin">15dp</dimen>
+
+    <!-- Read properties -->
+    <string name="new_read_name_title">Read name</string>
+    <string name="new_read_type_title">Read type</string>
+
+    <integer name="new_read_name_max_length">30</integer>
+    <string name="new_read_text_hint">Enter a name for this read</string>
+
+    <!-- Thumbnail -->
+    <string name="new_read_thumbnail_title">Thumbnail</string>
+    <string name="new_read_thumbnail_hint">Select thumbnail</string>
+
+    <string name="new_read_browse_thumbnail">Browse</string>
+
+    <!-- Read types -->
+    <string name="new_read_file_title">From file</string>
+    <string name="new_read_website_title">From web page</string>
+    <string name="new_read_e_book_title">From e-book</string>
+</resources>
