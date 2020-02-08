@@ -46,29 +46,112 @@
             <View style="@style/Divider"/>
 
             <RadioButton
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_file"
                 android:checked="true"
-                android:text="@string/new_read_file_title"/>
+                android:text="@string/new_read_file_title"
+                android:textSize="@dimen/new_read_general_menu_opt_size"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/new_read_file_layout"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_file_source"
+                    android:layout_weight="80"
+                    android:hint="@string/new_read_source_select_hint"
+                    android:inputType="textUri"
+                    android:importantForAutofill="no"
+                    android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_file_source_browse"
+                    android:layout_weight="20"
+                    android:text="@string/new_read_source_select_button_title"
+                    android:textAllCaps="false"/>
+
+            </LinearLayout>
 
             <View style="@style/Divider"/>
 
             <RadioButton
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_website"
                 android:checked="false"
-                android:text="@string/new_read_website_title"/>
+                android:text="@string/new_read_website_title"
+                android:textSize="@dimen/new_read_general_menu_opt_size"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/new_read_website_layout"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_website_source"
+                    android:layout_weight="80"
+                    android:hint="@string/new_read_source_select_hint"
+                    android:inputType="textUri"
+                    android:importantForAutofill="no"
+                    android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_website_source_browse"
+                    android:layout_weight="20"
+                    android:text="@string/new_read_source_select_button_title"
+                    android:textAllCaps="false"/>
+
+            </LinearLayout>
 
             <View style="@style/Divider"/>
 
             <RadioButton
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_e_book"
                 android:checked="false"
-                android:text="@string/new_read_e_book_title"/>
+                android:text="@string/new_read_e_book_title"
+                android:textSize="@dimen/new_read_general_menu_opt_size"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/new_read_e_book_layout"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_e_book_source"
+                    android:layout_weight="80"
+                    android:hint="@string/new_read_source_select_hint"
+                    android:inputType="textUri"
+                    android:importantForAutofill="no"
+                    android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_e_book_source_browse"
+                    android:layout_weight="20"
+                    android:text="@string/new_read_source_select_button_title"
+                    android:textAllCaps="false"/>
+
+            </LinearLayout>
 
         </RadioGroup>
 

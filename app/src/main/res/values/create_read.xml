@@ -15,6 +15,10 @@
     <integer name="new_read_name_max_length">30</integer>
     <string name="new_read_text_hint">Enter a name for this read</string>
 
+    <!-- Source options -->
+    <string name="new_read_source_select_hint">Select source</string>
+    <string name="new_read_source_select_button_title">Browse</string>
+
     <!-- Thumbnail -->
     <string name="new_read_thumbnail_title">Thumbnail</string>
     <string name="new_read_thumbnail_hint">Select thumbnail</string>

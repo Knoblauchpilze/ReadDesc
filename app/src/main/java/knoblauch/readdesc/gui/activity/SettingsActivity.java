@@ -328,7 +328,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_readStorageLocation.setText(readStorage);
 
         // Restore background color while in reading mode.
-        int defBgColor = res.getColor(R.color.settings_default_bg_color);
+        int defBgColor = ContextCompat.getColor(this, R.color.settings_default_bg_color);
         int bgColor = pref.getInt(
                 res.getString(R.string.settings_read_mode_bg_color_pref_key),
                 defBgColor
@@ -339,7 +339,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_bgColor.preview.setBackgroundColor(bgColor);
 
         // Restore text color while in reading mode.
-        int defTextColor = res.getColor(R.color.settings_default_text_color);
+        int defTextColor = ContextCompat.getColor(this, R.color.settings_default_text_color);
         int textColor = pref.getInt(
                 res.getString(R.string.settings_read_mode_text_color_pref_key),
                 defTextColor
