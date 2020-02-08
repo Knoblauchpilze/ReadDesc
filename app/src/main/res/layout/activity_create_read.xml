@@ -94,7 +94,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_website_layout"
                 android:orientation="horizontal"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <EditText
                     android:layout_width="0dp"
@@ -131,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_e_book_layout"
                 android:orientation="horizontal"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <EditText
                     android:layout_width="0dp"
@@ -177,7 +177,7 @@
                 android:layout_weight="10"
                 android:checked="false"/>
 
-            <TextView
+            <EditText
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_thumbnail_location"
@@ -189,7 +189,7 @@
             <Button
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/new_read_browse"
+                android:id="@+id/new_read_thumbnail_browse"
                 android:layout_weight="20"
                 android:text="@string/new_read_browse_thumbnail"
                 android:textSize="@dimen/new_read_general_secondary_opt_size"
