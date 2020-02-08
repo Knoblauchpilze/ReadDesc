@@ -32,4 +32,10 @@
 
     <color name="settings_default_bg_color">#303030</color>
     <color name="settings_default_text_color">#FFF700</color>
+
+    <!-- Settings pref values -->
+    <string name="settings_word_flip_pref_key">pref_word_flip_interval</string>
+    <string name="settings_read_storage_location_pref_key">pref_read_storage_location</string>
+    <string name="settings_read_mode_text_color_pref_key">pref_read_mode_bg_color</string>
+    <string name="settings_read_mode_bg_color_pref_key">pref_read_mode_text_color</string>
 </resources>
