@@ -1,13 +1,17 @@
 package knoblauch.readdesc.gui;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.Uri;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.Date;
 
 import knoblauch.readdesc.R;
 import knoblauch.readdesc.model.ReadDesc;
@@ -157,7 +161,7 @@ public class ReadsAdapter extends BaseAdapter {
         // Update resources.
         holder.nameView.setText(desc.getName());
         holder.sourceView.setText(desc.getSource());
-        holder.dateView.setText(desc.getCreationDate().toString());
+        holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
         holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));
 
         if (!desc.hasThumbnail()) {
@@ -172,5 +176,67 @@ public class ReadsAdapter extends BaseAdapter {
         holder.deleteClick.setViewId(position);
 
         return convertView;
+    }
+
+    /**
+     * Used to get a user-friendly way to represent the input date as a string. We will
+     * define so called `periods` which will characterize the duration elapsed between
+     * the provided data and now.
+     * This will result in displays like `a few moments ago`, `yesterday`, etc. This is
+     * much friendlier than the brutal representation of the access date.
+     * @param date - the date to convert to a user-friendly format.
+     * @return - a string representing this date.
+     */
+    private String getDateString(Date date) {
+        // We will use a timetable as follows:
+        //  - for an event that happened in the last minute we will display the date
+        //    as `A few moments ago`.
+        //  - for an event that happened in the last hour we will display the date as
+        //    `X minutes ago`.
+        //  - for an event that happened in the last 24 hours we will display the date
+        //    as `X hours ago`
+        //  - for an event happening until last week we will use `Last week`.
+        //  - for an event happening no earlier than one year ago we will use a format
+        //    like `X weeks ago`.
+        //  - for any event occurring before that we will use `More than one year ago`.
+        Date now = new Date();
+
+        // Get the time difference between both dates in milliseconds.
+        long t = date.getTime();
+        long nowT = now.getTime();
+        long elapsed = nowT - t;
+
+        Resources res = m_context.getResources();
+
+        // Check for the time elapsed since the input date..
+        long step;
+
+        if (elapsed <= DateUtils.MINUTE_IN_MILLIS) {
+            // In the last moments.
+            return res.getString(R.string.time_few_moments_ago);
+        }
+        else if (elapsed <= DateUtils.HOUR_IN_MILLIS) {
+            // In the last hour.
+            step = DateUtils.MINUTE_IN_MILLIS;
+        }
+        else if (elapsed <= DateUtils.DAY_IN_MILLIS) {
+            // In the last day.
+            step = DateUtils.HOUR_IN_MILLIS;
+        }
+        else if (elapsed <= DateUtils.WEEK_IN_MILLIS) {
+            // In the last week.
+            step = DateUtils.DAY_IN_MILLIS;
+        }
+        else if (elapsed <= DateUtils.YEAR_IN_MILLIS) {
+            // In the last year.
+            step = DateUtils.WEEK_IN_MILLIS;
+        }
+        else {
+            // More than a year ago.
+            return res.getString(R.string.time_good_old_times);
+        }
+
+        // Return the formatted string.
+        return DateUtils.getRelativeTimeSpanString(t, nowT, step).toString();
     }
 }
