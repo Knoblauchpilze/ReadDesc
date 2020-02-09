@@ -7,6 +7,7 @@
 
     <dimen name="read_item_title_size">30sp</dimen>
     <dimen name="read_item_desc_size">20sp</dimen>
+    <dimen name="read_item_second_desc_size">15sp</dimen>
 
     <string name="read_item_ctx_menu_open">Open</string>
     <string name="read_item_ctx_menu_delete">Delete</string>
