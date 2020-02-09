@@ -7,12 +7,12 @@
         android:id="@+id/settings_menu_apply"
         android:title="@string/settings_menu_apply_title"
         compat:showAsAction="ifRoom"
-        android:icon="@android:drawable/ic_menu_save"/>
+        android:icon="@mipmap/ic_menu_save"/>
 
     <item
         android:id="@+id/settings_menu_reset"
         android:title="@string/settings_menu_reset_title"
         compat:showAsAction="ifRoom"
-        android:icon="@android:drawable/ic_menu_revert"/>
+        android:icon="@mipmap/ic_menu_revert"/>
 
 </menu>

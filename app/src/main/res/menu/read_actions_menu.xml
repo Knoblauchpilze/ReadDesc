@@ -8,11 +8,11 @@
         android:title="@string/create_read_activity_title"
         android:titleCondensed="@string/read_actions_condensed_title"
         compat:showAsAction="ifRoom"
-        android:icon="@android:drawable/ic_input_add"/>
+        android:icon="@mipmap/ic_menu_add"/>
     <item
         android:id="@+id/settings_menu_opt"
         android:title="@string/settings_activity_title"
         compat:showAsAction="ifRoom"
-        android:icon="@android:drawable/ic_menu_preferences"/>
+        android:icon="@mipmap/ic_menu_preferences"/>
 
 </menu>
