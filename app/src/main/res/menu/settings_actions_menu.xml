@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/settings_menu_apply"
-        android:title="@string/settings_menu_apply_title"/>
-<item android:id="@+id/settings_menu_reset"
-    android:title="@string/settings_menu_reset_title"/>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:compat="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/settings_menu_apply"
+        android:title="@string/settings_menu_apply_title"
+        compat:showAsAction="ifRoom"
+        android:icon="@android:drawable/ic_menu_save"/>
+
+    <item
+        android:id="@+id/settings_menu_reset"
+        android:title="@string/settings_menu_reset_title"
+        compat:showAsAction="ifRoom"
+        android:icon="@android:drawable/ic_menu_revert"/>
+
 </menu>

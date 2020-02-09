@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/create_new_read_menu_opt"
-          android:title="@string/create_read_activity_title"
-          android:titleCondensed="@string/read_actions_condensed_title"/>
-    <item android:id="@+id/settings_menu_opt"
-          android:title="@string/settings_activity_title"/>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:compat="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/create_new_read_menu_opt"
+        android:title="@string/create_read_activity_title"
+        android:titleCondensed="@string/read_actions_condensed_title"
+        compat:showAsAction="ifRoom"
+        android:icon="@android:drawable/ic_input_add"/>
+    <item
+        android:id="@+id/settings_menu_opt"
+        android:title="@string/settings_activity_title"
+        compat:showAsAction="ifRoom"
+        android:icon="@android:drawable/ic_menu_preferences"/>
+
 </menu>
