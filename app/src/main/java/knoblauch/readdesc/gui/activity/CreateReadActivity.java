@@ -2,9 +2,13 @@ package knoblauch.readdesc.gui.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
+import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -12,6 +16,8 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
+
+import java.util.ArrayList;
 
 import knoblauch.readdesc.R;
 import knoblauch.readdesc.model.ReadDesc;
@@ -60,11 +66,11 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         }
 
         /**
-         * Allow to determine whether the text contained in this watcher is empty.
-         * @return - `true` if the internal text is empty and `false` otherwise.
+         * Allow to determine whether the text contained in this watcher is not empty.
+         * @return - `true` if the internal text is not empty and `false` otherwise.
          */
-        boolean isEmpty() {
-            return getText().isEmpty();
+        boolean isNotEmpty() {
+            return !getText().isEmpty();
         }
 
         @Override
@@ -302,7 +308,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             m_sourceWatcher.setText(m_eBookProps.source.getText().toString());
         }
 
-        m_accept.setEnabled(!m_readName.getText().toString().isEmpty() && !m_sourceWatcher.isEmpty());
+        m_accept.setEnabled(!m_readName.getText().toString().isEmpty() && m_sourceWatcher.isNotEmpty());
     }
 
     @Override
@@ -318,19 +324,56 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         }
 
         // Handle creation of the read.
-        // TODO: Handle the creation of the read.
+        if (v == m_accept) {
+            // Perform the creation of the read from the internal data. We will monitor the
+            // return status which indicates whether the read could actually be created. It
+            // should always be the case (because the `Create` button is only clickable when
+            // the rest of the info is valid but better be safe than sorry.
+            boolean ok = createRead();
+
+            if (ok) {
+                // Start the `Read` activity with the new read.
+                Intent i = new Intent(this, CreateReadActivity.class);
+
+                // We don't want the user to be able to come back to this activity if he uses
+                // the `back` button so we will clear the activity stack from this activity.
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                // Request to start the reading mode.
+                startActivity(i);
+
+                // Finish this activity as we're done with the read creation.
+                finish();
+            }
+        }
 
         // Handle the request to browse for a new source of the read.
+        Resources res = getResources();
+
+        Intent browsing = new Intent(Intent.ACTION_GET_CONTENT);
+        browsing.addCategory(Intent.CATEGORY_OPENABLE);
+        ArrayList<String> mimeTypes = new ArrayList<>();
+
         if (v == m_fileProps.browse) {
-            // TODO: Open file browser.
+            mimeTypes.add("text/plain");
+            mimeTypes.add("application/pdf");
         }
 
         if (v == m_websiteProps.browse) {
-            // TODO: Open browser to navigate to the page.
+            mimeTypes.add("text/html");
         }
 
         if (v == m_eBookProps.browse) {
-            // TODO: Open file browser to select e-book.
+            mimeTypes.add(" application/epub+zip");
+        }
+
+        // Create the intent if we could find at least a single type of
+        // file to retrieve.
+        if (mimeTypes.size() > 0) {
+            browsing.setType("*/*");
+            browsing.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
+            startActivityForResult(browsing, res.getInteger(R.integer.new_read_source_selected_res_code));
         }
     }
 
@@ -354,7 +397,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         // Otherwise, check whether the source is valid: if this the case we can enable
         // the `accept` button.
-        if (!m_sourceWatcher.isEmpty()) {
+        if (m_sourceWatcher.isNotEmpty()) {
             m_accept.setEnabled(true);
         }
     }
@@ -362,5 +405,46 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
     @Override
     public void afterTextChanged(Editable s) {
         // Nothing to do: we will react on the `onTextChanged` event.
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // In case the return code does not indicate a successful execution, we don't do anything.
+        // We also don't do anything in case the `requestCode` does not correspond to something we
+        // know how to handle.
+        Resources res = getResources();
+        int fBrowseCode = res.getInteger(R.integer.new_read_source_selected_res_code);
+
+        if (resultCode != RESULT_OK || requestCode != fBrowseCode) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+
+        // Retrieve the data provided by the user and save it into the source of the corresponding
+        // type of read. We only want to react for cases where the user chose a valid path for the
+        // source of the read.
+        Uri path = data.getData();
+
+        if (path != null) {
+            String uri = path.toString();
+
+            switch (m_type) {
+                case File:
+                    m_fileProps.source.setText(uri);
+                    break;
+                case Webpage:
+                    m_websiteProps.source.setText(uri);
+                    break;
+                case Ebook:
+                    m_eBookProps.source.setText(uri);
+                    break;
+            }
+
+            Log.i("main", "Selected \"" + uri + "\"");
+        }
+    }
+
+    private boolean createRead() {
+        // TODO: Perform the creation of the read.
+        return false;
     }
 }
