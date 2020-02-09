@@ -36,4 +36,8 @@
 
     <!-- Return code for source selection -->
     <integer name="new_read_source_selected_res_code">0</integer>
+    <integer name="new_read_thumbnail_source_selected_res_code">1</integer>
+
+    <integer name="new_read_intent_res_code">2</integer>
+    <string name="new_read_intent_key">new_read_intent</string>
 </resources>

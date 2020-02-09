@@ -69,13 +69,6 @@ public class ReadsBank {
     private List<ReadDesc> m_reads;
 
     /**
-     * Temporary variable allowing to store how many reads should be created upon
-     * creating such an object.
-     * TODO: Remove this ASAP.
-     */
-    private int m_count;
-
-    /**
      * Used to describe the local ordering applied to the reads. This ordering is
      * also reflected when picking a read with the `getRead` method so it usually
      * is translated into visual ordering of the components.
@@ -91,37 +84,7 @@ public class ReadsBank {
         // Allocate the internal reads array.
         m_reads = new ArrayList<>();
 
-        // Create as many reads as needed.
-        for (int id = 0 ; id < m_count ; ++id) {
-            // Generate a random name.
-            String name = "Generated read " + id;
-
-            // Generate a type.
-            ReadDesc.Type type = ReadDesc.Type.File;
-            if (id % 3 == 1) {
-                type = ReadDesc.Type.Webpage;
-            }
-            else if (id % 3 == 2) {
-                type = ReadDesc.Type.Ebook;
-            }
-
-            // Generate the source from the type.
-            String source;
-            switch (type) {
-                case Webpage:
-                    source = "Website " + id;
-                    break;
-                case Ebook:
-                    source = "E-Book " + id;
-                    break;
-                default:
-                case File:
-                    source = "File " + id;
-                    break;
-            }
-
-            m_reads.add(new ReadDesc(name, type, source));
-        }
+        // TODO: We should load existing read probably from existing data ?
 
         // We need to sort the reads based on the internal ordering.
         orderReads();
@@ -139,20 +102,15 @@ public class ReadsBank {
     }
 
     /**
-     * Create a new reads bank with the specified number of reads to create. For now
-     * it is not populated with actual data but this should be changed ASAP (i.e. as
-     * soon as we learn how to actually persist information to the disk).
-     * @param order - the order to apply to reads upon being loaded. This will also be applied
-     *                when fetching a read through the `getRead` interface so it usually also
-     *                translate into visual ordering of the reads.
-     * @param count - the number of reads to create when building this bank.
+     * Create a new reads bank with the specified number of reads to create.
+     * @param order - the order to apply to reads upon being loaded. This will
+     *                also be applied when fetching a read through the `getRead`
+     *                interface so it usually also translate into visual
+     *                ordering of the reads.
      */
-    public ReadsBank(Ordering order, int count) {
+    public ReadsBank(Ordering order) {
         // Set the ordering to respect when loading reads.
         m_ordering = order;
-
-        // Initialize the count.
-        m_count = Math.max(0, count);
 
         // Load all the available reads.
         load();
@@ -166,8 +124,8 @@ public class ReadsBank {
      * Otherwise the read description corresponding to the `id` slot is returned
      * when sorting using the provided ordering.
      * @param id - the index of the read to retrieve.
-     * @return - `null` if the provided `id` does not correspond to any valid read or the
-     *           corresponding read if available.
+     * @return - `null` if the provided `id` does not correspond to any valid
+     *           read or the corresponding read if available.
      */
     public ReadDesc getRead(int id) {
         // Prevent invalid access to the internal reads collection.
@@ -202,5 +160,27 @@ public class ReadsBank {
 
         // Otherwise attempt to remove the read from the list.
         return m_reads.remove(desc);
+    }
+
+    /**
+     * Attempt to insert the input read to the internal collection. Note that as
+     * we're assigning some sort of identifier to the read we don't have much risk
+     * of a name collision.
+     * @param desc - the read description to register in this bank.
+     */
+    public boolean add(ReadDesc desc) {
+        // Check consistency.
+        if (desc == null) {
+            return false;
+        }
+
+        // Insert the read into the internal collection.
+        m_reads.add(desc);
+
+        // Keep elements sorted in the right order.
+        orderReads();
+
+        // We successfully inserted the read.
+        return true;
     }
 }

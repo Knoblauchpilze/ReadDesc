@@ -4,8 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Pair;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -23,6 +23,7 @@ import knoblauch.readdesc.gui.NotifierDialog;
 import knoblauch.readdesc.gui.ReadItemClickListener;
 import knoblauch.readdesc.gui.ReadsAdapter;
 import knoblauch.readdesc.model.ReadDesc;
+import knoblauch.readdesc.model.ReadIntent;
 
 public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, NotifierDialog.NoticeDialogListener {
 
@@ -66,7 +67,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         setContentView(R.layout.activity_recent_reads);
 
         // Create the adapter to display recent reads.
-        m_reads = new ReadsAdapter(this, 10, this);
+        m_reads = new ReadsAdapter(this, this);
 
         // Create the pending operations list.
         m_pendingOps = new Stack<>();
@@ -88,8 +89,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // We've been called because the specified view has been clicked. This should be
         // related to a list item
         ReadDesc desc = m_reads.getItem(id);
-
-        Log.i("main", "Clicked on read item menu at " + id + " view id being " + resource + ", play: " + R.id.read_item_play + " read is " + desc.getName());
 
         // Check the type of resource that has been clicked: this will tell us what to do
         // with the read description.
@@ -220,26 +219,58 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // In case the return code does not indicate a successful execution, we don't do anything.
+        // We also don't do anything in case the `requestCode` does not correspond to something we
+        // know how to handle.
+        Resources res = getResources();
+        int createReadReq = res.getInteger(R.integer.new_read_intent_res_code);
+
+        if (resultCode != RESULT_OK || requestCode != createReadReq) {
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
+
+        // We want to create the new read from the read intent stored in the `data`.
+        ReadIntent intent = data.getParcelableExtra(res.getString(R.string.new_read_intent_key));
+
+        // Check consistency.
+        if (intent == null) {
+            return;
+        }
+
+        // We need to register the read from its intent.
+        ReadDesc read = ReadDesc.fromIntent(intent);
+
+        // Register this read in the internal bank.
+        m_reads.addItem(read);
+    }
+
     /**
      * Used to create and display a new activity related to the specified action.
      * @param action - the menu action describing the activity to create.
      */
     private void openActivity(MenuAction action) {
-        // Create the intent object to use to describe the activity to open.
-        Intent act = null;
+        // Depending on the action to perform we might want to create activities with
+        // some expected return value and sometimes not. So we will distinguish based
+        // on the action.
+        Resources res = getResources();
 
-        // Populate it based on the input action to perform.
-        switch (action) {
-            case CreateRead:
-                act = new Intent(RecentReadsActivity.this, CreateReadActivity.class);
-                break;
-            case Settings:
-                act = new Intent(RecentReadsActivity.this, SettingsActivity.class);
-                break;
+        if (action == MenuAction.CreateRead) {
+            // Create the intent to start the `CreateRead` activity.
+            Intent act = new Intent(RecentReadsActivity.this, CreateReadActivity.class);
+
+            // Start the activity.
+            startActivityForResult(act, res.getInteger(R.integer.new_read_intent_res_code));
         }
+        else if (action == MenuAction.Settings) {
+            // Create the intent for the `Settings` activity.
+            Intent act = new Intent(RecentReadsActivity.this, SettingsActivity.class);
 
-        // Launch the activity if we could find the corresponding view.
-        startActivity(act);
+            // Start the activity.
+            startActivity(act);
+        }
     }
 
     /**

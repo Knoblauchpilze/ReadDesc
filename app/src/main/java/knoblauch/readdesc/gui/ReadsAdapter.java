@@ -1,6 +1,7 @@
 package knoblauch.readdesc.gui;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,8 @@ public class ReadsAdapter extends BaseAdapter {
 
         ImageView play;
         ImageView delete;
+
+        ImageView thumbnail;
 
         ReadItemClickNotifier nameClick;
         ReadItemClickNotifier sourceClick;
@@ -55,11 +58,10 @@ public class ReadsAdapter extends BaseAdapter {
      * @param context - the context into which views will be instantiated. Usually indicates
      *                  the parent activity where a list of the data contained in this item
      *                  will be displayed.
-     * @param readsCount - the number of reads to create.
      * @param listener - a custom listener which might want to be notified of clicks on some
      *                   specific buttons of each individual read.
      */
-    public ReadsAdapter(Context context, int readsCount, ReadItemClickListener listener) {
+    public ReadsAdapter(Context context, ReadItemClickListener listener) {
         super();
 
         // Save the internal inflater.
@@ -68,7 +70,7 @@ public class ReadsAdapter extends BaseAdapter {
         m_listener = listener;
 
         // Generate random reads.
-        m_reads = new ReadsBank(ReadsBank.Ordering.CreationDate, readsCount);
+        m_reads = new ReadsBank(ReadsBank.Ordering.CreationDate);
     }
 
     /**
@@ -76,10 +78,27 @@ public class ReadsAdapter extends BaseAdapter {
      * @param desc - the read to remove.
      */
     public void removeItem(ReadDesc desc) {
-        if (desc != null) {
-            m_reads.remove(desc);
+        if (desc == null) {
+            return;
         }
-        notifyDataSetChanged();
+
+        if (m_reads.remove(desc)) {
+            notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Used by external elements to add a read to the internal list.
+     * @param desc - the read to create.
+     */
+    public void addItem(ReadDesc desc) {
+        if (desc == null) {
+            return;
+        }
+
+        if (m_reads.add(desc)) {
+            notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -123,6 +142,8 @@ public class ReadsAdapter extends BaseAdapter {
             holder.play = convertView.findViewById(R.id.read_item_play);
             holder.delete = convertView.findViewById(R.id.read_item_delete);
 
+            holder.thumbnail = convertView.findViewById(R.id.read_item_thumbnail);
+
             // Create listeners.
             holder.nameClick = new ReadItemClickNotifier(R.id.read_item_name, position, m_listener);
             holder.sourceClick = new ReadItemClickNotifier(R.id.read_item_source, position, m_listener);
@@ -146,6 +167,13 @@ public class ReadsAdapter extends BaseAdapter {
         holder.sourceView.setText(desc.getSource());
         holder.dateView.setText(desc.getCreationDate().toString());
         holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));
+
+        if (!desc.hasThumbnail()) {
+            holder.thumbnail.setImageResource(android.R.color.transparent);
+        }
+        else {
+            holder.thumbnail.setImageURI(Uri.parse(desc.getThumbnailPath()));
+        }
 
         // Update information about the read represented by this view.
         holder.nameClick.setViewId(position);

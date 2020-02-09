@@ -12,8 +12,8 @@ public class ReadDesc {
      */
     public enum Type {
         File,
-        Webpage,
-        Ebook
+        WebPage,
+        EBook
     }
 
     /**
@@ -53,13 +53,20 @@ public class ReadDesc {
     private Date m_lastAccessDate;
 
     /**
+     * A string representing the path to the thumbnail assigned to this
+     * read. The path should reference a local file which the user has
+     * defined when creating the read to easily identify it.
+     * It can also be empty in case no thumbnail is associated yet.
+     */
+    private String m_thumbnail;
+
+    /**
      * An indication of how far the user has progressed through this read.
      * This is initially set to `0` and advances each time the user selects
      * this element to read it.
      * The range for this value is `[0; 1]`.
      */
     private float m_completionPercentage;
-
 
     /**
      * Creates a new read with the specified name and source. The creation
@@ -84,6 +91,34 @@ public class ReadDesc {
         m_lastAccessDate = m_creationDate;
 
         m_completionPercentage = 0.0f;
+
+        m_thumbnail = null;
+    }
+
+    /**
+     * Create a new read from the input intent. Some of the properties not defined in
+     * the intent will be assigned an automatic value consistent with their purpose.
+     * In case the `intent` is `null` the returned value is `null` as well.
+     * @param intent - the intent to use to retrieve general properties of the read to
+     *                 create.
+     * @return - a read description created from the properties of the `intent`.
+     */
+    public static ReadDesc fromIntent(ReadIntent intent) {
+        // In case the `intent` is `null`, return early.
+        if (intent == null) {
+            return null;
+        }
+
+        // Create the read description.
+        ReadDesc desc = new ReadDesc(intent.getName(), intent.getType(), intent.getDataUri());
+
+        // Assign the thumbnail path if any.
+        String thumbnail = intent.getThumbnailUri();
+        if (!thumbnail.isEmpty()) {
+            desc.m_thumbnail = thumbnail;
+        }
+
+        return desc;
     }
 
     /**
@@ -126,6 +161,21 @@ public class ReadDesc {
     public Date getLastAccessedDate() {
         return m_lastAccessDate;
     }
+
+    /**
+     * Used to determine whether this read has an attached thumbnail path or
+     * not.
+     * @return - `true` if the `getThumbnailPath` returns a valid value and
+     *           `false` otherwise.
+     */
+    public boolean hasThumbnail() { return getThumbnailPath() != null; }
+
+    /**
+     * Returns the possibly empty path to the thumbnail. In case no thumbnail
+     * is attached to this read the returned value is `null`. One can check
+     * whether the thumbnail exists through the `hasThumbnail` method.
+     */
+    public String getThumbnailPath() { return m_thumbnail; }
 
     /**
      * Returns the completion percentage of this read. Represents how far

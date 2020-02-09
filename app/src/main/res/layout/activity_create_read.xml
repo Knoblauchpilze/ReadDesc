@@ -5,230 +5,239 @@
     android:layout_height="match_parent"
     tools:context=".gui.activity.CreateReadActivity">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_marginLeft="@dimen/new_read_component_margin"
-        android:layout_marginRight="@dimen/new_read_component_margin">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/new_read_name_title"
-            android:textSize="@dimen/new_read_general_menu_title_size"
-            android:textStyle="bold"/>
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/new_read_name"
-            android:hint="@string/new_read_text_hint"
-            android:textSize="@dimen/new_read_general_menu_opt_size"
-            android:maxLength="@integer/new_read_name_max_length"
-            android:maxLines="1"
-            android:inputType="text"
-            android:importantForAutofill="no"
-            android:layout_marginBottom="@dimen/new_read_component_margin"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/new_read_type_title"
-            android:textSize="@dimen/new_read_general_menu_title_size"
-            android:textStyle="bold"/>
-
-        <RadioGroup
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/new_read_component_margin">
-
-            <View style="@style/Divider"/>
-
-            <RadioButton
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_file"
-                android:checked="true"
-                android:text="@string/new_read_file_title"
-                android:textSize="@dimen/new_read_general_menu_opt_size"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_file_layout"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_file_source"
-                    android:layout_weight="80"
-                    android:hint="@string/new_read_source_select_hint"
-                    android:inputType="textUri"
-                    android:importantForAutofill="no"
-                    android:textSize="@dimen/new_read_general_secondary_opt_size"/>
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_file_source_browse"
-                    android:layout_weight="20"
-                    android:text="@string/new_read_source_select_button_title"
-                    android:textAllCaps="false"/>
-
-            </LinearLayout>
-
-            <View style="@style/Divider"/>
-
-            <RadioButton
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_website"
-                android:checked="false"
-                android:text="@string/new_read_website_title"
-                android:textSize="@dimen/new_read_general_menu_opt_size"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_website_layout"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_website_source"
-                    android:layout_weight="80"
-                    android:hint="@string/new_read_source_select_hint"
-                    android:inputType="textUri"
-                    android:importantForAutofill="no"
-                    android:textSize="@dimen/new_read_general_secondary_opt_size"/>
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_website_source_browse"
-                    android:layout_weight="20"
-                    android:text="@string/new_read_source_select_button_title"
-                    android:textAllCaps="false"/>
-
-            </LinearLayout>
-
-            <View style="@style/Divider"/>
-
-            <RadioButton
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_e_book"
-                android:checked="false"
-                android:text="@string/new_read_e_book_title"
-                android:textSize="@dimen/new_read_general_menu_opt_size"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_e_book_layout"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <EditText
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_e_book_source"
-                    android:layout_weight="80"
-                    android:hint="@string/new_read_source_select_hint"
-                    android:inputType="textUri"
-                    android:importantForAutofill="no"
-                    android:textSize="@dimen/new_read_general_secondary_opt_size"/>
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_e_book_source_browse"
-                    android:layout_weight="20"
-                    android:text="@string/new_read_source_select_button_title"
-                    android:textAllCaps="false"/>
-
-            </LinearLayout>
-
-        </RadioGroup>
-
-        <View style="@style/Divider"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/new_read_thumbnail"
-            android:text="@string/new_read_thumbnail_title"
-            android:textSize="@dimen/new_read_general_menu_title_size"
-            android:textStyle="bold"/>
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:layout_marginLeft="@dimen/new_read_component_margin"
+            android:layout_marginRight="@dimen/new_read_component_margin">
 
-            <CheckBox
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/new_read_thumbnail_enable"
-                android:layout_weight="10"
-                android:checked="false"/>
+                android:text="@string/new_read_name_title"
+                android:textSize="@dimen/new_read_general_menu_title_size"
+                android:textStyle="bold"/>
 
             <EditText
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/new_read_thumbnail_location"
-                android:layout_weight="70"
-                android:hint="@string/new_read_thumbnail_hint"
+                android:id="@+id/new_read_name"
+                android:hint="@string/new_read_text_hint"
                 android:textSize="@dimen/new_read_general_menu_opt_size"
-                android:enabled="false"/>
+                android:maxLength="@integer/new_read_name_max_length"
+                android:maxLines="1"
+                android:inputType="text"
+                android:importantForAutofill="no"
+                android:layout_marginBottom="@dimen/new_read_component_margin"/>
 
-            <Button
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/new_read_thumbnail_browse"
-                android:layout_weight="20"
-                android:text="@string/new_read_browse_thumbnail"
-                android:textSize="@dimen/new_read_general_secondary_opt_size"
-                android:textAllCaps="false"
-                android:gravity="start|center_vertical"
-                android:enabled="false"/>
+                android:text="@string/new_read_type_title"
+                android:textSize="@dimen/new_read_general_menu_title_size"
+                android:textStyle="bold"/>
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/new_read_component_margin">
+
+                <View style="@style/Divider"/>
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_file"
+                    android:checked="true"
+                    android:text="@string/new_read_file_title"
+                    android:textSize="@dimen/new_read_general_menu_opt_size"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_file_layout"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/new_read_file_source"
+                        android:layout_weight="80"
+                        android:hint="@string/new_read_source_select_hint"
+                        android:inputType="textUri"
+                        android:importantForAutofill="no"
+                        android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/new_read_file_source_browse"
+                        android:layout_weight="20"
+                        android:text="@string/new_read_source_select_button_title"
+                        android:textAllCaps="false"/>
+
+                </LinearLayout>
+
+                <View style="@style/Divider"/>
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_website"
+                    android:checked="false"
+                    android:text="@string/new_read_website_title"
+                    android:textSize="@dimen/new_read_general_menu_opt_size"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_website_layout"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/new_read_website_source"
+                        android:layout_weight="80"
+                        android:hint="@string/new_read_source_select_hint"
+                        android:inputType="textUri"
+                        android:importantForAutofill="no"
+                        android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/new_read_website_source_browse"
+                        android:layout_weight="20"
+                        android:text="@string/new_read_source_select_button_title"
+                        android:textAllCaps="false"/>
+
+                </LinearLayout>
+
+                <View style="@style/Divider"/>
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_e_book"
+                    android:checked="false"
+                    android:text="@string/new_read_e_book_title"
+                    android:textSize="@dimen/new_read_general_menu_opt_size"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_e_book_layout"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/new_read_e_book_source"
+                        android:layout_weight="80"
+                        android:hint="@string/new_read_source_select_hint"
+                        android:inputType="textUri"
+                        android:importantForAutofill="no"
+                        android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+
+                    <Button
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/new_read_e_book_source_browse"
+                        android:layout_weight="20"
+                        android:text="@string/new_read_source_select_button_title"
+                        android:textAllCaps="false"/>
+
+                </LinearLayout>
+
+            </RadioGroup>
+
+            <View style="@style/Divider"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/new_read_thumbnail"
+                android:text="@string/new_read_thumbnail_title"
+                android:textSize="@dimen/new_read_general_menu_title_size"
+                android:textStyle="bold"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_thumbnail_enable"
+                    android:layout_weight="10"
+                    android:checked="false"/>
+
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_thumbnail_location"
+                    android:layout_weight="70"
+                    android:hint="@string/new_read_thumbnail_hint"
+                    android:inputType="textUri"
+                    android:importantForAutofill="no"
+                    android:textSize="@dimen/new_read_general_menu_opt_size"
+                    android:enabled="false"/>
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_thumbnail_browse"
+                    android:layout_weight="20"
+                    android:text="@string/new_read_browse_thumbnail"
+                    android:textSize="@dimen/new_read_general_secondary_opt_size"
+                    android:textAllCaps="false"
+                    android:gravity="start|center_vertical"
+                    android:enabled="false"/>
+
+            </LinearLayout>
+
+            <View style="@style/Divider"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/new_read_component_margin">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_cancel"
+                    android:textAllCaps="false"
+                    android:text="@string/new_read_cancel_title"
+                    android:textSize="@dimen/new_read_general_secondary_opt_size"
+                    android:layout_marginStart="@dimen/new_read_component_margin"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/new_read_accept"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_read_accept"
+                    android:textAllCaps="false"
+                    android:text="@string/new_read_accept_title"
+                    android:textSize="@dimen/new_read_general_secondary_opt_size"
+                    android:enabled="false"
+                    android:layout_marginEnd="@dimen/new_read_component_margin"
+                    android:layout_alignParentEnd="true"/>
+
+            </RelativeLayout>
 
         </LinearLayout>
 
-        <View style="@style/Divider"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/new_read_component_margin">
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_cancel"
-                android:textAllCaps="false"
-                android:text="@string/new_read_cancel_title"
-                android:textSize="@dimen/new_read_general_secondary_opt_size"
-                android:layout_marginStart="@dimen/new_read_component_margin"
-                android:layout_alignParentStart="true"/>
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/new_read_accept"
-                android:textAllCaps="false"
-                android:text="@string/new_read_accept_title"
-                android:textSize="@dimen/new_read_general_secondary_opt_size"
-                android:enabled="false"
-                android:layout_marginEnd="@dimen/new_read_component_margin"
-                android:layout_alignParentEnd="true"/>
-
-        </RelativeLayout>
-
-    </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

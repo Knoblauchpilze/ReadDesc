@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -21,6 +20,7 @@ import java.util.ArrayList;
 
 import knoblauch.readdesc.R;
 import knoblauch.readdesc.model.ReadDesc;
+import knoblauch.readdesc.model.ReadIntent;
 
 public class CreateReadActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, Button.OnClickListener, TextWatcher {
 
@@ -245,6 +245,8 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         m_websiteProps.browse.setOnClickListener(this);
         m_eBookProps.browse.setOnClickListener(this);
 
+        m_thumbnail.browse.setOnClickListener(this);
+
         m_cancel.setOnClickListener(this);
         m_accept.setOnClickListener(this);
     }
@@ -300,11 +302,11 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             m_sourceWatcher.setText(m_fileProps.source.getText().toString());
         }
         if (wVis != View.GONE) {
-            m_type = ReadDesc.Type.Webpage;
+            m_type = ReadDesc.Type.WebPage;
             m_sourceWatcher.setText(m_websiteProps.source.getText().toString());
         }
         if (eVis != View.GONE) {
-            m_type = ReadDesc.Type.Ebook;
+            m_type = ReadDesc.Type.EBook;
             m_sourceWatcher.setText(m_eBookProps.source.getText().toString());
         }
 
@@ -321,38 +323,44 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         if (v == m_cancel) {
             // Terminate the activity, the user does not want to create a read after all.
             finish();
+
+            return;
         }
 
         // Handle creation of the read.
         if (v == m_accept) {
             // Perform the creation of the read from the internal data. We will monitor the
-            // return status which indicates whether the read could actually be created. It
-            // should always be the case (because the `Create` button is only clickable when
-            // the rest of the info is valid but better be safe than sorry.
-            boolean ok = createRead();
+            // return status as it is the value that will be returned by the activity. It is
+            // then interpreted by the parent activity to actually create it in the data bank
+            // if possible and potentially start the reading mode.
+            // The creation should always succeed as the `Create` button is only clickable if
+            // all relevant properties have valid values but better be safe than sorry.
+            ReadIntent read = createRead();
 
-            if (ok) {
-                // Start the `Read` activity with the new read.
-                Intent i = new Intent(this, CreateReadActivity.class);
+            if (read != null) {
+                // Register this result.
+                Resources res = getResources();
+                String key = res.getString(R.string.new_read_intent_key);
 
-                // We don't want the user to be able to come back to this activity if he uses
-                // the `back` button so we will clear the activity stack from this activity.
-                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-                // Request to start the reading mode.
-                startActivity(i);
+                Intent ret = new Intent();
+                ret.putExtra(key, read);
+                setResult(RESULT_OK, ret);
 
                 // Finish this activity as we're done with the read creation.
                 finish();
+
+                return;
             }
         }
 
-        // Handle the request to browse for a new source of the read.
+        // Handle the request to browse for a new source of the read or for
+        // a new thumbnail file.
         Resources res = getResources();
 
         Intent browsing = new Intent(Intent.ACTION_GET_CONTENT);
         browsing.addCategory(Intent.CATEGORY_OPENABLE);
         ArrayList<String> mimeTypes = new ArrayList<>();
+        int requestCode = res.getInteger(R.integer.new_read_source_selected_res_code);
 
         if (v == m_fileProps.browse) {
             mimeTypes.add("text/plain");
@@ -364,7 +372,13 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         }
 
         if (v == m_eBookProps.browse) {
-            mimeTypes.add(" application/epub+zip");
+            mimeTypes.add("application/epub+zip");
+        }
+
+        if (v == m_thumbnail.browse) {
+            mimeTypes.add("image/*");
+
+            requestCode = res.getInteger(R.integer.new_read_thumbnail_source_selected_res_code);
         }
 
         // Create the intent if we could find at least a single type of
@@ -373,7 +387,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             browsing.setType("*/*");
             browsing.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
 
-            startActivityForResult(browsing, res.getInteger(R.integer.new_read_source_selected_res_code));
+            startActivityForResult(browsing, requestCode);
         }
     }
 
@@ -414,9 +428,11 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         // know how to handle.
         Resources res = getResources();
         int fBrowseCode = res.getInteger(R.integer.new_read_source_selected_res_code);
+        int tBrowseCode = res.getInteger(R.integer.new_read_thumbnail_source_selected_res_code);
 
-        if (resultCode != RESULT_OK || requestCode != fBrowseCode) {
+        if (resultCode != RESULT_OK || (requestCode != fBrowseCode && requestCode != tBrowseCode)) {
             super.onActivityResult(requestCode, resultCode, data);
+            return;
         }
 
         // Retrieve the data provided by the user and save it into the source of the corresponding
@@ -427,24 +443,59 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         if (path != null) {
             String uri = path.toString();
 
+            // Handle thumbnail source first.
+            if (requestCode == tBrowseCode) {
+                m_thumbnail.source.setText(uri);
+                return;
+            }
+
+            // Handle read source.
             switch (m_type) {
                 case File:
                     m_fileProps.source.setText(uri);
                     break;
-                case Webpage:
+                case WebPage:
                     m_websiteProps.source.setText(uri);
                     break;
-                case Ebook:
+                case EBook:
                     m_eBookProps.source.setText(uri);
                     break;
             }
-
-            Log.i("main", "Selected \"" + uri + "\"");
         }
     }
 
-    private boolean createRead() {
-        // TODO: Perform the creation of the read.
-        return false;
+    private ReadIntent createRead() {
+        // We need to retrieve each property.
+        boolean valid = true;
+
+        String name = m_readName.getText().toString();
+        if (name.isEmpty()) {
+            valid = false;
+        }
+
+        String data = null;
+        switch (m_type) {
+            case File:
+                data = m_fileProps.source.getText().toString();
+                break;
+            case WebPage:
+                data = m_websiteProps.source.getText().toString();
+                break;
+            case EBook:
+                data = m_eBookProps.source.getText().toString();
+                break;
+        }
+        if (data.isEmpty()) {
+            valid = false;
+        }
+
+        String thumbnail = m_thumbnail.source.getText().toString();
+
+        // Depending on whether we could fetch all properties, we can return the read intent.
+        if (!valid) {
+            return null;
+        }
+
+        return new ReadIntent(name, m_type, data, thumbnail);
     }
 }
