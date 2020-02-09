@@ -4,10 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -112,6 +115,17 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         Button browse;
 
         LinearLayout layout;
+
+        /**
+         * Used to keep track of the actual `uri` defined by the user for the source
+         * of this read. Usually it corresponds to a path either on the disk or to a
+         * remote resource. Bottom line is that it is usually quite long and we don't
+         * want to display it in full but rather only provide a condensed description
+         * of it. This value will be set with the real `uri` while the `source` text
+         * can be set with a condensed
+         * version.
+         */
+        String uri;
     }
 
     /**
@@ -123,6 +137,15 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         CheckBox active;
         EditText source;
         Button browse;
+
+        /**
+         * Used to keep track of the actual `uri` defined by the user. But as usually
+         * it corresponds to a path on the disk, we don't want to display it in full
+         * but rather only provide a condensed description of it. This value will be
+         * set with the real `uri` while the `source` text can be set with a condensed
+         * version.
+         */
+        String uri;
     }
 
     /**
@@ -207,22 +230,26 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         m_fileProps.source= findViewById(R.id.new_read_file_source);
         m_fileProps.browse = findViewById(R.id.new_read_file_source_browse);
         m_fileProps.layout = findViewById(R.id.new_read_file_layout);
+        m_fileProps.uri = null;
 
         m_websiteProps.active = findViewById(R.id.new_read_website);
         m_websiteProps.source= findViewById(R.id.new_read_website_source);
         m_websiteProps.browse = findViewById(R.id.new_read_website_source_browse);
         m_websiteProps.layout = findViewById(R.id.new_read_website_layout);
+        m_websiteProps.uri = null;
 
         m_eBookProps.active = findViewById(R.id.new_read_e_book);
         m_eBookProps.source= findViewById(R.id.new_read_e_book_source);
         m_eBookProps.browse = findViewById(R.id.new_read_e_book_source_browse);
         m_eBookProps.layout = findViewById(R.id.new_read_e_book_layout);
+        m_eBookProps.uri = null;
 
         m_thumbnail = new ThumbnailSelectionProps();
 
         m_thumbnail.active = findViewById(R.id.new_read_thumbnail_enable);
         m_thumbnail.source = findViewById(R.id.new_read_thumbnail_location);
         m_thumbnail.browse = findViewById(R.id.new_read_thumbnail_browse);
+        m_thumbnail.uri = null;
 
         m_cancel = findViewById(R.id.new_read_cancel);
         m_accept = findViewById(R.id.new_read_accept);
@@ -445,25 +472,90 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
             // Handle thumbnail source first.
             if (requestCode == tBrowseCode) {
-                m_thumbnail.source.setText(uri);
+                m_thumbnail.uri = uri;
+                m_thumbnail.source.setText(createCondensedUri(uri));
                 return;
             }
 
             // Handle read source.
             switch (m_type) {
                 case File:
-                    m_fileProps.source.setText(uri);
+                    m_fileProps.uri = uri;
+                    m_fileProps.source.setText(createCondensedUri(uri));
                     break;
                 case WebPage:
-                    m_websiteProps.source.setText(uri);
+                    m_websiteProps.uri = uri;
+                    m_websiteProps.source.setText(createCondensedUri(uri));
                     break;
                 case EBook:
-                    m_eBookProps.source.setText(uri);
+                    m_eBookProps.uri = uri;
+                    m_eBookProps.source.setText(createCondensedUri(uri));
                     break;
             }
         }
     }
 
+    /**
+     * Used to perform the creation of a user-friendly string representing the input
+     * `uri` so that it can be displayed in a nice way. Indeed this view handles some
+     * resources used to define the data associated to the read to create which are
+     * usually long string not really explicit for the user.
+     * The goal of this method is to strip some of the info available in the `uri` to
+     * extract a minimal name that makes sense.
+     * @param uri - the `uri` for which a meaningful string should be extracted.
+     * @return - a string representing a friendlier version of the input `uri`.
+     */
+    private String createCondensedUri(String uri) {
+        // In case the input `uri` is not valid, return early.
+        if (uri == null) {
+            return null;
+        }
+
+        // Create a `uri` object from the input string.
+        Uri raw = Uri.parse(uri);
+
+        Log.i("main", "Content is \"" + uri + "\", scheme is \"" + raw.getScheme() + "\"");
+
+        String name = null;
+
+        // Try to extract the name assuming the scheme corresponds to a file.
+        String scheme = raw.getScheme();
+        if (scheme != null && scheme.equals("content")) {
+            // This link explains how android handles the content and provide some
+            // useful resource to use it:
+            // https://developer.android.com/guide/topics/providers/document-provider.html
+
+            try (Cursor cursor = getContentResolver().query(raw, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+        }
+
+        // In case we couldn't find the name (either because the scheme did not
+        // correspond to a file or because of a failure), try to resort on the
+        // last '/' character existing in the string.
+        if (name == null && raw.getPath() != null) {
+            name = raw.getPath();
+
+            // Keep only the part after the '/' character.
+            int cut = name.lastIndexOf('/');
+            if (cut != -1) {
+                name = name.substring(cut + 1);
+            }
+        }
+
+        // We either retrieved a valid result or failed to extract one.
+        return name;
+    }
+
+    /**
+     * Used to perform the creation of a `ReadIntent` object from the internal props
+     * defined in this activity. We will check that it is actually possible to create
+     * said read in order not to create invalid read (with invalid data for example).
+     * @return - the read intent represented by this view or `null` if some props are
+     *           not valid.
+     */
     private ReadIntent createRead() {
         // We need to retrieve each property.
         boolean valid = true;
@@ -473,23 +565,42 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             valid = false;
         }
 
+        // We now need to retrieve the `uri` associated to the content of the read to create.
+        // Depending on whether the user used the `Browse` button or typed directly the res
+        // to use, the `m_TYPE.uri` attribute is not always valid: in this case we have to
+        // rely on the actual content of the corresponding edit box.
         String data = null;
         switch (m_type) {
             case File:
-                data = m_fileProps.source.getText().toString();
+                data = m_fileProps.uri;
+                if (data == null) {
+                    data = m_fileProps.source.getText().toString();
+                }
                 break;
             case WebPage:
-                data = m_websiteProps.source.getText().toString();
+                data = m_websiteProps.uri;
+                if (data == null) {
+                    data = m_websiteProps.source.getText().toString();
+                }
                 break;
             case EBook:
-                data = m_eBookProps.source.getText().toString();
+                data = m_eBookProps.uri;
+                if (data == null) {
+                    data = m_eBookProps.source.getText().toString();
+                }
                 break;
         }
         if (data.isEmpty()) {
             valid = false;
         }
 
-        String thumbnail = m_thumbnail.source.getText().toString();
+        String thumbnail = m_thumbnail.uri;
+        if (thumbnail == null) {
+            String raw = m_thumbnail.source.getText().toString();
+            if (!raw.isEmpty()) {
+                thumbnail = raw;
+            }
+        }
 
         // Depending on whether we could fetch all properties, we can return the read intent.
         if (!valid) {
