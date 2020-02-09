@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="reads_column_name">"name"</string>
-    <string name="reads_column_source">"source"</string>
-    <string name="reads_column_date">"date"</string>
-    <string name="reads_column_completion">"completion"</string>
-
+    <!-- Dimensions for items in the read list -->
     <dimen name="read_item_title_size">30sp</dimen>
     <dimen name="read_item_desc_size">20sp</dimen>
     <dimen name="read_item_second_desc_size">15sp</dimen>
 
+    <!-- Names for contextual menu options -->
     <string name="read_item_ctx_menu_open">Open</string>
     <string name="read_item_ctx_menu_delete">Delete</string>
     <string name="read_item_ctx_menu_source">Open source</string>
 
-    <string name="delete_read_img_desc">Delete read</string>
+    <!-- Context descriptions for images used in the item -->
+    <string name="read_item_delete_read_img_desc">Delete read</string>
     <string name="read_item_thumbnail_img_desc">Read thumbnail</string>
+
+    <!-- Maximum size for the thumbnail -->
+    <dimen name="read_item_max_thumbnail_size">60dp</dimen>
 </resources>
