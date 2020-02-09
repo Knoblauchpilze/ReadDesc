@@ -26,14 +26,11 @@ public class ReadsAdapter extends BaseAdapter {
         TextView dateView;
         TextView completionView;
 
-        ImageView play;
         ImageView delete;
 
         ImageView thumbnail;
 
         ReadItemClickNotifier nameClick;
-        ReadItemClickNotifier sourceClick;
-        ReadItemClickNotifier playClick;
         ReadItemClickNotifier deleteClick;
     }
 
@@ -139,21 +136,16 @@ public class ReadsAdapter extends BaseAdapter {
             holder.dateView= convertView.findViewById(R.id.read_item_date);
             holder.completionView= convertView.findViewById(R.id.read_item_completion);
 
-            holder.play = convertView.findViewById(R.id.read_item_play);
             holder.delete = convertView.findViewById(R.id.read_item_delete);
 
             holder.thumbnail = convertView.findViewById(R.id.read_item_thumbnail);
 
             // Create listeners.
             holder.nameClick = new ReadItemClickNotifier(R.id.read_item_name, position, m_listener);
-            holder.sourceClick = new ReadItemClickNotifier(R.id.read_item_source, position, m_listener);
-            holder.playClick = new ReadItemClickNotifier(R.id.read_item_play, position, m_listener);
             holder.deleteClick = new ReadItemClickNotifier(R.id.read_item_delete, position, m_listener);
 
             // Register listeners.
             holder.nameView.setOnClickListener(holder.nameClick);
-            holder.sourceView.setOnClickListener(holder.sourceClick);
-            holder.play.setOnClickListener(holder.playClick);
             holder.delete.setOnClickListener(holder.deleteClick);
 
             convertView.setTag(holder);
@@ -177,8 +169,6 @@ public class ReadsAdapter extends BaseAdapter {
 
         // Update information about the read represented by this view.
         holder.nameClick.setViewId(position);
-        holder.sourceClick.setViewId(position);
-        holder.playClick.setViewId(position);
         holder.deleteClick.setViewId(position);
 
         return convertView;

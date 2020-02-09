@@ -11,16 +11,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/read_item_name"
-            android:layout_weight="8"
+            android:layout_weight="9"
             android:textSize="@dimen/read_item_title_size"
             android:textStyle="bold"/>
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/read_item_play"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_media_play"
-            android:contentDescription="@string/start_read_img_desc"/>
         <ImageView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -39,17 +32,17 @@
             android:orientation="vertical"
             android:layout_weight="7">
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_source"
                 android:textSize="@dimen/read_item_desc_size"/>
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_date"
                 android:textSize="@dimen/read_item_desc_size"/>
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_completion"
                 android:textSize="@dimen/read_item_desc_size" />

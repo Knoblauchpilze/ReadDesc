@@ -6,6 +6,7 @@ import androidx.fragment.app.DialogFragment;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -94,11 +95,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // with the read description.
         switch (resource) {
             case R.id.read_item_name:
-            case R.id.read_item_play:
                 performAction(AppAction.OpenRead, desc);
-                break;
-            case R.id.read_item_source:
-                performAction(AppAction.OpenSource, desc);
                 break;
             case R.id.read_item_delete:
                 performAction(AppAction.Delete, desc);
@@ -315,9 +312,12 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
                 dialog.show(getSupportFragmentManager(), "DeleteDialogFor" + desc.getName());
                 break;
             case OpenRead:
+                startReading(desc);
+                break;
             case OpenSource:
+                openReadSource(desc);
+                break;
             default:
-                // TODO: Implement opening of source/read.
                 break;
         }
     }
@@ -332,6 +332,29 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     private void deleteRead(ReadDesc desc) {
         // Remove the item from the list of reads.
         m_reads.removeItem(desc);
+    }
+
+    /**
+     * Called whenever the user decides to start reading mode for a specific read.
+     * This method will start the corresponding activity and provide it with the
+     * relevant data about the read.
+     * @param desc - the read for which the reading mode should be started.
+     */
+    private void startReading(ReadDesc desc) {
+        // TODO: Should implement the start of `ReadActivity`.
+        Log.w("main", "Should open reading mode for \"" + desc.getName() + "\"");
+    }
+
+    /**
+     * Called whenever the user requests to display the source of the read. It is
+     * a process that depends on the actual type of the read because we don't want
+     * to display in the same way a read coming from a remote location or from a
+     * local file.
+     * @param desc - the read for which the source should be displayed.
+     */
+    private void openReadSource(ReadDesc desc) {
+        // TODO: Should implement the opening of the read's source.
+        Log.w("main", "Should open source for \"" + desc.getName() + "\"");
     }
 
 }

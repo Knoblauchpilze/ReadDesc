@@ -1,6 +1,7 @@
 package knoblauch.readdesc.model;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class ReadDesc {
 
@@ -15,6 +16,14 @@ public class ReadDesc {
         WebPage,
         EBook
     }
+
+    /**
+     * The identifier for this read. Allows to ensure that reads can have
+     * similar names and yet still be considered unique. This is cool so
+     * as to allow the user to not really care about the names given to
+     * the reads, the system handles collisions in a transparent way.
+     */
+    private UUID m_uuid;
 
     /**
      * The name of the read: presents a user-defined strings identifying
@@ -80,7 +89,10 @@ public class ReadDesc {
      *               related enumeration and helps fetching the content of the read.
      * @param source - a link to the source of the read.
      */
-    ReadDesc(String name, Type type, String source) {
+    private ReadDesc(String name, Type type, String source) {
+        // Generate a random identifier for this read.
+        m_uuid = UUID.randomUUID();
+
         // Initialize the read from input properties.
         m_name = name;
         m_type = type;
