@@ -1,8 +1,16 @@
 package knoblauch.readdesc.model;
 
+import android.content.Context;
 import android.graphics.Color;
 
 public class ReadPref {
+
+    /**
+     * The context providing access to the default value of the preferences and also to the
+     * framework allowing to save them to the disk. This context isd usually dependent on
+     * the activity creating this object.
+     */
+    Context m_context;
 
     /**
      * Describe the background color to use in the reading view. This color is set through
@@ -31,27 +39,17 @@ public class ReadPref {
     String m_readStorageLocation;
 
     /**
-     * Create a default read preference object with no associated preferences. Each property
-     * will not be accessible (or rather return `null`) until the corresponding `set` method
-     * as been called for said property.
+     * Create a default read preference object with no associated preferences. The context is
+     * used to retrieve the properties saved in the application and if none are defined, we
+     * use the default values.
+     * @param context - the context from which preferences should be created.
      */
-    ReadPref() {}
+    ReadPref(Context context) {
+        // Assign the internal context.
+        m_context = context;
 
-    /**
-     * Create a read preferences object with the specified values. Typically used to restore
-     * this object from saved preferences.
-     * @param bg - the color of the background when in reading mode.
-     * @param text - the color of the text when in reading mode.
-     * @param wordFlip - the interval in milliseconds between two words flip.
-     * @param storageLoc - the local storage location for reads.
-     */
-    ReadPref(Color bg, Color text, int wordFlip, String storageLoc) {
-        setBackgroundColor(bg);
-        setTextColor(text);
-
-        setWordFlipInterval(wordFlip);
-
-        setReadStorageLocation(storageLoc);
+        // Perform the loading of the preferences.
+        load();
     }
 
     /**
@@ -122,5 +120,47 @@ public class ReadPref {
      */
     public void setReadStorageLocation(String readStorage) {
         m_readStorageLocation = readStorage;
+    }
+
+    /**
+     * Used in order to load the preferences from the values saved on the disk. Uses the
+     * internal context to retrieve the previously saved values or uses the default ones
+     * if none have been saved already.
+     */
+    private void load() {
+        // Nothing can be done if the context is not set.
+        if (m_context == null) {
+            return;
+        }
+
+        // TODO: Handle load prefs to disk.
+    }
+
+    /**
+     * Used to perform a save operation of the values defined in this object to the disk.
+     * The values can then be retrieved on a later session of the application.
+     */
+    public void save() {
+        // Nothing can be done if the context is not set.
+        if (m_context == null) {
+            return;
+        }
+
+        // TODO: Handle save prefs to disk.
+    }
+
+    /**
+     * Used to perform a reset of the preferences to their default values as defined by
+     * the internal context. Note that only the internal values are changed but nothing
+     * is dumped to the disk just yet. One should call the `save` method for the reset
+     * to be validated.
+     */
+    public void resetToDefault() {
+        // Nothing can be done if the context is not set.
+        if (m_context == null) {
+            return;
+        }
+
+        // TODO: Handle reset prefs to default.
     }
 }
