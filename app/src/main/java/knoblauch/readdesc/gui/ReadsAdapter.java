@@ -160,6 +160,8 @@ public class ReadsAdapter extends BaseAdapter {
 
         // Update resources.
         holder.nameView.setText(desc.getName());
+        // TODO: We should probably try to move the `getCondensedUri` method to somewhere accessible
+        // from here: indeed we want the source to be displayed using a condensed syntax.
         holder.sourceView.setText(desc.getSource());
         holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
         holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));

@@ -596,10 +596,11 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         String thumbnail = m_thumbnail.uri;
         if (thumbnail == null) {
-            String raw = m_thumbnail.source.getText().toString();
-            if (!raw.isEmpty()) {
-                thumbnail = raw;
-            }
+            // At this point we know that the `thumbnail` is `null` so
+            // even if the source is empty it will still associate an
+            // empty string rather than a `null` one to the thumbnail.
+            // So it's an improvement.
+            thumbnail = m_thumbnail.source.getText().toString();
         }
 
         // Depending on whether we could fetch all properties, we can return the read intent.
