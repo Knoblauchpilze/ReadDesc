@@ -38,4 +38,7 @@
     <string name="settings_read_storage_location_pref_key">pref_read_storage_location</string>
     <string name="settings_read_mode_text_color_pref_key">pref_read_mode_bg_color</string>
     <string name="settings_read_mode_bg_color_pref_key">pref_read_mode_text_color</string>
+
+    <!-- Name of the preferences file -->
+    <string name="settings_preference_file_name">fast_reader_preferences</string>
 </resources>

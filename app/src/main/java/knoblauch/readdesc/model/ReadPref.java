@@ -1,7 +1,14 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
+
+import androidx.core.content.ContextCompat;
+
+import knoblauch.readdesc.R;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class ReadPref {
 
@@ -10,33 +17,36 @@ public class ReadPref {
      * framework allowing to save them to the disk. This context isd usually dependent on
      * the activity creating this object.
      */
-    Context m_context;
+    private Context m_context;
 
     /**
      * Describe the background color to use in the reading view. This color is set through
      * the preferences and is meant to be not super aggressive so that the user can focus
      * on the reading itself.
+     * Note that he color is not stored as a real color but as an `int-color` which is a
+     * translation of a color into a single integer value.
      */
-    Color m_bgColor;
+    private int m_bgColor;
 
     /**
      * The color of the text. Should ideally contrast well with the background color for
      * the text to be easily separated from the background.
+     * This is stored in the same way as the `m_bgColor`, i.e. through an `int-color`.
      */
-    Color m_textColor;
+    private int m_textColor;
 
     /**
      * The interval in milliseconds that a word is displayed on the screen. After a duration
      * equal to this value has elapsed the next word is displayed.
      */
-    int m_wordFlipInterval;
+    private int m_wordFlipInterval;
 
     /**
      * The location at which reads should be stored in the local disk. This allows to fetch
      * local contents and not need to retrieve them (and thus have a working internet conn)
      * each time the user wants to load them.
      */
-    String m_readStorageLocation;
+    private String m_readStorageLocation;
 
     /**
      * Create a default read preference object with no associated preferences. The context is
@@ -44,7 +54,7 @@ public class ReadPref {
      * use the default values.
      * @param context - the context from which preferences should be created.
      */
-    ReadPref(Context context) {
+    public ReadPref(Context context) {
         // Assign the internal context.
         m_context = context;
 
@@ -56,7 +66,7 @@ public class ReadPref {
      * Retrieve the background color to use when in reading mode.
      * @return - the background color to use.
      */
-    public Color getBackgroundColor() {
+    public int getBackgroundColor() {
         return m_bgColor;
     }
 
@@ -64,7 +74,7 @@ public class ReadPref {
      * Assign a new background color to use when in reading mode.
      * @param bg - the new color to use.
      */
-    public void setBackgroundColor(Color bg) {
+    public void setBackgroundColor(int bg) {
         m_bgColor = bg;
     }
 
@@ -72,7 +82,7 @@ public class ReadPref {
      * Retrieve the text color to use when in reading mode.
      * @return - the text color to use.
      */
-    public Color getTextColor() {
+    public int getTextColor() {
         return m_textColor;
     }
 
@@ -80,7 +90,7 @@ public class ReadPref {
      * Assign a new text color to use when in reading mode.
      * @param text - the new color to use.
      */
-    public void setTextColor(Color text) {
+    public void setTextColor(int text) {
         m_textColor = text;
     }
 
@@ -133,7 +143,40 @@ public class ReadPref {
             return;
         }
 
-        // TODO: Handle load prefs to disk.
+        // Retrieve the preferences editor from the context along with the resources
+        // object which will provide default value.
+        Resources res = m_context.getResources();
+        String key = res.getString(R.string.settings_preference_file_name);
+        SharedPreferences pref = m_context.getSharedPreferences(key, MODE_PRIVATE);
+
+        // Restore the word flip interval or create it from default value if it does
+        // not exist.
+        m_wordFlipInterval = res.getInteger(R.integer.settings_default_world_flip);
+        key = res.getString(R.string.settings_word_flip_pref_key);
+        if (pref.contains(key)) {
+            m_wordFlipInterval = pref.getInt(key, m_wordFlipInterval );
+        }
+
+        // Restore read storage location.
+        m_readStorageLocation = res.getString(R.string.settings_default_read_storage_location);
+        key = res.getString(R.string.settings_read_storage_location_pref_key);
+        if (pref.contains(key)) {
+            m_readStorageLocation = pref.getString(key, m_readStorageLocation);
+        }
+
+        // Restore background color while in reading mode.
+        m_bgColor = ContextCompat.getColor(m_context, R.color.settings_default_bg_color);
+        key = res.getString(R.string.settings_read_mode_bg_color_pref_key);
+        if (pref.contains(key)) {
+            m_bgColor = pref.getInt(key, m_bgColor);
+        }
+
+        // Restore text color while in reading mode.
+        m_textColor = ContextCompat.getColor(m_context, R.color.settings_default_text_color);
+        key = res.getString(R.string.settings_read_mode_text_color_pref_key);
+        if (pref.contains(key)) {
+            m_textColor = pref.getInt(key, m_textColor);
+        }
     }
 
     /**
@@ -146,7 +189,31 @@ public class ReadPref {
             return;
         }
 
-        // TODO: Handle save prefs to disk.
+        // Retrieve the preferences editor from the context along with the resources
+        // object which will provide default value.
+        Resources res = m_context.getResources();
+        String key = res.getString(R.string.settings_preference_file_name);
+        SharedPreferences pref = m_context.getSharedPreferences(key, MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+
+        // Save the word flip interval.
+        key = res.getString(R.string.settings_word_flip_pref_key);
+        editor.putInt(key, m_wordFlipInterval);
+
+        // Save the default read storage location.
+        key = res.getString(R.string.settings_read_storage_location_pref_key);
+        editor.putString(key, m_readStorageLocation);
+
+        // Save the background color while in reading mode.
+        key = res.getString(R.string.settings_read_mode_bg_color_pref_key);
+        editor.putInt(key, m_bgColor);
+
+        // Save the text color while in reading mode.
+        key = res.getString(R.string.settings_read_mode_text_color_pref_key);
+        editor.putInt(key, m_textColor);
+
+        // Apply the modifications.
+        editor.apply();
     }
 
     /**
@@ -161,6 +228,14 @@ public class ReadPref {
             return;
         }
 
-        // TODO: Handle reset prefs to default.
+        // Retrieve the resources manager which will help retrieving the default values
+        // for some properties.
+        Resources res = m_context.getResources();
+
+        // Restore each preference with its default value.
+        m_wordFlipInterval = res.getInteger(R.integer.settings_default_world_flip);
+        m_readStorageLocation = res.getString(R.string.settings_default_read_storage_location);
+        m_bgColor = ContextCompat.getColor(m_context, R.color.settings_default_bg_color);
+        m_textColor = ContextCompat.getColor(m_context, R.color.settings_default_text_color);
     }
 }

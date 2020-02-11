@@ -1,14 +1,11 @@
 package knoblauch.readdesc.gui.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
-import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,6 +16,7 @@ import android.widget.TextView;
 import knoblauch.readdesc.R;
 import knoblauch.readdesc.gui.NotifierDialog;
 import knoblauch.readdesc.gui.ResetPreferencesDialog;
+import knoblauch.readdesc.model.ReadPref;
 
 public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NotifierDialog.NoticeDialogListener {
 
@@ -69,6 +67,13 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
      */
     private TextView m_readStorageLocation;
 
+    /**
+     * Holds the current set of preferences defined in the settings view. This
+     * attribute is populated from the local data upon creating the view and
+     * is then saved when needed.
+     */
+    private ReadPref m_prefs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Create using the parent handler.
@@ -77,31 +82,15 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         // Assign the main content.
         setContentView(R.layout.activity_settings);
 
-        // Initialize the word flip interval.
-        m_wordFlipText = findViewById(R.id.settings_word_flip_value);
-        m_wordFlipValue = findViewById(R.id.settings_word_flip_seek_bar);
+        // Retrieve layout attributes to local variables.
+        loadViews();
 
+        // Load preferences from disk.
+        loadPreferences();
+
+        // Register this view as a listener of relevant properties.
         m_wordFlipValue.setOnSeekBarChangeListener(this);
 
-        // Initialize the read storage location.
-        m_readStorageLocation = findViewById(R.id.settings_read_storage_location);
-
-        // Save relevant views in order to be able to change the suited properties.
-        // Also we need to connect signals from various sliders.
-        m_bgColor = new ColorSeekBars();
-        m_textColor = new ColorSeekBars();
-
-        m_bgColor.red = findViewById(R.id.settings_red_bg_seek_bar);
-        m_bgColor.green = findViewById(R.id.settings_green_bg_seek_bar);
-        m_bgColor.blue = findViewById(R.id.settings_blue_bg_seek_bar);
-        m_bgColor.preview = findViewById(R.id.settings_bg_color_preview);
-
-        m_textColor.red = findViewById(R.id.settings_red_text_seek_bar);
-        m_textColor.green = findViewById(R.id.settings_green_text_seek_bar);
-        m_textColor.blue = findViewById(R.id.settings_blue_text_seek_bar);
-        m_textColor.preview = findViewById(R.id.settings_text_color_preview);
-
-        // Connect signals from the seek bars.
         m_bgColor.red.setOnSeekBarChangeListener(this);
         m_bgColor.green.setOnSeekBarChangeListener(this);
         m_bgColor.blue.setOnSeekBarChangeListener(this);
@@ -109,9 +98,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_textColor.red.setOnSeekBarChangeListener(this);
         m_textColor.green.setOnSeekBarChangeListener(this);
         m_textColor.blue.setOnSeekBarChangeListener(this);
-
-        // Load preferences (or use default values).
-        loadPreferences();
     }
 
     @Override
@@ -154,30 +140,11 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
-        // Reset word flip interval.
-        int defWordFlip = getResources().getInteger(R.integer.settings_default_world_flip);
-        m_wordFlipValue.setProgress(defWordFlip);
+        // Reset the preferences.
+        m_prefs.resetToDefault();
 
-        String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), defWordFlip);
-        m_wordFlipText.setText(wordFlip);
-
-        // Reset read storage location.
-        m_readStorageLocation.setText(R.string.settings_default_read_storage_location);
-
-        // Reset background and text colors.
-        int bg = ContextCompat.getColor(this, R.color.settings_default_bg_color);
-        int text = ContextCompat.getColor(this, R.color.settings_default_text_color);
-
-        m_bgColor.red.setProgress(Color.red(bg));
-        m_bgColor.green.setProgress(Color.green(bg));
-        m_bgColor.blue.setProgress(Color.blue(bg));
-
-        m_textColor.red.setProgress(Color.red(text));
-        m_textColor.green.setProgress(Color.green(text));
-        m_textColor.blue.setProgress(Color.blue(text));
-
-        m_bgColor.preview.setBackgroundColor(bg);
-        m_textColor.preview.setBackgroundColor(text);
+        // Reload the graphical elements to match the internal preferences values.
+        loadPreferencesToGraphics();
     }
 
     @Override
@@ -188,50 +155,63 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         // We only want to react to changed started by the user.
-        if (fromUser) {
-            // Determine which switch bar has generated the event. When this is done we
-            // can use it to update the background color from the preview button or to
-            // change the text displaying the word flip interval.
-            if (seekBar == m_wordFlipValue) {
-                String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), progress);
-                m_wordFlipText.setText(wordFlip);
+        if (!fromUser) {
+            return;
+        }
 
-                return;
-            }
+        // Determine whether the progress notification comes from the word flip
+        // progress bar (and updated the value if needed, both in the preferences
+        // and in the display text).
+        if (seekBar == m_wordFlipValue) {
+            // Update prefs object.
+            m_prefs.setWordFlipInterval(progress);
 
-            boolean valid = false;
-            Button prev = null;
-            int r = 0, g = 0, b = 0;
+            // Update the display text.
+            String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), m_prefs.getWordFlipInterval());
+            m_wordFlipText.setText(wordFlip);
 
-            // Depending on the seek bars concerned we will assign the preview and the
-            // color from the relevant data.
-            if (seekBar == m_bgColor.red ||
-                seekBar == m_bgColor.green ||
-                seekBar == m_bgColor.blue)
-            {
-                valid = true;
-                r = m_bgColor.red.getProgress();
-                g = m_bgColor.green.getProgress();
-                b = m_bgColor.blue.getProgress();
+            return;
+        }
 
-                prev = m_bgColor.preview;
-            }
-            else if (seekBar == m_textColor.red ||
-                    seekBar == m_textColor.green ||
-                    seekBar == m_textColor.blue)
-            {
-                valid = true;
-                r = m_textColor.red.getProgress();
-                g = m_textColor.green.getProgress();
-                b = m_textColor.blue.getProgress();
+        // Handle a modification of the background color while in reading mode.
+        // Any change in the progress bar should update the preview button bg
+        // color (along with the preferences' value).
+        if (seekBar == m_bgColor.red || seekBar == m_bgColor.green || seekBar == m_bgColor.blue) {
+            // Retrieve the new background color.
+            int r = m_bgColor.red.getProgress();
+            int g = m_bgColor.green.getProgress();
+            int b = m_bgColor.blue.getProgress();
 
-                prev = m_textColor.preview;
-            }
+            // Convert it to a valid color.
+            int c = Color.argb(255, r, g, b);
 
-            if (valid) {
-                int c = Color.argb(255, r, g, b);
-                prev.setBackgroundColor(c);
-            }
+            // Update preferences' object.
+            m_prefs.setBackgroundColor(c);
+
+            // Update the preview button's background color.
+            m_bgColor.preview.setBackgroundColor(m_prefs.getBackgroundColor());
+
+            return;
+        }
+
+        // Handle a modification of the text color while in reading mode. This
+        // is very similar to the background color.
+        if (seekBar == m_textColor.red || seekBar == m_textColor.green || seekBar == m_textColor.blue) {
+            int r = m_textColor.red.getProgress();
+            int g = m_textColor.green.getProgress();
+            int b = m_textColor.blue.getProgress();
+
+            // Convert it to a valid color.
+            int c = Color.argb(255, r, g, b);
+
+            // Update preferences' object.
+            m_prefs.setTextColor(c);
+
+            // Update the preview button's background color.
+            m_textColor.preview.setBackgroundColor(m_prefs.getTextColor());
+
+            // No need to return but don't forget to return in case some other
+            // preferences are added later on.
         }
     }
 
@@ -252,101 +232,85 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
         // We need to save preferences as this activity is not the current one anymore.
         // In order not to lose data we save it beforehand.
-        savePreferences();
+        m_prefs.save();
     }
 
     /**
-     * Used to perform the saving of the preferences for the application into the dedicated
-     * location provided by the API. We will save only the relevant data so as to be able to
-     * recreate the view upon the next loading.
-     * This include the word flip interval, the storage location of the remote reads and the
-     * colors to apply when in reading mode.
+     * Used internally to get the views used by this activity to local attributes so
+     * that it is faster to access properties. This method should be called upon the
+     * building of the activity so that everything is readily available to process a
+     * user's request.
      */
-    private void savePreferences() {
-        // Retrieve the preferences editor.
-        SharedPreferences pref = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
+    private void loadViews() {
+        Log.i("main", "Loading views");
+        // Retrieve the word flip interval.
+        m_wordFlipText = findViewById(R.id.settings_word_flip_value);
+        m_wordFlipValue = findViewById(R.id.settings_word_flip_seek_bar);
 
-        Resources res = getResources();
+        // Retrieve the read storage location.
+        m_readStorageLocation = findViewById(R.id.settings_read_storage_location);
 
-        // Save each preferences key.
-        editor.putInt(
-                res.getString(R.string.settings_word_flip_pref_key),
-                m_wordFlipValue.getProgress()
-        );
+        // Save relevant views in order to be able to change the suited properties.
+        // Also we need to connect signals from various sliders.
+        m_bgColor = new ColorSeekBars();
+        m_textColor = new ColorSeekBars();
 
-        editor.putString(
-                res.getString(R.string.settings_read_storage_location_pref_key),
-                m_readStorageLocation.getText().toString()
-        );
+        m_bgColor.red = findViewById(R.id.settings_red_bg_seek_bar);
+        m_bgColor.green = findViewById(R.id.settings_green_bg_seek_bar);
+        m_bgColor.blue = findViewById(R.id.settings_blue_bg_seek_bar);
+        m_bgColor.preview = findViewById(R.id.settings_bg_color_preview);
 
-        ColorDrawable bgDraw = (ColorDrawable)m_bgColor.preview.getBackground();
-        int bgColor = bgDraw.getColor();
-        editor.putInt(
-                res.getString(R.string.settings_read_mode_bg_color_pref_key),
-                bgColor
-        );
-
-        ColorDrawable textDraw = (ColorDrawable)m_textColor.preview.getBackground();
-        int textColor = textDraw.getColor();
-        editor.putInt(
-                res.getString(R.string.settings_read_mode_text_color_pref_key),
-                textColor
-        );
-
-        // Actually save preferences.
-        editor.apply();
+        m_textColor.red = findViewById(R.id.settings_red_text_seek_bar);
+        m_textColor.green = findViewById(R.id.settings_green_text_seek_bar);
+        m_textColor.blue = findViewById(R.id.settings_blue_text_seek_bar);
+        m_textColor.preview = findViewById(R.id.settings_text_color_preview);
     }
 
     /**
-     * Used with a similar purpose to `savePreferences` but in the case preferences should be restored
-     * from their storage location. This method assumes that the internal components have already be
-     * loaded and point to valid locations and will try to assign the corresponding state to each one
-     * of them based on what's read from the preferences.
+     * Used to perform the loading of the preferences into the internal attribute and
+     * then populate the display elements with the corresponding data. This method is
+     * typically used whenever the activity is started to get consistent display with
+     * the saved values.
+     * In case no preferences are registered for a certain value the default value is
+     * used and displayed. It will be saved on the next call to `save` on the internal
+     * `m_prefs` object.
      */
     private void loadPreferences() {
-        // Retrieve the preferences editor.
-        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        // Create the preferences' object and load it.
+        m_prefs = new ReadPref(this);
 
-        Resources res = getResources();
+        // Update internal attributes with the values retrieved from the local data.
+        loadPreferencesToGraphics();
+    }
 
-        // Restore the word flip interval.
-        int wordFlipInterval = pref.getInt(
-                res.getString(R.string.settings_word_flip_pref_key),
-                R.integer.settings_default_world_flip
-        );
-
+    /**
+     * Used to populate the graphical elements with the data contained in the internal
+     * `m_prefs` object. A typical usage of this method is either when the prefs have
+     * just been loaded from disk or when the user chose to reset to the default values.
+     */
+    private void loadPreferencesToGraphics() {
+        // Word flip interval.
+        int wordFlipInterval = m_prefs.getWordFlipInterval();
         String wordFlipText = String.format(getResources().getString(R.string.settings_word_flip_text), wordFlipInterval);
         m_wordFlipText.setText(wordFlipText);
         m_wordFlipValue.setProgress(wordFlipInterval);
 
-        // Restore read storage location.
-        String readStorage = pref.getString(
-                res.getString(R.string.settings_read_storage_location_pref_key),
-                res.getString(R.string.settings_default_read_storage_location)
-        );
-        m_readStorageLocation.setText(readStorage);
+        // Read storage location.
+        m_readStorageLocation.setText(m_prefs.getReadStorageLocation());
 
-        // Restore background color while in reading mode.
-        int defBgColor = ContextCompat.getColor(this, R.color.settings_default_bg_color);
-        int bgColor = pref.getInt(
-                res.getString(R.string.settings_read_mode_bg_color_pref_key),
-                defBgColor
-        );
+        // Background color while in reading mode.
+        int bgColor = m_prefs.getBackgroundColor();
         m_bgColor.red.setProgress(Color.red(bgColor));
         m_bgColor.green.setProgress(Color.green(bgColor));
         m_bgColor.blue.setProgress(Color.blue(bgColor));
         m_bgColor.preview.setBackgroundColor(bgColor);
 
-        // Restore text color while in reading mode.
-        int defTextColor = ContextCompat.getColor(this, R.color.settings_default_text_color);
-        int textColor = pref.getInt(
-                res.getString(R.string.settings_read_mode_text_color_pref_key),
-                defTextColor
-        );
+        // Text color while in reading mode.
+        int textColor = m_prefs.getTextColor();
         m_textColor.red.setProgress(Color.red(textColor));
         m_textColor.green.setProgress(Color.green(textColor));
         m_textColor.blue.setProgress(Color.blue(textColor));
         m_textColor.preview.setBackgroundColor(textColor);
     }
+
 }
