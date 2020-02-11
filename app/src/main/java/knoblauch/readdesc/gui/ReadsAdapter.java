@@ -71,7 +71,7 @@ public class ReadsAdapter extends BaseAdapter {
         m_listener = listener;
 
         // Generate random reads.
-        m_reads = new ReadsBank(ReadsBank.Ordering.CreationDate);
+        m_reads = new ReadsBank(m_context, ReadsBank.Ordering.CreationDate);
     }
 
     /**
@@ -100,6 +100,16 @@ public class ReadsAdapter extends BaseAdapter {
         if (m_reads.add(desc)) {
             notifyDataSetChanged();
         }
+    }
+
+    /**
+     * Used to perform a dump of the content of the reads registered in
+     * this adapter to the local storage. This is typically used when the
+     * activity using the adapter is closed so that we can restore the
+     * reads when the application is relaunched.
+     */
+    public void save() {
+        m_reads.save();
     }
 
     @Override

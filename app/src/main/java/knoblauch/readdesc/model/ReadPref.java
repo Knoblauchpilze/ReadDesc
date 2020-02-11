@@ -14,7 +14,7 @@ public class ReadPref {
 
     /**
      * The context providing access to the default value of the preferences and also to the
-     * framework allowing to save them to the disk. This context isd usually dependent on
+     * framework allowing to save them to the disk. This context is usually dependent on
      * the activity creating this object.
      */
     private Context m_context;

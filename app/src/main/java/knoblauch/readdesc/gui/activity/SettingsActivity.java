@@ -88,6 +88,8 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         // Load preferences from disk.
         loadPreferences();
 
+        // TODO: We should connect the read storage location.
+
         // Register this view as a listener of relevant properties.
         m_wordFlipValue.setOnSeekBarChangeListener(this);
 

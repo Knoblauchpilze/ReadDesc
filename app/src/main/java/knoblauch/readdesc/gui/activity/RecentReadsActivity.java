@@ -244,6 +244,16 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         m_reads.addItem(read);
     }
 
+    @Override
+    public void onPause() {
+        // Call the base handler.
+        super.onPause();
+
+        // We need to save the reads to the local storage so that we can reload them
+        // upon relaunching the application.
+        m_reads.save();
+    }
+
     /**
      * Used to create and display a new activity related to the specified action.
      * @param action - the menu action describing the activity to create.

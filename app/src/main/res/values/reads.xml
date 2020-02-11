@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Key of the file to use to save the reads -->
+    <string name="read_desc_save_file_name">%1$s_save.xml</string>
+
+    <!-- Notification when a file fails to load/save -->
+    <string name="read_desc_failure_load_file">Failed to load \"%1$s\" from local storage</string>
+    <string name="read_desc_failure_save_file">Failed to save \"%1$s\" to local storage</string>
+</resources>

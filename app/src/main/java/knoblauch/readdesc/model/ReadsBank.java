@@ -1,9 +1,24 @@
 package knoblauch.readdesc.model;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import knoblauch.readdesc.R;
 
 public class ReadsBank {
 
@@ -61,6 +76,12 @@ public class ReadsBank {
     }
 
     /**
+     * The context providing access to the data already saved by this application if
+     * any regarding reads already created by the user.
+     */
+    private Context m_context;
+
+    /**
      * Describe the available reads in the application. This list is populated with
      * the data from previous execution where the user might have added some reads
      * from various resources. This is the main resource of the application and is
@@ -76,18 +97,201 @@ public class ReadsBank {
     private Ordering m_ordering;
 
     /**
+     * Create a new reads bank with the specified number of reads to create.
+     * @param context - the context to use to get access to the data saved by the
+     *                  app locally on a previous execution.
+     * @param order - the order to apply to reads upon being loaded. This will
+     *                also be applied when fetching a read through the `getRead`
+     *                interface so it usually also translate into visual
+     *                ordering of the reads.
+     */
+    public ReadsBank(Context context, Ordering order) {
+        // Assign the context to use to perform the loading.
+        m_context = context;
+
+        // Set the ordering to respect when loading reads.
+        m_ordering = order;
+
+        // Load all the available reads.
+        load();
+    }
+
+    /**
      * Perform the load of the reads descriptions in the internal collection from
      * the storage location. This usually means fetching data from local disk and
      * retrieving the last state of each one of them.
      */
     private void load() {
+        // Retrieve the data from the dedicated internal storage containing the
+        // existing reads. To do so we need to retrieve the resources manager
+        // from the internal context.
+        File appDir = m_context.getFilesDir();
+
+        // Retrieve the list of the files registered in the directory: this will
+        // correspond to the existing reads.
+        File[] reads = appDir.listFiles();
+
+        // Check whether this directory exists: if this is not the case we don't
+        // need to bother with loading reads from it.
+        if (reads == null) {
+            return;
+        }
+
         // Allocate the internal reads array.
         m_reads = new ArrayList<>();
 
-        // TODO: We should load existing read probably from existing data ?
+        Resources res = m_context.getResources();
+        String msg = res.getString(R.string.read_desc_failure_load_file);
+
+        // Register each read.
+        for (File read : reads) {
+            // Open the read's description.
+            FileInputStream fis;
+            try {
+                fis = m_context.openFileInput(read.getName());
+            }
+            catch (FileNotFoundException e) {
+                // Do not load this read for now.
+                Toast.makeText(m_context, String.format(msg, read.getName()), Toast.LENGTH_SHORT).show();
+
+                continue;
+            }
+
+            // Open the file and prepare to parse it.
+            InputStreamReader inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            // Read the file line by line.
+            String content;
+
+            try (BufferedReader reader = new BufferedReader(inputStreamReader)) {
+                String line = reader.readLine();
+                while (line != null) {
+                    stringBuilder.append(line).append('\n');
+                    line = reader.readLine();
+                }
+            }
+            catch (IOException e) {
+                // Error occurred when opening raw file for reading.
+                Toast.makeText(m_context, String.format(msg, read.getName()), Toast.LENGTH_SHORT).show();
+            }
+            finally {
+                content = stringBuilder.toString();
+            }
+
+            if (!loadReadFromContent(content)) {
+                Toast.makeText(m_context, String.format(msg, read.getName()), Toast.LENGTH_SHORT).show();
+            }
+        }
 
         // We need to sort the reads based on the internal ordering.
         orderReads();
+    }
+
+    /**
+     * Used to perform the loading of the file descibred by the input content and add
+     * it to the internal list of reads. The return value allows to indicate whether
+     * we could successfully load the file or not.
+     * @param content - the content of the file to load.
+     * @return - `true` if the content was successfully transformed into a read and
+     *           `false` otherwise.
+     */
+    private boolean loadReadFromContent(String content) {
+        Log.i("main", "Content is \"" + content + "\"");
+
+        // TODO: Handle loading of the content of the read file.
+        return false;
+    }
+
+    /**
+     * Used to perform the save of the reads contained in this bank to a local file
+     * intended for this application's usage only. This will allow to retrieve the
+     * data created by the user in future launches.
+     */
+    public void save() {
+        Resources res = m_context.getResources();
+
+        // We need to save each created reads to local storage. Let's start.
+        for (ReadDesc read : m_reads) {
+            // Try to save the read to local storage and remember any failure.
+            if (!saveRead(read)) {
+                String msg = String.format(res.getString(R.string.read_desc_failure_save_file), read.getName());
+                Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * Used to handle the saving of the input read. We check local storage in case
+     * the file corresponding to this read already exist in which case we update it
+     * and we create it if this is not the case.
+     * @param read - the read to save to local storage.
+     * @return - `true` if the file could successfully be saved and `false` otherwise.
+     */
+    private boolean saveRead(ReadDesc read) {
+        // Generate the name of this read.
+        Resources res = m_context.getResources();
+        String name = String.format(res.getString(R.string.read_desc_save_file_name), read.getName());
+
+        // Check whether the file for this read exists in local storage.
+        File out = new File(m_context.getFilesDir(), name);
+
+        boolean success = false;
+
+        if(!out.exists()){
+            try {
+                success = out.createNewFile();
+            }
+            catch (IOException e) {
+                // We couldn't save the file.
+            }
+        }
+
+        // Check whether the creation of the file was successful.
+        if (!success) {
+            return false;
+        }
+
+        // Dump the content of the file if we successfully created it.
+        try{
+            success = saveReadToContent(read, out);
+        }
+        catch (Exception e){
+            // Any error result in the failure to save the read.
+        }
+
+        // We successfully saved the read to local storage.
+        return success;
+    }
+
+    /**
+     * Used to perform the dump of the input read to the specified file. In case the
+     * file already exists this method actually handle the modification of the data
+     * so that it stays consistent and create everything that's needed in case said
+     * file is empty.
+     * The return value allows to indicate whether we could successfully load the
+     * file or not.
+     * @param desc - the read to save to the file.
+     * @param out - the output file to which the content of the `read` is to be saved.
+     * @return - `true` if the content was successfully transformed into a file and
+     *           `false` otherwise.
+     */
+    private boolean saveReadToContent(ReadDesc desc, File out) throws IOException {
+        Log.i("main", "Should save \"" + desc.getName() + "\" to \"" + out.getName() + "\"");
+
+        // Create a writer for this file.
+        FileWriter writer = new FileWriter(out);
+
+        // Append the body of the file.
+        // TODO: Handle loading of the content of the read file.
+        writer.append("Hello world !");
+
+        // Close the file after writing it.
+        writer.flush();
+        writer.close();
+
+        // We successfully saved the content of the file.
+        return true;
     }
 
     /**
@@ -99,21 +303,6 @@ public class ReadsBank {
     private void orderReads() {
         // Sort through the generic algorithm.
         Collections.sort(m_reads, new ReadComparator(m_ordering));
-    }
-
-    /**
-     * Create a new reads bank with the specified number of reads to create.
-     * @param order - the order to apply to reads upon being loaded. This will
-     *                also be applied when fetching a read through the `getRead`
-     *                interface so it usually also translate into visual
-     *                ordering of the reads.
-     */
-    public ReadsBank(Ordering order) {
-        // Set the ordering to respect when loading reads.
-        m_ordering = order;
-
-        // Load all the available reads.
-        load();
     }
 
     /**
@@ -183,4 +372,5 @@ public class ReadsBank {
         // We successfully inserted the read.
         return true;
     }
+
 }
