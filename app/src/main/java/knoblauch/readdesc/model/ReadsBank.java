@@ -2,17 +2,13 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -90,6 +86,14 @@ public class ReadsBank {
     private List<ReadDesc> m_reads;
 
     /**
+     * Used to keep track of the reads that have been marked for deletion by the
+     * user. We will perform the removal of the corresponding files on the disk
+     * upon the next saving operation. This list is cleared each time the saving
+     * operation is performed so as not to delete a read more than once.
+     */
+    private List<ReadDesc> m_toDelete;
+
+    /**
      * Used to describe the local ordering applied to the reads. This ordering is
      * also reflected when picking a read with the `getRead` method so it usually
      * is translated into visual ordering of the components.
@@ -137,49 +141,17 @@ public class ReadsBank {
             return;
         }
 
-        // Allocate the internal reads array.
+        // Allocate the internal reads arrays.
         m_reads = new ArrayList<>();
+        m_toDelete = new ArrayList<>();
 
         Resources res = m_context.getResources();
         String msg = res.getString(R.string.read_desc_failure_load_file);
 
         // Register each read.
         for (File read : reads) {
-            // Open the read's description.
-            FileInputStream fis;
-            try {
-                fis = m_context.openFileInput(read.getName());
-            }
-            catch (FileNotFoundException e) {
-                // Do not load this read for now.
-                Toast.makeText(m_context, String.format(msg, read.getName()), Toast.LENGTH_SHORT).show();
-
-                continue;
-            }
-
-            // Open the file and prepare to parse it.
-            InputStreamReader inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
-            StringBuilder stringBuilder = new StringBuilder();
-
-            // Read the file line by line.
-            String content;
-
-            try (BufferedReader reader = new BufferedReader(inputStreamReader)) {
-                String line = reader.readLine();
-                while (line != null) {
-                    stringBuilder.append(line).append('\n');
-                    line = reader.readLine();
-                }
-            }
-            catch (IOException e) {
-                // Error occurred when opening raw file for reading.
-                Toast.makeText(m_context, String.format(msg, read.getName()), Toast.LENGTH_SHORT).show();
-            }
-            finally {
-                content = stringBuilder.toString();
-            }
-
-            if (!loadReadFromContent(content)) {
+            // Load the file.
+            if (!loadReadFromFile(read)) {
                 Toast.makeText(m_context, String.format(msg, read.getName()), Toast.LENGTH_SHORT).show();
             }
         }
@@ -189,18 +161,56 @@ public class ReadsBank {
     }
 
     /**
-     * Used to perform the loading of the file descibred by the input content and add
+     * Used to perform the loading of the file described by the input object and add
      * it to the internal list of reads. The return value allows to indicate whether
      * we could successfully load the file or not.
-     * @param content - the content of the file to load.
+     * @param in - the description of the file's data to load.
      * @return - `true` if the content was successfully transformed into a read and
      *           `false` otherwise.
      */
-    private boolean loadReadFromContent(String content) {
-        Log.i("main", "Content is \"" + content + "\"");
+    private boolean loadReadFromFile(File in) {
+        Resources res = m_context.getResources();
+        String msg = res.getString(R.string.read_desc_failure_load_file);
+        String delFailMsg = res.getString(R.string.read_desc_failure_del_file);
+        String delSucceedMsg = res.getString(R.string.read_desc_succeed_del_file);
 
-        // TODO: Handle loading of the content of the read file.
-        return false;
+        // In order to successfully parse the file we need to first retrieve a stream
+        // reader that will be used to get the content.
+        FileInputStream stream;
+        try {
+            stream = m_context.openFileInput(in.getName());
+        }
+        catch (FileNotFoundException e) {
+            // Do not load this read for now.
+            Toast.makeText(m_context, String.format(msg, in.getName()), Toast.LENGTH_SHORT).show();
+
+            return false;
+        }
+
+        // Open the file and prepare to parse it. We will extract its content and then
+        // try to instantiate a valid `ReadDesc` object from it.
+        ReadDesc read = ReadDesc.fromInputStream(m_context, stream);
+
+        // Check for failure to parse the file.
+        if (read == null) {
+            // As we failed to create the read from the file, we'd rather delete the file
+            // because it is likely corrupted.
+            boolean semiSuccess = in.delete();
+
+            if (semiSuccess) {
+                Toast.makeText(m_context, String.format(delSucceedMsg, in.getName()), Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(m_context, String.format(delFailMsg, in.getName()), Toast.LENGTH_SHORT).show();
+            }
+
+            return semiSuccess;
+        }
+
+        // We have a valid read, add it to the internal list.
+        m_reads.add(read);
+
+        return true;
     }
 
     /**
@@ -219,6 +229,21 @@ public class ReadsBank {
                 Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
             }
         }
+
+        // Also handle the deletion of existing reads from disk.
+        ArrayList<ReadDesc> stillToDelete = new ArrayList<>();
+        for (ReadDesc read : m_toDelete) {
+            if (!deleteRead(read)) {
+                String msg = String.format(res.getString(R.string.read_desc_failure_remove_read), read.getName());
+                Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
+
+                stillToDelete.add(read);
+            }
+        }
+
+        // Keep only the elements which were not deleted.
+        m_toDelete.clear();
+        m_toDelete = stillToDelete;
     }
 
     /**
@@ -235,10 +260,9 @@ public class ReadsBank {
 
         // Check whether the file for this read exists in local storage.
         File out = new File(m_context.getFilesDir(), name);
+        boolean success = out.exists();
 
-        boolean success = false;
-
-        if(!out.exists()){
+        if(!success) {
             try {
                 success = out.createNewFile();
             }
@@ -256,12 +280,37 @@ public class ReadsBank {
         try{
             success = saveReadToContent(read, out);
         }
-        catch (Exception e){
+        catch (Exception e) {
             // Any error result in the failure to save the read.
         }
 
         // We successfully saved the read to local storage.
         return success;
+    }
+
+    /**
+     * Used to handle the deletion of the local data associated to the input read.
+     * This will attempt to clear it so that it is not loaded on the next launch of
+     * the application.
+     * @param read - the read to be deleted from local storage.
+     * @return - `true` if the read's file was successfully deleted and `false`
+     *           otherwise.
+     */
+    private boolean deleteRead(ReadDesc read) {
+        // Generate the name of this read.
+        Resources res = m_context.getResources();
+        String name = String.format(res.getString(R.string.read_desc_save_file_name), read.getName());
+
+        File out = new File(m_context.getFilesDir(), name);
+
+        // Check consistency.
+        if (!out.exists()) {
+            // Consider that this is still a success: the file does not exist anymore.
+            return true;
+        }
+
+        // Attempt to delete the file.
+        return out.delete();
     }
 
     /**
@@ -277,21 +326,11 @@ public class ReadsBank {
      *           `false` otherwise.
      */
     private boolean saveReadToContent(ReadDesc desc, File out) throws IOException {
-        Log.i("main", "Should save \"" + desc.getName() + "\" to \"" + out.getName() + "\"");
-
         // Create a writer for this file.
         FileWriter writer = new FileWriter(out);
 
-        // Append the body of the file.
-        // TODO: Handle loading of the content of the read file.
-        writer.append("Hello world !");
-
-        // Close the file after writing it.
-        writer.flush();
-        writer.close();
-
-        // We successfully saved the content of the file.
-        return true;
+        // Handle the save operation.
+        return desc.save(m_context, writer);
     }
 
     /**
@@ -347,8 +386,15 @@ public class ReadsBank {
             return false;
         }
 
-        // Otherwise attempt to remove the read from the list.
-        return m_reads.remove(desc);
+        // Otherwise attempt to remove the read from the list. We will also save it
+        // in the internal list so that we can delete the resources on the disk for
+        // this read.
+        boolean success = m_reads.remove(desc);
+        if (success) {
+            m_toDelete.add(desc);
+        }
+
+        return success;
     }
 
     /**

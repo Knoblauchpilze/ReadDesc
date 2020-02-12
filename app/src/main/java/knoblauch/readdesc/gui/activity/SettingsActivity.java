@@ -5,7 +5,6 @@ import androidx.fragment.app.DialogFragment;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -244,7 +243,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
      * user's request.
      */
     private void loadViews() {
-        Log.i("main", "Loading views");
         // Retrieve the word flip interval.
         m_wordFlipText = findViewById(R.id.settings_word_flip_value);
         m_wordFlipValue = findViewById(R.id.settings_word_flip_seek_bar);

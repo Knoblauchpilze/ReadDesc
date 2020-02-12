@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -180,6 +181,8 @@ public class ReadsAdapter extends BaseAdapter {
             holder.thumbnail.setImageResource(android.R.color.transparent);
         }
         else {
+            Uri u = Uri.parse(desc.getThumbnailPath());
+            Log.i("main", "Displaying thumbnail with path \"" + desc.getThumbnailPath() + "\"" + " (uri " + (u == null ? "is" : "is not") + " null)");
             holder.thumbnail.setImageURI(Uri.parse(desc.getThumbnailPath()));
         }
 

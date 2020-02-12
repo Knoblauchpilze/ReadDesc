@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -513,8 +512,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         // Create a `uri` object from the input string.
         Uri raw = Uri.parse(uri);
-
-        Log.i("main", "Content is \"" + uri + "\", scheme is \"" + raw.getScheme() + "\"");
 
         String name = null;
 

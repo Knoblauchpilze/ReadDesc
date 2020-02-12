@@ -1,7 +1,26 @@
 package knoblauch.readdesc.model;
 
+import android.content.Context;
+import android.content.res.Resources;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.UUID;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import knoblauch.readdesc.R;
 
 public class ReadDesc {
 
@@ -131,6 +150,172 @@ public class ReadDesc {
         }
 
         return desc;
+    }
+
+    /**
+     * Create a new read from the input file content. We suppose the file represents
+     * a `XML` file describing the keys needed by the `ReadDesc` to fill in the props
+     * internally.
+     * In case the read content does not allow to build a valid read a `null` return
+     * value is set. This indicates a failure to parse the file.
+     * @param context - the context used to retrieve the keys to fetch the information
+     *                  about the read in the `XML` file.
+     * @param stream - the input stream containing the data for this read.
+     * @return - the read description built from the file and `null` if a failure has
+     *           occurred during the parsing.
+     */
+    static ReadDesc fromInputStream(Context context, InputStream stream) {
+        // We will assume that the input `stream` describes a `XML` file reader from
+        // which all properties defining the read can be retrieved. The keys to use
+        // to serialize (and thus in this case de-serialize the content of the read
+        // are defined in the `R` class. We will use it to instantiate the parser to
+        // handle the `XML` document.
+        ReadDesc desc = null;
+
+        try {
+            // Create the parser that we will use to read the `XML` file.
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            // Create the handler that will populate internal attributes in order
+            // to create the `ReadDesc` later on. The parser itself is based on
+            // the information found here:
+            // https://mkyong.com/java/how-to-read-xml-file-in-java-sax-parser/
+            ReadDescXMLParser handler = new ReadDescXMLParser(context);
+
+            saxParser.parse(stream, handler);
+
+            // In case we reach this point it means that the parsing went well and
+            // that we now have all the needed information to create the `ReadDesc`.
+            desc = new ReadDesc(handler.name, handler.type, handler.source);
+            desc.m_uuid = handler.uuid;
+            desc.m_creationDate = handler.creation;
+            desc.m_lastAccessDate = handler.access;
+            desc.m_completionPercentage = handler.completion;
+            desc.m_thumbnail = handler.thumbnail;
+        }
+        catch (Exception e) {
+            // In any case we failed to parse the file, this cannot result in valid
+            // `ReadDesc` object.
+        }
+
+        return desc;
+    }
+
+    /**
+     * Used to perform the dump of the content allowing to describe this read to the
+     * provided stream. This will provide a syntax that can then be used to construct
+     * a valid build through the `fromInputStream` method.
+     * Failure to save the file will return `false`.
+     * @param context - the context to use to retrieve the names of the keys to use
+     *                  to save the properties of this read.
+     * @param stream - the stream to which the content should be saved.
+     * @return - `true` if the save operation was a success and `false` otherwise.
+     */
+    boolean save(Context context, OutputStreamWriter stream) {
+        // In order to serialize this read we need to create a valid `XML` structure
+        // and then perform the serialization of the content to the provided stream.
+        Document xmlDoc;
+        String str;
+
+        // Retrieve props keys.
+        Resources res = context.getResources();
+        String rootKey = res.getString(R.string.read_desc_xml_key_root);
+
+        String uuidKey = res.getString(R.string.read_desc_xml_key_uuid);
+        String nameKey = res.getString(R.string.read_desc_xml_key_name);
+        String typeKey = res.getString(R.string.read_desc_xml_key_type);
+        String sourceKey = res.getString(R.string.read_desc_xml_key_source);
+        String creationKey = res.getString(R.string.read_desc_xml_key_creation_date);
+        String accessedKey = res.getString(R.string.read_desc_xml_key_accessed_date);
+        String completionKey = res.getString(R.string.read_desc_xml_key_completion);
+        String thumbnailKey = res.getString(R.string.read_desc_xml_key_thumbnail);
+
+        // Build the `XML` structure. The following resource proved very useful for
+        // providing insights about this:
+        // https://stackoverflow.com/questions/23520208/how-to-create-xml-file-with-specific-structure-in-java
+        try {
+            // Create the factory to build the `XML` structure.
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+            // Create the document.
+            xmlDoc = docBuilder.newDocument();
+
+            // Register the root element.
+            Element root = xmlDoc.createElement(rootKey);
+            xmlDoc.appendChild(root);
+
+            // Save the uuid of the read.
+            Element uuid = xmlDoc.createElement(uuidKey);
+            uuid.appendChild(xmlDoc.createTextNode(m_uuid.toString()));
+            root.appendChild(uuid);
+
+            // Save the name of the read.
+            Element name = xmlDoc.createElement(nameKey);
+            name.appendChild(xmlDoc.createTextNode(m_name));
+            root.appendChild(name);
+
+            // Save the type of the read.
+            Element type = xmlDoc.createElement(typeKey);
+            type.appendChild(xmlDoc.createTextNode(m_type.name()));
+            root.appendChild(type);
+
+            // Save the source of the read.
+            Element source = xmlDoc.createElement(sourceKey);
+            source.appendChild(xmlDoc.createTextNode(m_source));
+            root.appendChild(source);
+
+            // Save the creation date of the read.
+            str = String.valueOf(m_creationDate.getTime());
+            Element creation = xmlDoc.createElement(creationKey);
+            creation.appendChild(xmlDoc.createTextNode(str));
+            root.appendChild(creation);
+
+            // Save the last access date of the read.
+            str = String.valueOf(m_lastAccessDate.getTime());
+            Element access = xmlDoc.createElement(accessedKey);
+            access.appendChild(xmlDoc.createTextNode(str));
+            root.appendChild(access);
+
+            // Save the completion percentage.
+            str = String.valueOf(m_completionPercentage);
+            Element completion = xmlDoc.createElement(completionKey);
+            completion.appendChild(xmlDoc.createTextNode(str));
+            root.appendChild(completion);
+
+            // Save the thumbnail if needed.
+            if (m_thumbnail != null) {
+                Element thumbnail = xmlDoc.createElement(thumbnailKey);
+                thumbnail.appendChild(xmlDoc.createTextNode(m_thumbnail));
+                root.appendChild(thumbnail);
+            }
+        }
+        catch (Exception e) {
+            // Failed to build the read's `XML` structure, nothing to expect from the
+            // serialization.
+            return false;
+        }
+
+        // Now that we have a valid `XML` structure we can serialize it to the disk.
+        try {
+            TransformerFactory tFactory = TransformerFactory.newInstance();
+            Transformer transformer = tFactory.newTransformer();
+            DOMSource source = new DOMSource(xmlDoc);
+
+            StreamResult result = new StreamResult(stream);
+
+            // Write the XML to file
+            transformer.transform(source, result);
+        }
+        catch (Exception e) {
+            // Catching an error cannot possibly mean that we succeeded in serializing
+            // the data.
+            return false;
+        }
+
+        // Successfully serialized this read to the provided location.
+        return true;
     }
 
     /**

@@ -6,4 +6,20 @@
     <!-- Notification when a file fails to load/save -->
     <string name="read_desc_failure_load_file">Failed to load \"%1$s\" from local storage</string>
     <string name="read_desc_failure_save_file">Failed to save \"%1$s\" to local storage</string>
+
+    <string name="read_desc_failure_remove_read">Failed to delete read \"%1$s\ from local storage"</string>
+
+    <string name="read_desc_succeed_del_file">Successfully deleted corrupted read \"%1$s\"</string>
+    <string name="read_desc_failure_del_file">Failed to delete corrupted read \"%1$s\"</string>
+
+    <!-- Keys to register the read in a XML file -->
+    <string name="read_desc_xml_key_root">root</string>
+    <string name="read_desc_xml_key_uuid">uuid</string>
+    <string name="read_desc_xml_key_name">name</string>
+    <string name="read_desc_xml_key_type">type</string>
+    <string name="read_desc_xml_key_source">source</string>
+    <string name="read_desc_xml_key_creation_date">created_at</string>
+    <string name="read_desc_xml_key_accessed_date">accessed_at</string>
+    <string name="read_desc_xml_key_completion">completion</string>
+    <string name="read_desc_xml_key_thumbnail">thumbnail</string>
 </resources>
