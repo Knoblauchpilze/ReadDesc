@@ -1,7 +1,11 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
+import android.util.Log;
+import android.widget.Toast;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -285,7 +289,7 @@ public class ReadDesc {
             root.appendChild(completion);
 
             // Save the thumbnail if needed.
-            if (m_thumbnail != null) {
+            if (hasThumbnail()) {
                 Element thumbnail = xmlDoc.createElement(thumbnailKey);
                 thumbnail.appendChild(xmlDoc.createTextNode(m_thumbnail));
                 root.appendChild(thumbnail);

@@ -4,10 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -21,6 +19,7 @@ import android.widget.RadioButton;
 import java.util.ArrayList;
 
 import knoblauch.readdesc.R;
+import knoblauch.readdesc.gui.UriUtils;
 import knoblauch.readdesc.model.ReadDesc;
 import knoblauch.readdesc.model.ReadIntent;
 
@@ -383,7 +382,12 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         // a new thumbnail file.
         Resources res = getResources();
 
-        Intent browsing = new Intent(Intent.ACTION_GET_CONTENT);
+        // As described in the following link:
+        // https://developer.android.com/guide/topics/providers/document-provider.html#client
+        // We should use the `open document` action in order to get persistent permissions
+        // on the content that we retrieve.
+        Intent browsing = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+
         browsing.addCategory(Intent.CATEGORY_OPENABLE);
         ArrayList<String> mimeTypes = new ArrayList<>();
         int requestCode = res.getInteger(R.integer.new_read_source_selected_res_code);
@@ -472,7 +476,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             // Handle thumbnail source first.
             if (requestCode == tBrowseCode) {
                 m_thumbnail.uri = uri;
-                m_thumbnail.source.setText(createCondensedUri(uri));
+                m_thumbnail.source.setText(UriUtils.condenseUri(uri, this));
                 return;
             }
 
@@ -480,70 +484,18 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             switch (m_type) {
                 case File:
                     m_fileProps.uri = uri;
-                    m_fileProps.source.setText(createCondensedUri(uri));
+                    m_fileProps.source.setText(UriUtils.condenseUri(uri, this));
                     break;
                 case WebPage:
                     m_websiteProps.uri = uri;
-                    m_websiteProps.source.setText(createCondensedUri(uri));
+                    m_websiteProps.source.setText(UriUtils.condenseUri(uri, this));
                     break;
                 case EBook:
                     m_eBookProps.uri = uri;
-                    m_eBookProps.source.setText(createCondensedUri(uri));
+                    m_eBookProps.source.setText(UriUtils.condenseUri(uri, this));
                     break;
             }
         }
-    }
-
-    /**
-     * Used to perform the creation of a user-friendly string representing the input
-     * `uri` so that it can be displayed in a nice way. Indeed this view handles some
-     * resources used to define the data associated to the read to create which are
-     * usually long string not really explicit for the user.
-     * The goal of this method is to strip some of the info available in the `uri` to
-     * extract a minimal name that makes sense.
-     * @param uri - the `uri` for which a meaningful string should be extracted.
-     * @return - a string representing a friendlier version of the input `uri`.
-     */
-    private String createCondensedUri(String uri) {
-        // In case the input `uri` is not valid, return early.
-        if (uri == null) {
-            return null;
-        }
-
-        // Create a `uri` object from the input string.
-        Uri raw = Uri.parse(uri);
-
-        String name = null;
-
-        // Try to extract the name assuming the scheme corresponds to a file.
-        String scheme = raw.getScheme();
-        if (scheme != null && scheme.equals("content")) {
-            // This link explains how android handles the content and provide some
-            // useful resource to use it:
-            // https://developer.android.com/guide/topics/providers/document-provider.html
-
-            try (Cursor cursor = getContentResolver().query(raw, null, null, null, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                }
-            }
-        }
-
-        // In case we couldn't find the name (either because the scheme did not
-        // correspond to a file or because of a failure), try to resort on the
-        // last '/' character existing in the string.
-        if (name == null && raw.getPath() != null) {
-            name = raw.getPath();
-
-            // Keep only the part after the '/' character.
-            int cut = name.lastIndexOf('/');
-            if (cut != -1) {
-                name = name.substring(cut + 1);
-            }
-        }
-
-        // We either retrieved a valid result or failed to extract one.
-        return name;
     }
 
     /**

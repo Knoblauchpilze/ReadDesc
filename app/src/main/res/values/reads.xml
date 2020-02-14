@@ -12,6 +12,8 @@
     <string name="read_desc_succeed_del_file">Successfully deleted corrupted read \"%1$s\"</string>
     <string name="read_desc_failure_del_file">Failed to delete corrupted read \"%1$s\"</string>
 
+    <string name="read_desc_failure_thumbnail_load">Failed to load thumbnail for \"%s$1\"</string>
+
     <!-- Keys to register the read in a XML file -->
     <string name="read_desc_xml_key_root">root</string>
     <string name="read_desc_xml_key_uuid">uuid</string>

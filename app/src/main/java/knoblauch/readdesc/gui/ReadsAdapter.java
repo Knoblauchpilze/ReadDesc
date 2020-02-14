@@ -2,6 +2,8 @@ package knoblauch.readdesc.gui;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -11,7 +13,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Date;
 
 import knoblauch.readdesc.R;
@@ -171,9 +176,7 @@ public class ReadsAdapter extends BaseAdapter {
 
         // Update resources.
         holder.nameView.setText(desc.getName());
-        // TODO: We should probably try to move the `getCondensedUri` method to somewhere accessible
-        // from here: indeed we want the source to be displayed using a condensed syntax.
-        holder.sourceView.setText(desc.getSource());
+        holder.sourceView.setText(UriUtils.condenseUri(desc.getSource(), m_context));
         holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
         holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));
 
@@ -182,8 +185,18 @@ public class ReadsAdapter extends BaseAdapter {
         }
         else {
             Uri u = Uri.parse(desc.getThumbnailPath());
-            Log.i("main", "Displaying thumbnail with path \"" + desc.getThumbnailPath() + "\"" + " (uri " + (u == null ? "is" : "is not") + " null)");
-            holder.thumbnail.setImageURI(Uri.parse(desc.getThumbnailPath()));
+
+            try {
+                InputStream inStream = m_context.getContentResolver().openInputStream(u);
+                Bitmap imgRes = BitmapFactory.decodeStream(inStream);
+                holder.thumbnail.setImageBitmap(imgRes);
+            }
+            catch (FileNotFoundException e) {
+                // We could not find the file, display an error indicating that the
+                // display might not be accurate.
+                String msg = String.format(m_context.getResources().getString(R.string.read_desc_failure_thumbnail_load), desc.getName());
+                Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
+            }
         }
 
         // Update information about the read represented by this view.
