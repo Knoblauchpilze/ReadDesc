@@ -3,8 +3,10 @@ package knoblauch.readdesc.gui.activity;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -15,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Stack;
 
@@ -23,6 +26,7 @@ import knoblauch.readdesc.gui.DeleteReadItemDialog;
 import knoblauch.readdesc.gui.NotifierDialog;
 import knoblauch.readdesc.gui.ReadItemClickListener;
 import knoblauch.readdesc.gui.ReadsAdapter;
+import knoblauch.readdesc.gui.UriUtils;
 import knoblauch.readdesc.model.ReadDesc;
 import knoblauch.readdesc.model.ReadIntent;
 
@@ -112,8 +116,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // start the corresponding activity. As most of the action will need the read
         // that has been clicked on, we retrieve it beforehand.
         ReadDesc read = m_reads.getItem(position);
-
-        Log.i("main", "Clicked on item " + position + " at " + id);
 
         switch (view.getId()) {
             case R.id.read_delete_menu_opt:
@@ -372,8 +374,27 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
      * @param desc - the read for which the source should be displayed.
      */
     private void openReadSource(ReadDesc desc) {
-        // TODO: Should implement the opening of the read's source.
-        Log.w("main", "Should open source for \"" + desc.getName() + "\"");
+        // We want to open the source of the read. Depending on the type of the read
+        // it might mean open different type of element (a website, a text file or a
+        // e-book for example). We will rely on `Android` providing a selector to let
+        // the user select its preferred application.
+        Uri uri = Uri.parse(desc.getSource());
+
+        // Create the intent from the read's source `uri`.
+        Intent open = new Intent(Intent.ACTION_VIEW, uri);
+
+        // Broadcast it and let the system find the correct application.
+        try {
+            startActivity(open);
+        }
+        catch (ActivityNotFoundException e) {
+            // In case we can't find a valid activity to handle the user's request,
+            // we'll just display a toast.
+            Resources res = getResources();
+            String msg = String.format(res.getString(R.string.read_desc_failure_open_source), UriUtils.condenseUri(uri, this));
+
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        }
     }
 
 }
