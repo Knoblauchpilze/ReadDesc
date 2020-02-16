@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Content description for icons of the reading view -->
+    <string name="reading_reset_content_desc">Restart from beginning</string>
+    <string name="reading_previous_chapter_content_desc">Go to previous chapter</string>
+    <string name="reading_pause_content_desc">Pause the reading</string>
+    <string name="reading_resume_content_desc">Resume the reading</string>
+    <string name="reading_next_chapter_content_desc">Go to next chapter</string>
+
+    <!-- Configuration of the progress for the reading -->
+    <integer name="reading_min_read_completion">0</integer>
+    <integer name="reading_max_read_completion">100</integer>
+
+    <!-- Dimension of the main text to read -->
+    <dimen name="reading_text_size">50sp</dimen>
+
+    <!-- Minimum dimensions for the spacing between control buttons -->
+    <dimen name="reading_buttons_bar_spacing">30dp</dimen>
+    <dimen name="reading_buttons_bar_margins">10dp</dimen>
+
+</resources>

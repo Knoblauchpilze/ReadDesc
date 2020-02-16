@@ -5,4 +5,126 @@
     android:layout_height="match_parent"
     tools:context=".gui.activity.ReadActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="80"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="Toto"
+            android:textSize="@dimen/reading_text_size"
+            android:background="@color/settings_default_bg_color"
+            android:textColor="@color/settings_default_text_color"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="10"
+            android:background="@color/settings_default_bg_color">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@color/settings_default_bg_color"
+                android:layout_centerInParent="true"
+                style="?android:attr/buttonBarStyle">
+
+                <Space
+                    android:layout_width="@dimen/reading_buttons_bar_margins"
+                    android:layout_height="0dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/read_restart_read_id"
+                    android:background="@android:drawable/ic_media_rew"
+                    android:enabled="false"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:contentDescription="@string/reading_reset_content_desc"
+                    style="?android:attr/buttonBarButtonStyle"/>
+
+                <Space
+                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_height="0dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/read_previous_chapter_id"
+                    android:background="@android:drawable/ic_media_previous"
+                    android:enabled="false"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:contentDescription="@string/reading_previous_chapter_content_desc"
+                    style="?android:attr/buttonBarButtonStyle"/>
+
+                <Space
+                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_height="0dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/read_pause_id"
+                    android:background="@android:drawable/ic_media_pause"
+                    android:enabled="false"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:contentDescription="@string/reading_pause_content_desc"
+                    style="?android:attr/buttonBarButtonStyle"/>
+
+                <Space
+                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_height="0dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/read_resume_id"
+                    android:background="@android:drawable/ic_media_play"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:contentDescription="@string/reading_resume_content_desc"
+                    style="?android:attr/buttonBarButtonStyle"/>
+
+                <Space
+                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_height="0dp"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/read_next_id"
+                    android:background="@android:drawable/ic_media_next"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:contentDescription="@string/reading_next_chapter_content_desc"
+                    style="?android:attr/buttonBarButtonStyle"/>
+
+                <Space
+                    android:layout_width="@dimen/reading_buttons_bar_margins"
+                    android:layout_height="0dp"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:id="@+id/settings_word_flip_seek_bar"
+            android:min="@integer/reading_min_read_completion"
+            android:max="@integer/reading_max_read_completion"
+            android:background="@color/settings_default_bg_color"
+            style="?android:attr/progressBarStyleHorizontal"/>
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
