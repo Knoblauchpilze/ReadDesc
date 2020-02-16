@@ -2,6 +2,7 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
