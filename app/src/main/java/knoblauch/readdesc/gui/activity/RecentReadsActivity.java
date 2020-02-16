@@ -113,6 +113,8 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // that has been clicked on, we retrieve it beforehand.
         ReadDesc read = m_reads.getItem(position);
 
+        Log.i("main", "Clicked on item " + position + " at " + id);
+
         switch (view.getId()) {
             case R.id.read_delete_menu_opt:
                 performAction(AppAction.Delete, read);
@@ -121,9 +123,11 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
                 performAction(AppAction.OpenSource, read);
                 break;
             case R.id.read_open_menu_opt:
-                performAction(AppAction.OpenRead, read);
             default:
-                // Do nothing.
+                // We also end up in this case when no particular element of a view has
+                // been clicked: in this case we actually want to open the read as well
+                // so we moved this case to the `default`.
+                performAction(AppAction.OpenRead, read);
                 break;
         }
     }
@@ -205,7 +209,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             deleteRead(op.second);
         }
     }
-
 
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
@@ -351,8 +354,14 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
      * @param desc - the read for which the reading mode should be started.
      */
     private void startReading(ReadDesc desc) {
-        // TODO: Should implement the start of `ReadActivity`.
-        Log.w("main", "Should open reading mode for \"" + desc.getName() + "\"");
+        // Create the intent to start the reading activity.
+        Intent start = new Intent(RecentReadsActivity.this, ReadActivity.class);
+
+        Resources res = getResources();
+        String key = res.getString(R.string.start_reading_mode);
+        start.putExtra(key, desc.toReadIntent());
+
+        startActivityForResult(start, res.getInteger(R.integer.start_read_intent_res_code));
     }
 
     /**

@@ -1,11 +1,7 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
-import android.net.Uri;
-import android.util.Log;
-import android.widget.Toast;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -154,6 +150,17 @@ public class ReadDesc {
         }
 
         return desc;
+    }
+
+    /**
+     * Used to convert the current `ReadDesc` into a valid `ReadIntent` object. This
+     * is useful in order to communicate information about a read to persist between
+     * activities (typically when a read has been selected and it should be set up
+     * for reading mode.
+     * @return - a valid `ReadIntent` built from this `ReadDesc`.
+     */
+    public ReadIntent toReadIntent() {
+        return new ReadIntent(getName(), getType(), getSource(), getThumbnailPath());
     }
 
     /**
@@ -333,7 +340,7 @@ public class ReadDesc {
      * used to display some sort of information about how the data is fetched.
      * @return - the type of this read.
      */
-    public Type getType() {
+    private Type getType() {
         return m_type;
     }
 
@@ -350,7 +357,7 @@ public class ReadDesc {
      * Retrieves the creation date of this read as a `Date` object.
      * @return - the creation date of this read.
      */
-    public Date getCreationDate() {
+    Date getCreationDate() {
         return m_creationDate;
     }
 

@@ -321,7 +321,6 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
     @Override
     public void onLazyLoadSuccess(Uri uri) {
         // Nothing to do.
-        // TODO: Maybe remove the task from the list to restore when the activity is reset ?
     }
 
     @Override
