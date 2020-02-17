@@ -38,9 +38,13 @@
     <integer name="new_read_source_selected_res_code">0</integer>
     <integer name="new_read_thumbnail_source_selected_res_code">1</integer>
 
+    <!-- Return code for create read -->
     <integer name="new_read_intent_res_code">2</integer>
     <string name="new_read_intent_key">new_read_intent</string>
 
+    <!-- Return code for reading mode -->
     <integer name="start_read_intent_res_code">3</integer>
-    <string name="start_reading_mode">open_read_intent</string>
+    <string name="start_reading_intent_desc">open_read_intent</string>
+    <string name="read_mode_uuid_notification">reading_mode_uuid</string>
+    <string name="read_mode_success_notification">reading_mode_success</string>
 </resources>

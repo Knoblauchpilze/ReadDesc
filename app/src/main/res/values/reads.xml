@@ -16,6 +16,9 @@
 
     <string name="read_desc_failure_open_source">No application found to open \"%1$s\"</string>
 
+    <string name="read_desc_failure_read_mode">Failed to load selected read</string>
+    <string name="read_desc_success_read_mode">Saved progress for read \"%1$s\"</string>
+
     <!-- Keys to register the read in a XML file -->
     <string name="read_desc_xml_key_root">root</string>
     <string name="read_desc_xml_key_uuid">uuid</string>

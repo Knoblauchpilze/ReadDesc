@@ -228,25 +228,51 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // know how to handle.
         Resources res = getResources();
         int createReadReq = res.getInteger(R.integer.new_read_intent_res_code);
+        int readCompletedReq = res.getInteger(R.integer.start_read_intent_res_code);
 
-        if (resultCode != RESULT_OK || requestCode != createReadReq) {
+        Log.i("main", "Result is " + requestCode + " (read: " + createReadReq + ", complete: " + readCompletedReq + "), res: " + resultCode + " (ok: " + RESULT_OK + ")");
+
+        if ((resultCode != RESULT_OK && requestCode == createReadReq) || requestCode != readCompletedReq) {
             super.onActivityResult(requestCode, resultCode, data);
             return;
         }
 
-        // We want to create the new read from the read intent stored in the `data`.
-        ReadIntent intent = data.getParcelableExtra(res.getString(R.string.new_read_intent_key));
+        // We might want to create the new read from the read intent stored in the `data`.
+        if (requestCode == createReadReq) {
+            ReadIntent intent = data.getParcelableExtra(res.getString(R.string.new_read_intent_key));
 
-        // Check consistency.
-        if (intent == null) {
+            // Check consistency.
+            if (intent == null) {
+                return;
+            }
+
+            // We need to register the read from its intent.
+            ReadDesc read = ReadDesc.fromIntent(intent);
+
+            // Register this read in the internal bank.
+            m_reads.addItem(read);
+
             return;
         }
 
-        // We need to register the read from its intent.
-        ReadDesc read = ReadDesc.fromIntent(intent);
+        // Check whether we successfully read some data from the selected read. If this is the case
+        // we can display an information about this, otherwise we can indicate that something went
+        // wrong. We should verify that the activity actually sent some results back: indeed we can
+        // end up here only when the activity called the `finish` method so if everything went well
+        // we don't want to display anything (as there's nothing to display).
+        if (data != null) {
+            String key = res.getString(R.string.read_mode_success_notification);
+            boolean success = data.getBooleanExtra(key, false);
 
-        // Register this read in the internal bank.
-        m_reads.addItem(read);
+            String msg;
+            if (!success) {
+                msg = res.getString(R.string.read_desc_failure_read_mode);
+            } else {
+                msg = String.format(res.getString(R.string.read_desc_success_read_mode), "SHOULD SET READ");
+            }
+
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -360,7 +386,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         Intent start = new Intent(RecentReadsActivity.this, ReadActivity.class);
 
         Resources res = getResources();
-        String key = res.getString(R.string.start_reading_mode);
+        String key = res.getString(R.string.start_reading_intent_desc);
         start.putExtra(key, desc.toReadIntent());
 
         startActivityForResult(start, res.getInteger(R.integer.start_read_intent_res_code));
