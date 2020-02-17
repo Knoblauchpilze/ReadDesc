@@ -13,6 +13,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:id="@+id/read_current_word"
             android:layout_weight="80"
             android:gravity="center_vertical|center_horizontal"
             android:text="Toto"
@@ -23,12 +24,14 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:id="@+id/read_controls_centering_layout"
             android:layout_weight="10"
             android:background="@color/settings_default_bg_color">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/read_controls_layout"
                 android:orientation="horizontal"
                 android:background="@color/settings_default_bg_color"
                 android:layout_centerInParent="true"
@@ -38,11 +41,12 @@
                     android:layout_width="@dimen/reading_buttons_bar_margins"
                     android:layout_height="0dp"/>
 
-                <Button
+                <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/read_restart_read_id"
-                    android:background="@android:drawable/ic_media_rew"
+                    android:src="@android:drawable/ic_media_rew"
+                    android:background="@color/settings_default_bg_color"
                     android:enabled="false"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
@@ -53,11 +57,12 @@
                     android:layout_width="@dimen/reading_buttons_bar_spacing"
                     android:layout_height="0dp"/>
 
-                <Button
+                <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/read_previous_chapter_id"
-                    android:background="@android:drawable/ic_media_previous"
+                    android:src="@mipmap/ic_media_previous"
+                    android:background="@color/settings_default_bg_color"
                     android:enabled="false"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
@@ -68,11 +73,12 @@
                     android:layout_width="@dimen/reading_buttons_bar_spacing"
                     android:layout_height="0dp"/>
 
-                <Button
+                <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/read_pause_id"
-                    android:background="@android:drawable/ic_media_pause"
+                    android:src="@mipmap/ic_media_pause"
+                    android:background="@color/settings_default_bg_color"
                     android:enabled="false"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
@@ -83,11 +89,12 @@
                     android:layout_width="@dimen/reading_buttons_bar_spacing"
                     android:layout_height="0dp"/>
 
-                <Button
+                <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/read_resume_id"
-                    android:background="@android:drawable/ic_media_play"
+                    android:src="@mipmap/ic_media_play"
+                    android:background="@color/settings_default_bg_color"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
                     android:contentDescription="@string/reading_resume_content_desc"
@@ -97,11 +104,12 @@
                     android:layout_width="@dimen/reading_buttons_bar_spacing"
                     android:layout_height="0dp"/>
 
-                <Button
+                <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/read_next_id"
-                    android:background="@android:drawable/ic_media_next"
+                    android:id="@+id/read_next_chapter_id"
+                    android:src="@mipmap/ic_media_next"
+                    android:background="@color/settings_default_bg_color"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
                     android:contentDescription="@string/reading_next_chapter_content_desc"
@@ -119,7 +127,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="5"
-            android:id="@+id/settings_word_flip_seek_bar"
+            android:id="@+id/read_completion_percentage_id"
             android:min="@integer/reading_min_read_completion"
             android:max="@integer/reading_max_read_completion"
             android:background="@color/settings_default_bg_color"
