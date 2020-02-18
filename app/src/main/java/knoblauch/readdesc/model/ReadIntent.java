@@ -3,6 +3,8 @@ package knoblauch.readdesc.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.UUID;
+
 public class ReadIntent implements Parcelable {
 
     /**
@@ -31,6 +33,15 @@ public class ReadIntent implements Parcelable {
     private String m_thumbnailUri;
 
     /**
+     * The identifier of the read associated to this read intent. Note
+     * that this value is set to some randomly generated identifier on
+     * creating this object but can be modified through the `setUuid`
+     * method (typically if the read intent is created from an existing
+     * read.
+     */
+    private UUID m_uuid;
+
+    /**
      * Create a new intent with the specified properties. Note that this
      * does not in any case change the reads actually existing in the model.
      * It only indicates an intent to create the read.
@@ -46,18 +57,21 @@ public class ReadIntent implements Parcelable {
         m_dataUri = dataUri;
 
         m_thumbnailUri = thumbnailUri;
+
+        m_uuid = UUID.randomUUID();
     }
 
     /**
      * Create a valid read intent by deserializing the content defined in the
      * input parcel. This will populate internal fields from it.
-     * @param in - the parceil from which the internal fields should be filled.
+     * @param in - the parcel from which the internal fields should be filled.
      */
     private ReadIntent(Parcel in) {
         m_name = in.readString();
         m_type = ReadDesc.Type.valueOf(in.readString());
         m_dataUri = in.readString();
         m_thumbnailUri = in.readString();
+        m_uuid = UUID.fromString(in.readString());
     }
 
     /**
@@ -94,7 +108,7 @@ public class ReadIntent implements Parcelable {
      * for this read.
      * @return - the string representing the data for this read.
      */
-    public String getDataUri() {
+    String getDataUri() {
         return m_dataUri;
     }
 
@@ -103,9 +117,22 @@ public class ReadIntent implements Parcelable {
      * the thumbnail to associate to the read.
      * @return - the string of the thumbnail for this read.
      */
-    public String getThumbnailUri() {
+    String getThumbnailUri() {
         return m_thumbnailUri;
     }
+
+    /**
+     * Used to retrieve the identifier associated to this read intent. Typically
+     * auto-generated but can be set through the `setUuid` method.
+     * @return - the identifier associated to this read intent.
+     */
+    UUID getUuid() { return m_uuid; }
+
+    /**
+     * Define a new identifier for this read intent.
+     * @param uuid - the new identifier to assign.
+     */
+    void setUuid(UUID uuid) { m_uuid = uuid; }
 
     @Override
     public int describeContents() {
@@ -120,6 +147,7 @@ public class ReadIntent implements Parcelable {
         dest.writeString(m_type.name());
         dest.writeString(m_dataUri);
         dest.writeString(m_thumbnailUri);
+        dest.writeString(m_uuid.toString());
     }
 
 

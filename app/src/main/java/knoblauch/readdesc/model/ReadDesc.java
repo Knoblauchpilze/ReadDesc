@@ -160,7 +160,14 @@ public class ReadDesc {
      * @return - a valid `ReadIntent` built from this `ReadDesc`.
      */
     public ReadIntent toReadIntent() {
-        return new ReadIntent(getName(), getType(), getSource(), getThumbnailPath());
+        // Create the read from this object's properties.
+        ReadIntent ri = new ReadIntent(getName(), getType(), getSource(), getThumbnailPath());
+
+        // Assign the identifier.
+        ri.setUuid(m_uuid);
+
+        // We're good.
+        return ri;
     }
 
     /**
