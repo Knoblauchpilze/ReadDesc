@@ -247,6 +247,21 @@ public class ReadsBank {
     }
 
     /**
+     * Used to generate the name of the file where the data for a read named `name`
+     * should be saved. This is especially useful for people trying to access the
+     * data save for a given file.
+     * @param context - the context to use to retrieve relevant information to use
+     *                  to compute the read's save file name.
+     * @param name - the name of the read.
+     * @return - the name of the file where the data for the `read` is saved.
+     */
+    public static String generateReadSaveName(Context context, String name) {
+        // Generate the name of this read.
+        Resources res = context.getResources();
+        return String.format(res.getString(R.string.read_desc_save_file_name), name);
+    }
+
+    /**
      * Used to handle the saving of the input read. We check local storage in case
      * the file corresponding to this read already exist in which case we update it
      * and we create it if this is not the case.
@@ -255,8 +270,7 @@ public class ReadsBank {
      */
     private boolean saveRead(ReadDesc read) {
         // Generate the name of this read.
-        Resources res = m_context.getResources();
-        String name = String.format(res.getString(R.string.read_desc_save_file_name), read.getName());
+        String name = generateReadSaveName(m_context, read.getName());
 
         // Check whether the file for this read exists in local storage.
         File out = new File(m_context.getFilesDir(), name);

@@ -175,6 +175,7 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         holder.nameView.setText(desc.getName());
         holder.sourceView.setText(UriUtils.condenseUri(desc.getSource(), m_context));
         holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
+        Log.i("main", "Completion for \"" + desc.getName() + "\" is " + desc.getCompletionPercentage());
         holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));
 
         // Handle the thumbnail creation.

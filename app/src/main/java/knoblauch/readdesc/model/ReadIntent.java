@@ -33,13 +33,12 @@ public class ReadIntent implements Parcelable {
     private String m_thumbnailUri;
 
     /**
-     * The identifier of the read associated to this read intent. Note
-     * that this value is set to some randomly generated identifier on
-     * creating this object but can be modified through the `setUuid`
-     * method (typically if the read intent is created from an existing
-     * read.
+     * The completion associated to the read described by this intent.
+     * In case the read has not yet been created it is set to `0` but
+     * in case the read already exist and has already been accessed by
+     * the user it can be updated through the `setCompletion` method.
      */
-    private UUID m_uuid;
+    private float m_completion;
 
     /**
      * Create a new intent with the specified properties. Note that this
@@ -58,7 +57,7 @@ public class ReadIntent implements Parcelable {
 
         m_thumbnailUri = thumbnailUri;
 
-        m_uuid = UUID.randomUUID();
+        m_completion = 0.0f;
     }
 
     /**
@@ -71,7 +70,7 @@ public class ReadIntent implements Parcelable {
         m_type = ReadDesc.Type.valueOf(in.readString());
         m_dataUri = in.readString();
         m_thumbnailUri = in.readString();
-        m_uuid = UUID.fromString(in.readString());
+        m_completion = in.readFloat();
     }
 
     /**
@@ -122,17 +121,21 @@ public class ReadIntent implements Parcelable {
     }
 
     /**
-     * Used to retrieve the identifier associated to this read intent. Typically
-     * auto-generated but can be set through the `setUuid` method.
-     * @return - the identifier associated to this read intent.
+     * Used to retrieve the completion reached so far on the read underlying
+     * this intent. Typically auto-generated but can be modified through the
+     * `setCompletion` method in case the user already made some progress on
+     * the read.
+     * @return - the completion reached on the underlying read.
      */
-    UUID getUuid() { return m_uuid; }
+    float getCompletion() { return m_completion; }
 
     /**
-     * Define a new identifier for this read intent.
-     * @param uuid - the new identifier to assign.
+     * Define a new completion value for this intent. Usually indicates that
+     * the read has already been accessed.
+     * @param completion - the completion to associated to the read attached
+     *                     to this intent.
      */
-    void setUuid(UUID uuid) { m_uuid = uuid; }
+    void setCompletion(float completion) { m_completion = completion; }
 
     @Override
     public int describeContents() {
@@ -147,7 +150,7 @@ public class ReadIntent implements Parcelable {
         dest.writeString(m_type.name());
         dest.writeString(m_dataUri);
         dest.writeString(m_thumbnailUri);
-        dest.writeString(m_uuid.toString());
+        dest.writeFloat(m_completion);
     }
 
 

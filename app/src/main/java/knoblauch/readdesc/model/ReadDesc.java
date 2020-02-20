@@ -2,6 +2,7 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -164,7 +165,7 @@ public class ReadDesc {
         ReadIntent ri = new ReadIntent(getName(), getType(), getSource(), getThumbnailPath());
 
         // Assign the identifier.
-        ri.setUuid(m_uuid);
+        ri.setCompletion(m_completionPercentage);
 
         // We're good.
         return ri;
@@ -210,6 +211,7 @@ public class ReadDesc {
             desc.m_creationDate = handler.creation;
             desc.m_lastAccessDate = handler.access;
             desc.m_completionPercentage = handler.completion;
+            Log.i("main", "Loading desc \"" + desc.getName() + "\" with completion " + desc.m_completionPercentage);
             desc.m_thumbnail = handler.thumbnail;
         }
         catch (Exception e) {
@@ -300,6 +302,7 @@ public class ReadDesc {
             str = String.valueOf(m_completionPercentage);
             Element completion = xmlDoc.createElement(completionKey);
             completion.appendChild(xmlDoc.createTextNode(str));
+            Log.i("main", "Saving desc \"" + getName() + "\" with completion " + str);
             root.appendChild(completion);
 
             // Save the thumbnail if needed.
@@ -400,6 +403,17 @@ public class ReadDesc {
      */
     public float getCompletionPercentage() {
         return 100.0f * Math.max(Math.min(m_completionPercentage, 1.0f), 0.0f);
+    }
+
+    /**
+     * Assign a new value for the progression of this read. This is usually
+     * used by the parser allowing to advance on the read when the user has
+     * finished or left the reading activity.
+     * Note that the input completion is clamped in the range `[0; 1]`.
+     * @param completion - the new completion for this read.
+     */
+    void setProgression(float completion) {
+        m_completionPercentage = Math.max(Math.min(completion, 1.0f), 0.0f);
     }
 
     /**

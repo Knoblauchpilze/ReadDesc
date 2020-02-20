@@ -5,20 +5,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import knoblauch.readdesc.R;
+import knoblauch.readdesc.gui.WordFlipTask;
 import knoblauch.readdesc.model.ReadIntent;
 import knoblauch.readdesc.model.ReadParser;
 import knoblauch.readdesc.model.ReadPref;
 
-public class ReadActivity extends AppCompatActivity {
+public class ReadActivity extends AppCompatActivity implements View.OnClickListener {
 
     /**
      * Convenience class which holds all the relevant buttons used to control
@@ -58,6 +62,13 @@ public class ReadActivity extends AppCompatActivity {
      */
     private ReadParser m_parser;
 
+    /**
+     * The handler used by this parser to time the flipping of the word displayed
+     * in the main text view. This will be used internally to keep track of the
+     * time.
+     */
+    private WordFlipTask m_timer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Create the layout and inflate it. We also need to restore saved parameters
@@ -78,13 +89,21 @@ public class ReadActivity extends AppCompatActivity {
 
         m_text = findViewById(R.id.read_current_word);
 
+        // We now need to retrieve the intent that started this activity so that we
+        // can instantiate the related parser.
+        instantiateParser();
+
         // We need to update the properties of the main element to match the colors
         // defined in the preferences.
         setupFromPreferences();
 
-        // We now need to retrieve the intent that started this activity so that we
-        // can instantiate the related parser.
-        instantiateParser();
+        // Connect signals to the local slot so that we can react to the user's will
+        // regarding the controls.
+        m_controls.reset.setOnClickListener(this);
+        m_controls.prev.setOnClickListener(this);
+        m_controls.pause.setOnClickListener(this);
+        m_controls.play.setOnClickListener(this);
+        m_controls.next.setOnClickListener(this);
     }
 
     /**
@@ -93,17 +112,17 @@ public class ReadActivity extends AppCompatActivity {
      */
     private void setupFromPreferences() {
         // Retrieve the preferences object.
-        ReadPref pref = new ReadPref(this);
+        ReadPref prefs = new ReadPref(this);
 
         // Retrieve auxiliary elements.
         RelativeLayout centering = findViewById(R.id.read_controls_centering_layout);
         LinearLayout controls = findViewById(R.id.read_controls_layout);
 
         // Assign values to the graphic elements of this activity.
-        int bg = pref.getBackgroundColor();
+        int bg = prefs.getBackgroundColor();
 
         m_text.setBackgroundColor(bg);
-        m_text.setTextColor(pref.getTextColor());
+        m_text.setTextColor(prefs.getTextColor());
 
         centering.setBackgroundColor(bg);
         controls.setBackgroundColor(bg);
@@ -115,6 +134,9 @@ public class ReadActivity extends AppCompatActivity {
         m_controls.next.setBackgroundColor(bg);
 
         m_controls.completion.setBackgroundColor(bg);
+
+        // Instantiate the timer objects used to perform the flipping of the word.
+        instantiateTimer(prefs);
     }
 
     /**
@@ -141,6 +163,18 @@ public class ReadActivity extends AppCompatActivity {
         else {
             m_parser = ReadParser.fromRead(read);
         }
+
+        // Update controls so that they match the state of the parser (i.e. reset
+        // button might not always be allowed (in case we didn't read any word yet
+        // and so on).
+        // TODO: Actually handle the state of the controls based on the current state
+        // of the parser.
+        m_controls.reset.setEnabled(false);
+        m_controls.prev.setEnabled(false);
+        m_controls.pause.setEnabled(false);
+
+        m_controls.play.setEnabled(true);
+        m_controls.next.setEnabled(true);
     }
 
     /**
@@ -170,4 +204,91 @@ public class ReadActivity extends AppCompatActivity {
         Log.i("main", "Finishing");
         finish();
     }
+
+    /**
+     * Used to instantiate the needed objects to keep track of the time intervals to
+     * flip the main text view display.
+     * @param prefs - the preferences to use to retrieve the word flip interval.
+     */
+    private void instantiateTimer(ReadPref prefs) {
+        // Retrieve the world flip interval from the preferences.
+        int wordFlip = prefs.getWordFlipInterval();
+
+        // Create the wrapper for the timing task.
+        m_timer = new WordFlipTask(wordFlip, m_text, m_parser, new Handler());
+    }
+
+    @Override
+    public void onClick(View v) {
+        // We need to determine what to do based on the view producing the click.
+        if (v == m_controls.reset) {
+        }
+        else if (v == m_controls.prev) {
+
+        }
+        else if (v == m_controls.next) {
+
+        }
+        else if (v == m_controls.play) {
+            // Start the word flip task and update the state of the controls button.
+            m_timer.start();
+
+            toggleStartStop(false);
+        }
+        else if (v == m_controls.pause) {
+            // Stop the word flip task if it was started.
+            m_timer.stop();
+
+            // Also reset the state of the buttons so that the user can start the
+            // reading again.
+            toggleStartStop(true);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        // Use the base handler.
+        super.onResume();
+
+        // Perform needed de/activation of buttons so that we have a consistent state
+        // in the controls panel.
+        toggleStartStop(true);
+    }
+
+    @Override
+    public void onPause() {
+        // Use the base handler.
+        super.onPause();
+
+        // Remove any callback for the word flip task.
+        m_timer.stop();
+    }
+
+    @Override
+    public void onStop() {
+        // Call the base handler.
+        super.onStop();
+
+        // We want to save the progression we reached for this read to the dedicated file.
+        boolean success = m_parser.saveProgression(this);
+
+        if (!success) {
+            Resources res = getResources();
+            String msg = String.format(res.getString(R.string.read_desc_failure_save_progress), m_parser.getName());
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Used to reset the states of the play and pause buttons so that one of them
+     * is enabled while the other one is disabled. The `play` button will be set
+     * with the status described in input while the `pause` button will be assigned
+     * a value of `!toggle`.
+     * @param toggle - `true` if the `play` button should be set to active.
+     */
+    private void toggleStartStop(boolean toggle) {
+        m_controls.play.setEnabled(toggle);
+        m_controls.pause.setEnabled(!toggle);
+    }
+
 }
