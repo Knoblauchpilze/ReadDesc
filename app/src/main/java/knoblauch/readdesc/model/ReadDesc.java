@@ -7,6 +7,8 @@ import android.util.Log;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.Date;
@@ -128,6 +130,21 @@ public class ReadDesc {
     }
 
     /**
+     * Used to generate the name of the file where the data for a read named `name`
+     * should be saved. This is especially useful for people trying to access the
+     * data save for a given file.
+     * @param context - the context to use to retrieve relevant information to use
+     *                  to compute the read's save file name.
+     * @param name - the name of the read.
+     * @return - the name of the file where the data for the `read` is saved.
+     */
+    static String generateReadSaveName(Context context, String name) {
+        // Generate the name of this read.
+        Resources res = context.getResources();
+        return String.format(res.getString(R.string.read_desc_save_file_name), name);
+    }
+
+    /**
      * Create a new read from the input intent. Some of the properties not defined in
      * the intent will be assigned an automatic value consistent with their purpose.
      * In case the `intent` is `null` the returned value is `null` as well.
@@ -211,7 +228,7 @@ public class ReadDesc {
             desc.m_creationDate = handler.creation;
             desc.m_lastAccessDate = handler.access;
             desc.m_completionPercentage = handler.completion;
-            Log.i("main", "Loading desc \"" + desc.getName() + "\" with completion " + desc.m_completionPercentage);
+            Log.i("desc", "Loading desc \"" + desc.getName() + "\" with completion " + desc.m_completionPercentage);
             desc.m_thumbnail = handler.thumbnail;
         }
         catch (Exception e) {
@@ -302,7 +319,7 @@ public class ReadDesc {
             str = String.valueOf(m_completionPercentage);
             Element completion = xmlDoc.createElement(completionKey);
             completion.appendChild(xmlDoc.createTextNode(str));
-            Log.i("main", "Saving desc \"" + getName() + "\" with completion " + str);
+            Log.i("desc", "Saving desc \"" + getName() + "\" with completion " + str);
             root.appendChild(completion);
 
             // Save the thumbnail if needed.
@@ -336,6 +353,58 @@ public class ReadDesc {
         }
 
         // Successfully serialized this read to the provided location.
+        return true;
+    }
+
+    /**
+     * Used to refresh the completion percentage for this read based on the
+     * value stored in the local storage file. This is usually triggered if
+     * the read's local description has been updated by external activities.
+     * @param context - the context to use to retrieve information from the
+     *                  local storage's space for this read.
+     * @return - `true` if the read has been updated and `false` otherwise.
+     */
+    boolean refresh(Context context) {
+        // Create parser from the local file for this read and retrieve
+        // the completion percentage and the last accessed date.
+        Log.i("desc", "Refreshing read \"" + getName() + "\" from completion " + m_completionPercentage);
+
+        try {
+            // Create the parser that we will use to read the `XML` file.
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+
+            String name = generateReadSaveName(context, getName());
+
+            // Open the instance of the read saved to local storage.
+            FileInputStream stream;
+            try {
+                stream = context.openFileInput(name);
+            }
+            catch (FileNotFoundException e) {
+                // We won't update the read's completion percentage.
+                return false;
+            }
+
+            // Create the handler to parse the `XML` file for this read.
+            ReadDescXMLParser handler = new ReadDescXMLParser(context);
+
+            saxParser.parse(stream, handler);
+
+            // We successfully parsed the file, update the completion percentage
+            // and the last accessed date.
+            m_completionPercentage = handler.completion;
+            m_lastAccessDate = handler.access;
+
+
+            Log.i("desc", "Progression for \"" + getName() + "\" is now " + m_completionPercentage);
+        }
+        catch (Exception e) {
+            // We most certainly did not successfully updated anything.
+            return false;
+        }
+
+        // We successfully updated the completion percentage.
         return true;
     }
 
@@ -424,5 +493,14 @@ public class ReadDesc {
      */
     public boolean isCompleted() {
         return getCompletionPercentage() >= 100.0f;
+    }
+
+    /**
+     * Used to update the last access date for this read to the current time. It
+     * is usually meant to indicate that the read has been accessed recently so
+     * that we can persist this information.
+     */
+    void touch() {
+        m_lastAccessDate = new Date();
     }
 }

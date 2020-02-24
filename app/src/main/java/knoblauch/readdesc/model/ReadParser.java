@@ -67,8 +67,6 @@ public class ReadParser {
         m_source = uri;
         m_completion = completion;
 
-        Log.i("main", "Loading parser for \"" + m_name + "\" at " + m_completion);
-
         // TODO: Remove this temporary hack for the completion.
         m_count = Math.round(m_completion * 100.0f);
 
@@ -146,11 +144,10 @@ public class ReadParser {
         }
 
         // Try to find the file describing the current read.
-        String saveFile = ReadsBank.generateReadSaveName(context, m_name);
+        String saveFile = ReadDesc.generateReadSaveName(context, m_name);
 
         int id = 0;
         while (id < reads.length && !reads[id].getName().equals(saveFile)) {
-            Log.i("main", "Searching \"" + saveFile + "\" in file \"" + reads[id].getName() + "\"");
             id++;
         }
 
@@ -159,7 +156,7 @@ public class ReadParser {
             return false;
         }
 
-        Log.i("main", "Saving progress " + m_completion + " for \"" + m_name + "\" (id: " + id + " to file \"" + reads[id].getName() + "\"");
+        Log.i("main", "Saving progress " + m_completion + " for \"" + m_name + "\" (id: " + id + " to file \"" + reads[id].getName() + "\")");
 
         // Save the progression to this file: we need to first open it, then
         // update the progression key and finally serialize back the data. In
@@ -188,6 +185,9 @@ public class ReadParser {
 
         // Update the progression for this read.
         read.setProgression(getCompletion());
+
+        // Also bump the last access date to right now.
+        read.touch();
 
         // Save the read back to the disk.
         try {

@@ -232,7 +232,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
 
         Log.i("main", "Result is " + requestCode + " (read: " + createReadReq + ", complete: " + readCompletedReq + "), res: " + resultCode + " (ok: " + RESULT_OK + ")");
 
-        if ((resultCode != RESULT_OK && requestCode == createReadReq) || requestCode != readCompletedReq) {
+        if ((resultCode != RESULT_OK && requestCode == createReadReq) || (requestCode != createReadReq && requestCode != readCompletedReq)) {
             super.onActivityResult(requestCode, resultCode, data);
             return;
         }
@@ -277,22 +277,23 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
 
     @Override
     public void onPause() {
-        // Call the base handler.
-        super.onPause();
-
         // We need to save the reads to the local storage so that we can reload them
         // upon relaunching the application.
         m_reads.save();
+
+        // Call the base handler.
+        super.onPause();
     }
 
     @Override
     public void onResume() {
-        // Call the base handler.
-        super.onResume();
-
         // Refresh the reads as some of them might have been modified if we launched
         // a `Reading` activity.
+        m_reads.refresh();
         // TODO: Handle refresh of the reads.
+
+        // Call the base handler.
+        super.onResume();
     }
 
     /**

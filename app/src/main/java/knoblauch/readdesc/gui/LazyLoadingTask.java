@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.FileNotFoundException;
@@ -177,7 +176,6 @@ public class LazyLoadingTask extends AsyncTask<String, Float, Boolean> {
         if (m_placeHolder != null) {
             ImageView imageView = m_placeHolder.get();
             if (imageView != null) {
-                Log.i("main", "Setting image bitmap for \"" + m_uri.toString() + "\"");
                 imageView.setImageBitmap(m_bitmap);
             }
         }

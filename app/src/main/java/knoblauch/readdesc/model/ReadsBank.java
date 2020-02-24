@@ -2,6 +2,7 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -58,15 +59,18 @@ public class ReadsBank {
             //   - `> 0` if `o1 > o2`
             // We will use the type of ordering to perform the comparison on the required field
             // of the provided reads.
+            // Note that in all orderings we actually want a descending order and not ascending
+            // order to we will revert the comparison operands.
             switch (m_order) {
                 case LastAccessed:
-                    return o1.getLastAccessedDate().compareTo(o2.getLastAccessedDate());
+                    Log.i("bank", "Comparing \"" + o1.getName() + "\" (access: " + o1.getLastAccessedDate().toString() + ") and \"" + o2.getName() + "\" (access: " + o2.getLastAccessedDate().toString() + ")");
+                    return o2.getLastAccessedDate().compareTo(o1.getLastAccessedDate());
                 case CreationDate:
-                    return o1.getCreationDate().compareTo(o2.getCreationDate());
+                    return o2.getCreationDate().compareTo(o1.getCreationDate());
                 case Alphabetical:
                 default:
                     // Assume alphabetical order in case the ordering is unknown.
-                    return o1.getName().compareToIgnoreCase(o2.getName());
+                    return o2.getName().compareToIgnoreCase(o1.getName());
             }
         }
     }
@@ -247,18 +251,38 @@ public class ReadsBank {
     }
 
     /**
-     * Used to generate the name of the file where the data for a read named `name`
-     * should be saved. This is especially useful for people trying to access the
-     * data save for a given file.
-     * @param context - the context to use to retrieve relevant information to use
-     *                  to compute the read's save file name.
-     * @param name - the name of the read.
-     * @return - the name of the file where the data for the `read` is saved.
+     * Used to perform a refresh of the reads described in this bank. This is mostly
+     * interesting when some information of the reads might have been changed by some
+     * external activities (such as the reading activity): when the user gets back to
+     * the main reading view we want to still display something up to date in this
+     * view and thus have to refresh the info from the disk.
+     * Note that this view only updates existing reads and does not search the local
+     * storage space for new read files.
+     * @return - `true` if any of the read has been updated and `false` otherwise.
      */
-    public static String generateReadSaveName(Context context, String name) {
-        // Generate the name of this read.
-        Resources res = context.getResources();
-        return String.format(res.getString(R.string.read_desc_save_file_name), name);
+    public boolean refresh() {
+        // Return early in case no reads are found.
+        if (m_reads.isEmpty()) {
+            return false;
+        }
+
+        boolean updated = false;
+
+        // Traverse the reads and refresh each one.
+        for (int id = 0 ; id < m_reads.size() ; ++id) {
+            if (m_reads.get(id).refresh(m_context)) {
+                updated = true;
+            }
+        }
+
+        // If at least one element has been updated we will perform a re-ordering
+        // of the elements has this might have changed it.
+        if (updated) {
+            orderReads();
+        }
+
+        // Return the built-in status.
+        return updated;
     }
 
     /**
@@ -270,7 +294,7 @@ public class ReadsBank {
      */
     private boolean saveRead(ReadDesc read) {
         // Generate the name of this read.
-        String name = generateReadSaveName(m_context, read.getName());
+        String name = ReadDesc.generateReadSaveName(m_context, read.getName());
 
         // Check whether the file for this read exists in local storage.
         File out = new File(m_context.getFilesDir(), name);
@@ -312,10 +336,12 @@ public class ReadsBank {
      */
     private boolean deleteRead(ReadDesc read) {
         // Generate the name of this read.
-        Resources res = m_context.getResources();
-        String name = String.format(res.getString(R.string.read_desc_save_file_name), read.getName());
+        String name = ReadDesc.generateReadSaveName(m_context, read.getName());
 
         File out = new File(m_context.getFilesDir(), name);
+
+
+        Log.i("main", "Deleting local file \"" + name + "\" for \"" + read.getName() + "\" (exist: " + out.exists() + ")");
 
         // Check consistency.
         if (!out.exists()) {

@@ -5,7 +5,6 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,7 +73,7 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         m_listener = listener;
 
         // Generate random reads.
-        m_reads = new ReadsBank(m_context, ReadsBank.Ordering.CreationDate);
+        m_reads = new ReadsBank(m_context, ReadsBank.Ordering.LastAccessed);
     }
 
     /**
@@ -113,6 +112,20 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
      */
     public void save() {
         m_reads.save();
+    }
+
+    /**
+     * Used to perform a refresh of the reads contained in the model that
+     * is associated to this adapter. Most of the time this includes a new
+     * updated of the completion percentage typically after the user is
+     * done with finishing some reading.
+     */
+    public void refresh() {
+        // We want to refresh the model's elements. If this indicates that
+        // a view has been changed we want to update the relevant views.
+        if (m_reads.refresh()) {
+            notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -175,7 +188,6 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         holder.nameView.setText(desc.getName());
         holder.sourceView.setText(UriUtils.condenseUri(desc.getSource(), m_context));
         holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
-        Log.i("main", "Completion for \"" + desc.getName() + "\" is " + desc.getCompletionPercentage());
         holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));
 
         // Handle the thumbnail creation.
@@ -314,7 +326,6 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
             LazyLoadingTask loader = new LazyLoadingTask(this, thumbnail, m_context);
             LazyLoadingDrawable waiter = new LazyLoadingDrawable(loader);
             thumbnail.setImageDrawable(waiter);
-            Log.i("main", "Creating async task for \"" + desc.getName() + "\" to load \"" + desc.getThumbnailPath() + "\"");
             loader.execute(desc.getThumbnailPath());
         }
     }

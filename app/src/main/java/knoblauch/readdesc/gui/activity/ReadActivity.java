@@ -6,9 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -201,7 +199,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         setResult(RESULT_OK, ret);
 
         // Terminate the activity if needed.
-        Log.i("main", "Finishing");
         finish();
     }
 
@@ -247,27 +244,18 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onResume() {
-        // Use the base handler.
-        super.onResume();
-
         // Perform needed de/activation of buttons so that we have a consistent state
         // in the controls panel.
         toggleStartStop(true);
+
+        // Use the base handler.
+        super.onResume();
     }
 
     @Override
     public void onPause() {
-        // Use the base handler.
-        super.onPause();
-
         // Remove any callback for the word flip task.
         m_timer.stop();
-    }
-
-    @Override
-    public void onStop() {
-        // Call the base handler.
-        super.onStop();
 
         // We want to save the progression we reached for this read to the dedicated file.
         boolean success = m_parser.saveProgression(this);
@@ -277,6 +265,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             String msg = String.format(res.getString(R.string.read_desc_failure_save_progress), m_parser.getName());
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         }
+
+        // Use the base handler.
+        super.onPause();
     }
 
     /**
