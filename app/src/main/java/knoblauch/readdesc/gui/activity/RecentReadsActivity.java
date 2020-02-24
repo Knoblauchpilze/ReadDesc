@@ -230,7 +230,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         int createReadReq = res.getInteger(R.integer.new_read_intent_res_code);
         int readCompletedReq = res.getInteger(R.integer.start_read_intent_res_code);
 
-        Log.i("main", "Result is " + requestCode + " (read: " + createReadReq + ", complete: " + readCompletedReq + "), res: " + resultCode + " (ok: " + RESULT_OK + ")");
+        Log.i("reads", "Result is " + requestCode + " (read: " + createReadReq + ", complete: " + readCompletedReq + "), res: " + resultCode + " (ok: " + RESULT_OK + ")");
 
         if ((resultCode != RESULT_OK && requestCode == createReadReq) || (requestCode != createReadReq && requestCode != readCompletedReq)) {
             super.onActivityResult(requestCode, resultCode, data);
@@ -264,14 +264,10 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             String key = res.getString(R.string.read_mode_success_notification);
             boolean success = data.getBooleanExtra(key, false);
 
-            String msg;
             if (!success) {
-                msg = res.getString(R.string.read_desc_failure_read_mode);
-            } else {
-                msg = String.format(res.getString(R.string.read_desc_success_read_mode), "SHOULD SET READ");
+                String msg = res.getString(R.string.read_desc_failure_read_mode);
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
             }
-
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -290,7 +286,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // Refresh the reads as some of them might have been modified if we launched
         // a `Reading` activity.
         m_reads.refresh();
-        // TODO: Handle refresh of the reads.
 
         // Call the base handler.
         super.onResume();

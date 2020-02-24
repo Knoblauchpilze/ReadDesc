@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -189,13 +190,10 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // intent mechanism.
         Resources res = getResources();
         String keySuccess = res.getString(R.string.read_mode_success_notification);
-        String keyUuid = res.getString(R.string.read_mode_uuid_notification);
 
         // Create and post the result as an intent.
         Intent ret = new Intent();
         ret.putExtra(keySuccess, success);
-        // TODO: Actually save the uuid of the read if possible.
-        ret.putExtra(keyUuid, 1);
         setResult(RESULT_OK, ret);
 
         // Terminate the activity if needed.
@@ -266,8 +264,29 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         }
 
+        // Notify the progression reached on this read.
+        Toast.makeText(this, formatProgressionDisplay(), Toast.LENGTH_SHORT).show();
+
         // Use the base handler.
         super.onPause();
+    }
+
+    /**
+     * Used internally to format the progression message to display in a nice human
+     * readable way the current state of the progression for this read.
+     * @return - a string indicating the progression for this read in a human readable
+     *           way.
+     */
+    private String formatProgressionDisplay() {
+        // Retrieve the progression message.
+        Resources res = getResources();
+        String msg = res.getString(R.string.read_desc_success_save_progress);
+
+        // Convert the progression into a nice integer (rather than a float value).
+        int prg = Math.round(100.0f * m_parser.getCompletion());
+
+        // Format it using the
+        return String.format(msg, prg, m_parser.getName());
     }
 
     /**

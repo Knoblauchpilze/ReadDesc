@@ -63,7 +63,6 @@ public class ReadsBank {
             // order to we will revert the comparison operands.
             switch (m_order) {
                 case LastAccessed:
-                    Log.i("bank", "Comparing \"" + o1.getName() + "\" (access: " + o1.getLastAccessedDate().toString() + ") and \"" + o2.getName() + "\" (access: " + o2.getLastAccessedDate().toString() + ")");
                     return o2.getLastAccessedDate().compareTo(o1.getLastAccessedDate());
                 case CreationDate:
                     return o2.getCreationDate().compareTo(o1.getCreationDate());

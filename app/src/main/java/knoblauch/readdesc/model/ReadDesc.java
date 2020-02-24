@@ -367,7 +367,6 @@ public class ReadDesc {
     boolean refresh(Context context) {
         // Create parser from the local file for this read and retrieve
         // the completion percentage and the last accessed date.
-        Log.i("desc", "Refreshing read \"" + getName() + "\" from completion " + m_completionPercentage);
 
         try {
             // Create the parser that we will use to read the `XML` file.
@@ -395,9 +394,6 @@ public class ReadDesc {
             // and the last accessed date.
             m_completionPercentage = handler.completion;
             m_lastAccessDate = handler.access;
-
-
-            Log.i("desc", "Progression for \"" + getName() + "\" is now " + m_completionPercentage);
         }
         catch (Exception e) {
             // We most certainly did not successfully updated anything.

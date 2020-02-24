@@ -79,7 +79,7 @@ public class ReadParser {
      * word is requested.
      * @return - the current completion reached by this parser.
      */
-    private float getCompletion() {
+    public float getCompletion() {
         // Acquire the lock on this parser.
         m_locker.lock();
         float cp = m_completion;

@@ -45,6 +45,5 @@
     <!-- Return code for reading mode -->
     <integer name="start_read_intent_res_code">3</integer>
     <string name="start_reading_intent_desc">open_read_intent</string>
-    <string name="read_mode_uuid_notification">reading_mode_uuid</string>
     <string name="read_mode_success_notification">reading_mode_success</string>
 </resources>
