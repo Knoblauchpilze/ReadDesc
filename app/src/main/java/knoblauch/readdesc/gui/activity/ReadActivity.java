@@ -171,6 +171,10 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         m_controls.play.setEnabled(true);
         m_controls.next.setEnabled(!m_parser.isAtEnd());
+
+        // Also update the text of the main view so that it is consistent with the
+        // current content of the parser.
+        m_text.setText(m_parser.getCurrentWord());
     }
 
     /**
@@ -231,6 +235,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             // Rewind the parser.
             m_parser.rewind();
 
+            // We should also update the current word once the parser has been changed.
+            m_text.setText(m_parser.getCurrentWord());
+
             // Reset buttons.
             toggleStartStop(true);
         }
@@ -241,6 +248,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
             // Move the parser to reach the previous paragraph.
             m_parser.moveToPrevious();
+
+            // Update the word displayed by the parser.
+            m_text.setText(m_parser.getCurrentWord());
 
             // Update the controls.
             toggleStartStop(true);
@@ -253,6 +263,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
             // Move the parser.
             m_parser.moveToNext();
+
+            // Update the word displayed by the parser.
+            m_text.setText(m_parser.getCurrentWord());
 
             // Update the controls.
             toggleStartStop(true);

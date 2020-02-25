@@ -164,6 +164,33 @@ public class ReadParser {
     }
 
     /**
+     * Used for external elements to retrieve the current word pointed at by
+     * this parser. This is somewhat similar to the `getNextWord` method but
+     * it only gets the current word and does not advance on the data used
+     * by this parser.
+     * Calling this method repeatedly will not cause the parser to reach the
+     * end of the data stream.
+     * @return - a string representing the current word.
+     */
+    public String getCurrentWord() {
+        // Acquire the lock on this parser.
+        m_locker.lock();
+
+        String str;
+        try {
+            // Convert the current word.
+            str = "" + m_count;
+        }
+        finally {
+            // Safe to unlock the mutex protecting this object.
+            m_locker.unlock();
+        }
+
+        // The current word is given by `str`.
+        return str;
+    }
+
+    /**
      * Used to indicate to the parser that it should be moved to the previous
      * paragraph of the read. This method is usually triggered by the user and
      * requests to go fetch the previous paragraph's data from the source of
@@ -175,6 +202,7 @@ public class ReadParser {
         // TODO: Handle the previous paragraph.
         m_locker.lock();
         m_count = Math.max(m_count - 10, 0);
+        m_completion = 1.0f * m_count / 100.0f;
         m_locker.unlock();
     }
 
@@ -188,6 +216,7 @@ public class ReadParser {
         // TODO: Handle properly the next paragraph.
         m_locker.lock();
         m_count = Math.min(m_count + 10, 100);
+        m_completion = 1.0f * m_count / 100.0f;
         m_locker.unlock();
     }
 
@@ -199,6 +228,7 @@ public class ReadParser {
         // TODO: Handle properly the rewind of the parser.
         m_locker.lock();
         m_count = 0;
+        m_completion = 1.0f * m_count / 100.0f;
         m_locker.unlock();
     }
 
