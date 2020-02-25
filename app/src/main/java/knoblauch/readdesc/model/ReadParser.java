@@ -42,7 +42,7 @@ public class ReadParser {
      */
     private Lock m_locker;
 
-    private int m_count = 0;
+    private int m_count;
 
     /**
      * Instantiate a suitable parser for the input `desc`. Depending on the type
@@ -103,7 +103,7 @@ public class ReadParser {
      */
     public boolean isAtEnd() {
         // TODO: Handle the case where the parser is at the end of the data.
-        return false;
+        return m_count >= 100;
     }
 
     /**
@@ -115,7 +115,23 @@ public class ReadParser {
      */
     public boolean isAtStart() {
         // TODO: Handle the correct state of the parser.
-        return true;
+        return m_count == 0;
+    }
+
+    /**
+     * Similar to the `isAtEnd` but allows to determine whether this parser
+     * has reached an inner paragpraph of some sort in the reading data. It
+     * is usually used to give a break to the user and prompt him whether
+     * the read should be stopped or continued.
+     * @return - `true` if the reader reached the end of the paragraph and
+     *           `false` otherwise.
+     */
+    public boolean isAtParagraph() {
+        m_locker.lock();
+        boolean par = (m_count % 10 == 0);
+        m_locker.unlock();
+        // TODO: Should handle this.
+        return par;
     }
 
     /**
@@ -145,6 +161,45 @@ public class ReadParser {
 
         // Return the created string.
         return str;
+    }
+
+    /**
+     * Used to indicate to the parser that it should be moved to the previous
+     * paragraph of the read. This method is usually triggered by the user and
+     * requests to go fetch the previous paragraph's data from the source of
+     * the read.
+     * Note that in case the previous paragraph does not exist (typically when
+     * the user did not get past the first) nothing happens.
+     */
+    public void moveToPrevious() {
+        // TODO: Handle the previous paragraph.
+        m_locker.lock();
+        m_count = Math.max(m_count - 10, 0);
+        m_locker.unlock();
+    }
+
+    /**
+     * Similar method to `moveToPrevious` but used in case the parser should
+     * move to the next paragraph. Just like for the `moveToPrevious` method
+     * nothing happens in case the reader already reached the last paragraph
+     * available in the read.
+     */
+    public void moveToNext() {
+        // TODO: Handle properly the next paragraph.
+        m_locker.lock();
+        m_count = Math.min(m_count + 10, 100);
+        m_locker.unlock();
+    }
+
+    /**
+     * Used to perform a rewind of all the data read so far by the parser. This
+     * is useful to get back to the beginning of a read.
+     */
+    public void rewind() {
+        // TODO: Handle properly the rewind of the parser.
+        m_locker.lock();
+        m_count = 0;
+        m_locker.unlock();
     }
 
     /**

@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -21,7 +20,7 @@ import knoblauch.readdesc.model.ReadIntent;
 import knoblauch.readdesc.model.ReadParser;
 import knoblauch.readdesc.model.ReadPref;
 
-public class ReadActivity extends AppCompatActivity implements View.OnClickListener {
+public class ReadActivity extends AppCompatActivity implements View.OnClickListener, WordFlipTask.ParagraphListener {
 
     /**
      * Convenience class which holds all the relevant buttons used to control
@@ -208,19 +207,55 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         int wordFlip = prefs.getWordFlipInterval();
 
         // Create the wrapper for the timing task.
-        m_timer = new WordFlipTask(wordFlip, m_text, m_parser, new Handler());
+        m_timer = new WordFlipTask(wordFlip, m_text, m_parser, new Handler(), this);
+    }
+
+    @Override
+    public void onParagraphReached() {
+        // We want to stop the scheduling of the word flip task.
+        m_timer.stop();
+
+        // We also want to reset the status of the controls to indicate to the user that
+        // a new play request should be issued.
+        toggleStartStop(true);
     }
 
     @Override
     public void onClick(View v) {
         // We need to determine what to do based on the view producing the click.
         if (v == m_controls.reset) {
+            // Stop the parser as we want the user to notice that the content has
+            // started from the beginning again.
+            m_timer.stop();
+
+            // Rewind the parser.
+            m_parser.rewind();
+
+            // Reset buttons.
+            toggleStartStop(true);
         }
         else if (v == m_controls.prev) {
+            // Just like for the `reset` case we want the user to notice a motion
+            // to the previous paragraph so we stop the reading.
+            m_timer.stop();
+
+            // Move the parser to reach the previous paragraph.
+            m_parser.moveToPrevious();
+
+            // Update the controls.
+            toggleStartStop(true);
 
         }
         else if (v == m_controls.next) {
+            // Similarly to when the user presses the `previous` paragraph button
+            // we stop the current reading process.
+            m_timer.stop();
 
+            // Move the parser.
+            m_parser.moveToNext();
+
+            // Update the controls.
+            toggleStartStop(true);
         }
         else if (v == m_controls.play) {
             // Start the word flip task and update the state of the controls button.
@@ -291,12 +326,24 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
      * Used to reset the states of the play and pause buttons so that one of them
      * is enabled while the other one is disabled. The `play` button will be set
      * with the status described in input while the `pause` button will be assigned
-     * a value of `!toggle`.
+     * a value of `!toggle`. Note that we also check whether the internal parser has
+     * reached its end state in which case the play button is not enabled even if
+     * the `toggle` boolean is set to `true`.
      * @param toggle - `true` if the `play` button should be set to active.
      */
     private void toggleStartStop(boolean toggle) {
-        m_controls.play.setEnabled(toggle);
+        // Check whether it is possible to activate the `play` button based on the
+        // input `toggle` status and the parser's state.
+        m_controls.play.setEnabled(toggle && !m_parser.isAtEnd());
+
+        // The `pause` button is enabled whenever the `play` button is disabled.
         m_controls.pause.setEnabled(!toggle);
+
+        // We want to update the state of the controls based on the current parser's
+        // state.
+        m_controls.reset.setEnabled(!m_parser.isAtStart());
+        m_controls.prev.setEnabled(!m_parser.isAtStart());
+        m_controls.next.setEnabled(!m_parser.isAtEnd());
     }
 
 }
