@@ -95,6 +95,30 @@ public class ReadParser {
     public String getName() { return m_name; }
 
     /**
+     * Returns `true` if this parser has reached the end of the data stream
+     * describing the read. This can be used to detect whenever some actions
+     * that require some data to be left to be triggered have to be disabled.
+     * @return - `true` if this parser has reached the end of the data stream
+     *           and `false` otherwise.
+     */
+    public boolean isAtEnd() {
+        // TODO: Handle the case where the parser is at the end of the data.
+        return false;
+    }
+
+    /**
+     * Similar to the `isAtEnd` method but allows to determine whether the
+     * parser has reached the beginning of the data stream. This is typically
+     * the case when the user has never opened a read so far.
+     * @return - `true` if the parser has reached the beginning of the data
+     *           stream associated to it.
+     */
+    public boolean isAtStart() {
+        // TODO: Handle the correct state of the parser.
+        return true;
+    }
+
+    /**
      * Retrieve the next word available in this parser. This accounts for the
      * already decoded content and will move the virtual cursor of this parser
      * by one word.

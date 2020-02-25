@@ -166,14 +166,12 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // Update controls so that they match the state of the parser (i.e. reset
         // button might not always be allowed (in case we didn't read any word yet
         // and so on).
-        // TODO: Actually handle the state of the controls based on the current state
-        // of the parser.
-        m_controls.reset.setEnabled(false);
-        m_controls.prev.setEnabled(false);
+        m_controls.reset.setEnabled(!m_parser.isAtStart());
+        m_controls.prev.setEnabled(!m_parser.isAtStart());
         m_controls.pause.setEnabled(false);
 
         m_controls.play.setEnabled(true);
-        m_controls.next.setEnabled(true);
+        m_controls.next.setEnabled(!m_parser.isAtEnd());
     }
 
     /**
