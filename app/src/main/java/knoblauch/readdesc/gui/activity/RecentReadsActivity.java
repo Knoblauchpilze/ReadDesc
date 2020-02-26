@@ -164,16 +164,14 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Check which menu item has been selected and perform the appropriate action.
-        switch (item.getItemId()) {
-            case R.id.create_new_read_menu_opt:
-                openActivity(MenuAction.CreateRead);
-                return true;
-            case R.id.settings_menu_opt:
-                openActivity(MenuAction.Settings);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.settings_menu_opt) {
+            openActivity(MenuAction.Settings);
+
+            return true;
         }
+
+        // Use the base handler as we don't know what was the source of this event.
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
