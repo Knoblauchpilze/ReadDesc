@@ -19,6 +19,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.Stack;
 
 import knoblauch.readdesc.R;
@@ -30,7 +32,7 @@ import knoblauch.readdesc.gui.UriUtils;
 import knoblauch.readdesc.model.ReadDesc;
 import knoblauch.readdesc.model.ReadIntent;
 
-public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, NotifierDialog.NoticeDialogListener {
+public class RecentReadsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ReadItemClickListener, NotifierDialog.NoticeDialogListener, FloatingActionButton.OnClickListener {
 
     /**
      * Convenience enumeration describing the possible actions to take in the
@@ -87,6 +89,10 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // Register a callback for when a click has been detected on a single
         // item of the list view.
         recentReads.setOnItemClickListener(this);
+
+        // Connect the floating action button to the create read activity.
+        FloatingActionButton fab = findViewById(R.id.recent_reads_fab);
+        fab.setOnClickListener(this);
     }
 
     @Override
@@ -132,6 +138,14 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
                 performAction(AppAction.OpenRead, read);
                 break;
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        // When we enter this method it means that the floating action button allowing
+        // to create a new read has been pressed. We will use the standard way to start
+        // the corresponding activity.
+        openActivity(MenuAction.CreateRead);
     }
 
     @Override

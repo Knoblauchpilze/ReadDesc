@@ -16,4 +16,7 @@
 
     <!-- Maximum size for the thumbnail -->
     <dimen name="read_item_max_thumbnail_size">60dp</dimen>
+
+    <!-- Floating action button properties -->
+    <dimen name="recent_reads_fab_margin">16dp</dimen>
 </resources>
