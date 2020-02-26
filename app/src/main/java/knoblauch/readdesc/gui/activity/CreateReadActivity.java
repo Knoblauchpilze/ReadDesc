@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -414,8 +415,16 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         // Create the intent if we could find at least a single type of
         // file to retrieve.
         if (mimeTypes.size() > 0) {
+            // Use default types so that we perform filtering only with the extra
+            // mime types.
             browsing.setType("*/*");
-            browsing.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
+            // The extra mime types should be of type `String[]` so we have to cast
+            // the array list we built to this. This can be done by specifying the
+            // type of the elements to use. See in the links below for more info:
+            // https://developer.android.com/reference/android/content/Intent#EXTRA_MIME_TYPES
+            // https://stackoverflow.com/questions/5374311/convert-arrayliststring-to-string-array
+            browsing.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes.toArray(new String[] {}));
 
             startActivityForResult(browsing, requestCode);
         }
