@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="settings_menu_reset_title">Reset to default</string>
-    <string name="settings_menu_apply_title">Apply</string>
-
-    <string name="settings_reset_pref_confirmation_text">Are you sure you want to reset preferences to their default values ?</string>
-    <string name="settings_reset_pref_confirmation_yes">Sure</string>
-    <string name="settings_reset_pref_confirmation_no">Nope</string>
-</resources>

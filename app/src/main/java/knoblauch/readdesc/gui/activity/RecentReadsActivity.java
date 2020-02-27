@@ -239,8 +239,8 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // We also don't do anything in case the `requestCode` does not correspond to something we
         // know how to handle.
         Resources res = getResources();
-        int createReadReq = res.getInteger(R.integer.new_read_intent_res_code);
-        int readCompletedReq = res.getInteger(R.integer.start_read_intent_res_code);
+        int createReadReq = res.getInteger(R.integer.activity_create_read_res_code);
+        int readCompletedReq = res.getInteger(R.integer.activity_read_res_code);
 
         Log.i("reads", "Result is " + requestCode + " (read: " + createReadReq + ", complete: " + readCompletedReq + "), res: " + resultCode + " (ok: " + RESULT_OK + ")");
 
@@ -251,7 +251,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
 
         // We might want to create the new read from the read intent stored in the `data`.
         if (requestCode == createReadReq) {
-            ReadIntent intent = data.getParcelableExtra(res.getString(R.string.new_read_intent_key));
+            ReadIntent intent = data.getParcelableExtra(res.getString(R.string.activity_create_read_key_out));
 
             // Check consistency.
             if (intent == null) {
@@ -273,11 +273,11 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         // end up here only when the activity called the `finish` method so if everything went well
         // we don't want to display anything (as there's nothing to display).
         if (data != null) {
-            String key = res.getString(R.string.read_mode_success_notification);
+            String key = res.getString(R.string.activity_read_key_out);
             boolean success = data.getBooleanExtra(key, false);
 
             if (!success) {
-                String msg = res.getString(R.string.read_desc_failure_read_mode);
+                String msg = res.getString(R.string.activity_recent_reads_load_read_failure);
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
             }
         }
@@ -318,7 +318,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             Intent act = new Intent(RecentReadsActivity.this, CreateReadActivity.class);
 
             // Start the activity.
-            startActivityForResult(act, res.getInteger(R.integer.new_read_intent_res_code));
+            startActivityForResult(act, res.getInteger(R.integer.activity_create_read_res_code));
         }
         else if (action == MenuAction.Settings) {
             // Create the intent for the `Settings` activity.
@@ -404,10 +404,10 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         Intent start = new Intent(RecentReadsActivity.this, ReadActivity.class);
 
         Resources res = getResources();
-        String key = res.getString(R.string.start_reading_intent_desc);
+        String key = res.getString(R.string.activity_read_key_in);
         start.putExtra(key, desc.toReadIntent());
 
-        startActivityForResult(start, res.getInteger(R.integer.start_read_intent_res_code));
+        startActivityForResult(start, res.getInteger(R.integer.activity_read_res_code));
     }
 
     /**
@@ -435,7 +435,7 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
             // In case we can't find a valid activity to handle the user's request,
             // we'll just display a toast.
             Resources res = getResources();
-            String msg = String.format(res.getString(R.string.read_desc_failure_open_source), UriUtils.condenseUri(uri, this));
+            String msg = String.format(res.getString(R.string.activity_recent_reads_load_source_failure), UriUtils.condenseUri(uri, this));
 
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
         }

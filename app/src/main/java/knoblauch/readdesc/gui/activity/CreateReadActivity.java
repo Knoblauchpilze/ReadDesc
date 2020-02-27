@@ -366,7 +366,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
             if (read != null) {
                 // Register this result.
                 Resources res = getResources();
-                String key = res.getString(R.string.new_read_intent_key);
+                String key = res.getString(R.string.activity_create_read_key_out);
 
                 Intent ret = new Intent();
                 ret.putExtra(key, read);
@@ -391,7 +391,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         browsing.addCategory(Intent.CATEGORY_OPENABLE);
         ArrayList<String> mimeTypes = new ArrayList<>();
-        int requestCode = res.getInteger(R.integer.new_read_source_selected_res_code);
+        int requestCode = res.getInteger(R.integer.activity_create_read_res_code_source);
 
         if (v == m_fileProps.browse) {
             mimeTypes.add("text/plain");
@@ -409,7 +409,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         if (v == m_thumbnail.browse) {
             mimeTypes.add("image/*");
 
-            requestCode = res.getInteger(R.integer.new_read_thumbnail_source_selected_res_code);
+            requestCode = res.getInteger(R.integer.activity_create_read_res_code_thumbnail);
         }
 
         // Create the intent if we could find at least a single type of
@@ -466,8 +466,8 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         // We also don't do anything in case the `requestCode` does not correspond to something we
         // know how to handle.
         Resources res = getResources();
-        int fBrowseCode = res.getInteger(R.integer.new_read_source_selected_res_code);
-        int tBrowseCode = res.getInteger(R.integer.new_read_thumbnail_source_selected_res_code);
+        int fBrowseCode = res.getInteger(R.integer.activity_create_read_res_code_source);
+        int tBrowseCode = res.getInteger(R.integer.activity_create_read_res_code_thumbnail);
 
         if (resultCode != RESULT_OK || (requestCode != fBrowseCode && requestCode != tBrowseCode)) {
             super.onActivityResult(requestCode, resultCode, data);

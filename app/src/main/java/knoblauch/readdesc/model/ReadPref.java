@@ -146,34 +146,34 @@ public class ReadPref {
         // Retrieve the preferences editor from the context along with the resources
         // object which will provide default value.
         Resources res = m_context.getResources();
-        String key = res.getString(R.string.settings_preference_file_name);
+        String key = res.getString(R.string.activity_settings_pref_name);
         SharedPreferences pref = m_context.getSharedPreferences(key, MODE_PRIVATE);
 
         // Restore the word flip interval or create it from default value if it does
         // not exist.
-        m_wordFlipInterval = res.getInteger(R.integer.settings_default_world_flip);
-        key = res.getString(R.string.settings_word_flip_pref_key);
+        m_wordFlipInterval = res.getInteger(R.integer.activity_settings_pref_word_flip_default);
+        key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         if (pref.contains(key)) {
             m_wordFlipInterval = pref.getInt(key, m_wordFlipInterval );
         }
 
         // Restore read storage location.
-        m_readStorageLocation = res.getString(R.string.settings_default_read_storage_location);
-        key = res.getString(R.string.settings_read_storage_location_pref_key);
+        m_readStorageLocation = res.getString(R.string.activity_settings_pref_storage_location_default);
+        key = res.getString(R.string.activity_settings_pref_xml_key_storage_location);
         if (pref.contains(key)) {
             m_readStorageLocation = pref.getString(key, m_readStorageLocation);
         }
 
         // Restore background color while in reading mode.
-        m_bgColor = ContextCompat.getColor(m_context, R.color.settings_default_bg_color);
-        key = res.getString(R.string.settings_read_mode_bg_color_pref_key);
+        m_bgColor = ContextCompat.getColor(m_context, R.color.activity_settings_pref_color_bg_default);
+        key = res.getString(R.string.activity_settings_pref_xml_key_color_bg);
         if (pref.contains(key)) {
             m_bgColor = pref.getInt(key, m_bgColor);
         }
 
         // Restore text color while in reading mode.
-        m_textColor = ContextCompat.getColor(m_context, R.color.settings_default_text_color);
-        key = res.getString(R.string.settings_read_mode_text_color_pref_key);
+        m_textColor = ContextCompat.getColor(m_context, R.color.activity_settings_pref_color_text_default);
+        key = res.getString(R.string.activity_settings_pref_xml_key_color_text);
         if (pref.contains(key)) {
             m_textColor = pref.getInt(key, m_textColor);
         }
@@ -192,24 +192,24 @@ public class ReadPref {
         // Retrieve the preferences editor from the context along with the resources
         // object which will provide default value.
         Resources res = m_context.getResources();
-        String key = res.getString(R.string.settings_preference_file_name);
+        String key = res.getString(R.string.activity_settings_pref_name);
         SharedPreferences pref = m_context.getSharedPreferences(key, MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
 
         // Save the word flip interval.
-        key = res.getString(R.string.settings_word_flip_pref_key);
+        key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         editor.putInt(key, m_wordFlipInterval);
 
         // Save the default read storage location.
-        key = res.getString(R.string.settings_read_storage_location_pref_key);
+        key = res.getString(R.string.activity_settings_pref_xml_key_storage_location);
         editor.putString(key, m_readStorageLocation);
 
         // Save the background color while in reading mode.
-        key = res.getString(R.string.settings_read_mode_bg_color_pref_key);
+        key = res.getString(R.string.activity_settings_pref_xml_key_color_bg);
         editor.putInt(key, m_bgColor);
 
         // Save the text color while in reading mode.
-        key = res.getString(R.string.settings_read_mode_text_color_pref_key);
+        key = res.getString(R.string.activity_settings_pref_xml_key_color_text);
         editor.putInt(key, m_textColor);
 
         // Apply the modifications.
@@ -233,9 +233,9 @@ public class ReadPref {
         Resources res = m_context.getResources();
 
         // Restore each preference with its default value.
-        m_wordFlipInterval = res.getInteger(R.integer.settings_default_world_flip);
-        m_readStorageLocation = res.getString(R.string.settings_default_read_storage_location);
-        m_bgColor = ContextCompat.getColor(m_context, R.color.settings_default_bg_color);
-        m_textColor = ContextCompat.getColor(m_context, R.color.settings_default_text_color);
+        m_wordFlipInterval = res.getInteger(R.integer.activity_settings_pref_word_flip_default);
+        m_readStorageLocation = res.getString(R.string.activity_settings_pref_storage_location_default);
+        m_bgColor = ContextCompat.getColor(m_context, R.color.activity_settings_pref_color_bg_default);
+        m_textColor = ContextCompat.getColor(m_context, R.color.activity_settings_pref_color_text_default);
     }
 }

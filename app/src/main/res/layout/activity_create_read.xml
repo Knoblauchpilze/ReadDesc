@@ -13,39 +13,39 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginLeft="@dimen/new_read_component_margin"
-            android:layout_marginRight="@dimen/new_read_component_margin">
+            android:layout_marginLeft="@dimen/activity.create_read.margin.component"
+            android:layout_marginRight="@dimen/activity.create_read.margin.component">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/new_read_name_title"
-                android:textSize="@dimen/new_read_general_menu_title_size"
+                android:text="@string/activity.create_read.new.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"/>
 
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_name"
-                android:hint="@string/new_read_text_hint"
-                android:textSize="@dimen/new_read_general_menu_opt_size"
-                android:maxLength="@integer/new_read_name_max_length"
+                android:hint="@string/activity.create_read_name.hint"
+                android:textSize="@dimen/activity.size.content.primary"
+                android:maxLength="@integer/activity.create_read.new.title.max"
                 android:maxLines="1"
                 android:inputType="text"
                 android:importantForAutofill="no"
-                android:layout_marginBottom="@dimen/new_read_component_margin"/>
+                android:layout_marginBottom="@dimen/activity.create_read.margin.component"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/new_read_type_title"
-                android:textSize="@dimen/new_read_general_menu_title_size"
+                android:text="@string/activity.create_read.new.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"/>
 
             <RadioGroup
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/new_read_component_margin">
+                android:layout_marginBottom="@dimen/activity.create_read.margin.component">
 
                 <View style="@style/Divider"/>
 
@@ -54,8 +54,8 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_file"
                     android:checked="true"
-                    android:text="@string/new_read_file_title"
-                    android:textSize="@dimen/new_read_general_menu_opt_size"/>
+                    android:text="@string/activity.create_read.source.file.title"
+                    android:textSize="@dimen/activity.size.content.primary"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -68,17 +68,17 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_file_source"
                         android:layout_weight="80"
-                        android:hint="@string/new_read_source_select_hint"
+                        android:hint="@string/activity.create_read.source.hint"
                         android:inputType="textUri"
                         android:importantForAutofill="no"
-                        android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+                        android:textSize="@dimen/activity.size.content.secondary"/>
 
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_file_source_browse"
                         android:layout_weight="20"
-                        android:text="@string/new_read_source_select_button_title"
+                        android:text="@string/activity.title.browse"
                         android:textAllCaps="false"/>
 
                 </LinearLayout>
@@ -90,8 +90,8 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_website"
                     android:checked="false"
-                    android:text="@string/new_read_website_title"
-                    android:textSize="@dimen/new_read_general_menu_opt_size"/>
+                    android:text="@string/activity.create_read.source.webpage.title"
+                    android:textSize="@dimen/activity.size.content.primary"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -105,17 +105,17 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_website_source"
                         android:layout_weight="80"
-                        android:hint="@string/new_read_source_select_hint"
+                        android:hint="@string/activity.create_read.source.hint"
                         android:inputType="textUri"
                         android:importantForAutofill="no"
-                        android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+                        android:textSize="@dimen/activity.size.content.secondary"/>
 
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_website_source_browse"
                         android:layout_weight="20"
-                        android:text="@string/new_read_source_select_button_title"
+                        android:text="@string/activity.title.browse"
                         android:textAllCaps="false"/>
 
                 </LinearLayout>
@@ -127,8 +127,8 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_e_book"
                     android:checked="false"
-                    android:text="@string/new_read_e_book_title"
-                    android:textSize="@dimen/new_read_general_menu_opt_size"/>
+                    android:text="@string/activity.create_read.source.ebook.title"
+                    android:textSize="@dimen/activity.size.content.primary"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -142,17 +142,17 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_e_book_source"
                         android:layout_weight="80"
-                        android:hint="@string/new_read_source_select_hint"
+                        android:hint="@string/activity.create_read.source.hint"
                         android:inputType="textUri"
                         android:importantForAutofill="no"
-                        android:textSize="@dimen/new_read_general_secondary_opt_size"/>
+                        android:textSize="@dimen/activity.size.content.secondary"/>
 
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_e_book_source_browse"
                         android:layout_weight="20"
-                        android:text="@string/new_read_source_select_button_title"
+                        android:text="@string/activity.title.browse"
                         android:textAllCaps="false"/>
 
                 </LinearLayout>
@@ -165,8 +165,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_thumbnail"
-                android:text="@string/new_read_thumbnail_title"
-                android:textSize="@dimen/new_read_general_menu_title_size"
+                android:text="@string/activity.create_read.thumbnail.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"/>
 
             <LinearLayout
@@ -186,10 +186,10 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_thumbnail_location"
                     android:layout_weight="70"
-                    android:hint="@string/new_read_thumbnail_hint"
+                    android:hint="@string/activity.create_read.thumbnail.hint"
                     android:inputType="textUri"
                     android:importantForAutofill="no"
-                    android:textSize="@dimen/new_read_general_menu_opt_size"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:enabled="false"/>
 
                 <Button
@@ -197,8 +197,8 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_thumbnail_browse"
                     android:layout_weight="20"
-                    android:text="@string/new_read_browse_thumbnail"
-                    android:textSize="@dimen/new_read_general_secondary_opt_size"
+                    android:text="@string/activity.title.browse"
+                    android:textSize="@dimen/activity.size.content.secondary"
                     android:textAllCaps="false"
                     android:gravity="start|center_vertical"
                     android:enabled="false"/>
@@ -210,16 +210,16 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/new_read_component_margin">
+                android:layout_marginTop="@dimen/activity.create_read.margin.component">
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_cancel"
                     android:textAllCaps="false"
-                    android:text="@string/new_read_cancel_title"
-                    android:textSize="@dimen/new_read_general_secondary_opt_size"
-                    android:layout_marginStart="@dimen/new_read_component_margin"
+                    android:text="@string/activity.title.cancel"
+                    android:textSize="@dimen/activity.size.content.secondary"
+                    android:layout_marginStart="@dimen/activity.create_read.margin.component"
                     android:layout_alignParentStart="true"
                     android:layout_toStartOf="@+id/new_read_accept"/>
 
@@ -228,10 +228,10 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_accept"
                     android:textAllCaps="false"
-                    android:text="@string/new_read_accept_title"
-                    android:textSize="@dimen/new_read_general_secondary_opt_size"
+                    android:text="@string/activity.title.create"
+                    android:textSize="@dimen/activity.size.content.secondary"
                     android:enabled="false"
-                    android:layout_marginEnd="@dimen/new_read_component_margin"
+                    android:layout_marginEnd="@dimen/activity.create_read.margin.component"
                     android:layout_alignParentEnd="true"/>
 
             </RelativeLayout>

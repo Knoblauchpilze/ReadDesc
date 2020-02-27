@@ -149,7 +149,7 @@ public class ReadsBank {
         m_toDelete = new ArrayList<>();
 
         Resources res = m_context.getResources();
-        String msg = res.getString(R.string.read_desc_failure_load_file);
+        String msg = res.getString(R.string.activity_recent_reads_load_read_failure);
 
         // Register each read.
         for (File read : reads) {
@@ -173,9 +173,9 @@ public class ReadsBank {
      */
     private boolean loadReadFromFile(File in) {
         Resources res = m_context.getResources();
-        String msg = res.getString(R.string.read_desc_failure_load_file);
-        String delFailMsg = res.getString(R.string.read_desc_failure_del_file);
-        String delSucceedMsg = res.getString(R.string.read_desc_succeed_del_file);
+        String msg = res.getString(R.string.activity_recent_reads_load_desc_failure);
+        String delFailMsg = res.getString(R.string.activity_recent_reads_remove_save_failure);
+        String delSucceedMsg = res.getString(R.string.activity_recent_reads_remove_save_success);
 
         // In order to successfully parse the file we need to first retrieve a stream
         // reader that will be used to get the content.
@@ -228,7 +228,7 @@ public class ReadsBank {
         for (ReadDesc read : m_reads) {
             // Try to save the read to local storage and remember any failure.
             if (!saveRead(read)) {
-                String msg = String.format(res.getString(R.string.read_desc_failure_save_file), read.getName());
+                String msg = String.format(res.getString(R.string.activity_recent_reads_save_desc_failure), read.getName());
                 Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
             }
         }
@@ -237,7 +237,7 @@ public class ReadsBank {
         ArrayList<ReadDesc> stillToDelete = new ArrayList<>();
         for (ReadDesc read : m_toDelete) {
             if (!deleteRead(read)) {
-                String msg = String.format(res.getString(R.string.read_desc_failure_remove_read), read.getName());
+                String msg = String.format(res.getString(R.string.activity_recent_reads_remove_read_failure), read.getName());
                 Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
 
                 stillToDelete.add(read);

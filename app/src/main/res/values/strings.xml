@@ -1,3 +1,76 @@
 <resources>
+    <!-- App name -->
     <string name="app_name">Fastreader</string>
+
+    <!-- Titles for activities -->
+    <string name="activity.read.title">Reading</string>
+    <string name="activity.settings.title">Settings</string>
+    <string name="activity.create_read.title">Create read</string>
+    <string name="activity.recent_reads.title">Recent</string>
+
+    <!-- General texts to be used in activities -->
+    <string name="activity.title.browse">Browse</string>
+    <string name="activity.title.preview">Preview</string>
+    <string name="activity.title.red">"Red"</string>
+    <string name="activity.title.green">"Green"</string>
+    <string name="activity.title.blue">"Blue"</string>
+    <string name="activity.title.cancel">Cancel</string>
+    <string name="activity.title.create">Create</string>
+    <string name="activity.title.time.few_moments_ago">A few moments ago</string>
+    <string name="activity.title.time.good_old_times">More than a year ago</string>
+
+    <!-- Menu titles -->
+    <string name="activity.settings.menu.title.reset">Reset to default</string>
+    <string name="activity.settings.menu.title.apply">Apply</string>
+    <string name="activity.recent_reads.read.menu.open">Open</string>
+    <string name="activity.recent_reads.read.menu.delete">Delete</string>
+    <string name="activity.recent_reads.read.menu.source">Open source</string>
+
+    <!-- Text hints -->
+    <string name="activity.create_read_name.hint">Enter a name for this read</string>
+    <string name="activity.create_read.source.hint">Select source</string>
+    <string name="activity.create_read.thumbnail.hint">Select thumbnail</string>
+
+    <!-- Content descriptions -->
+    <string name="activity.read.content_desc.reset">Restart from beginning</string>
+    <string name="activity.read.content_desc.previous">Go to previous chapter</string>
+    <string name="activity.read.content_desc.pause">Pause the reading</string>
+    <string name="activity.read.content_desc.resume">Resume the reading</string>
+    <string name="activity.read.content_desc.next">Go to next chapter</string>
+    <string name="activity.recent_reads.read.content_desc.delete">Delete read</string>
+    <string name="activity.recent_reads.read.content_desc.thumbnail">Read thumbnail</string>
+
+    <!-- Text in activities -->
+    <string name="activity.settings.word_flip.title">Word flip interval</string>
+    <string name="activity.settings.word_flip.text">%1$d ms</string>
+    <string name="activity.settings.color.bg.title">Read background color</string>
+    <string name="activity.settings.color.text.title">Read text color</string>
+    <string name="activity.settings.storage_location.title">Read storage location</string>
+
+    <string name="activity.create_read.new.title">Read name</string>
+    <string name="activity.create_read.type.title">Read type</string>
+    <string name="activity.create_read.thumbnail.title">Thumbnail</string>
+    <string name="activity.create_read.source.file.title">From file</string>
+    <string name="activity.create_read.source.webpage.title">From web page</string>
+    <string name="activity.create_read.source.ebook.title">From e-book</string>
+
+    <!-- Read local storage file structure -->
+    <string name="activity.read.save.name">%1$s_save.xml</string>
+
+    <string name="activity.read.save.xml.key.root">root</string>
+    <string name="activity.read.save.xml.key.uuid">uuid</string>
+    <string name="activity.read.save.xml.key.name">name</string>
+    <string name="activity.read.save.xml.key.type">type</string>
+    <string name="activity.read.save.xml.key.source">source</string>
+    <string name="activity.read.save.xml.key.created_at">created_at</string>
+    <string name="activity.read.save.xml.key.last_accessed">accessed_at</string>
+    <string name="activity.read.save.xml.key.completion">completion</string>
+    <string name="activity.read.save.xml.key.thumbnail">thumbnail</string>
+
+    <!-- Preferences local storage file structure -->
+    <string name="activity.settings.pref.name">fast_reader_preferences</string>
+    <string name="activity.settings.pref.xml.key.word_flip">pref_word_flip_interval</string>
+    <string name="activity.settings.pref.xml.key.storage_location">pref_read_storage_location</string>
+    <string name="activity.settings.pref.xml.key.color.text">pref_read_mode_bg_color</string>
+    <string name="activity.settings.pref.xml.key.color.bg">pref_read_mode_text_color</string>
 </resources>

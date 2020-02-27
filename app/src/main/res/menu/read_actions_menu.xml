@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/settings_menu_opt"
-        android:title="@string/settings_activity_title"
+        android:title="@string/activity.settings.title"
         compat:showAsAction="ifRoom"
         android:icon="@mipmap/ic_menu_preferences"/>
 

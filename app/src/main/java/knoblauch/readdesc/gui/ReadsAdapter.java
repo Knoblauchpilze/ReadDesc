@@ -235,7 +235,7 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
 
         if (elapsed <= DateUtils.MINUTE_IN_MILLIS) {
             // In the last moments.
-            return res.getString(R.string.time_few_moments_ago);
+            return res.getString(R.string.activity_title_time_few_moments_ago);
         }
         else if (elapsed <= DateUtils.HOUR_IN_MILLIS) {
             // In the last hour.
@@ -255,7 +255,7 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         }
         else {
             // More than a year ago.
-            return res.getString(R.string.time_good_old_times);
+            return res.getString(R.string.activity_title_time_good_old_times);
         }
 
         // Return the formatted string.
@@ -341,7 +341,7 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         // not be successfully loaded.
         String name = UriUtils.condenseUri(uri, m_context);
 
-        String msg = String.format(m_context.getResources().getString(R.string.read_desc_failure_thumbnail_load), name);
+        String msg = String.format(m_context.getResources().getString(R.string.activity_recent_reads_load_thumbnail_failure), name);
         Toast.makeText(m_context, msg, Toast.LENGTH_SHORT).show();
     }
 }

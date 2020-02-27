@@ -141,7 +141,7 @@ public class ReadDesc {
     static String generateReadSaveName(Context context, String name) {
         // Generate the name of this read.
         Resources res = context.getResources();
-        return String.format(res.getString(R.string.read_desc_save_file_name), name);
+        return String.format(res.getString(R.string.activity_read_save_name), name);
     }
 
     /**
@@ -257,16 +257,16 @@ public class ReadDesc {
 
         // Retrieve props keys.
         Resources res = context.getResources();
-        String rootKey = res.getString(R.string.read_desc_xml_key_root);
+        String rootKey = res.getString(R.string.activity_read_save_xml_key_root);
 
-        String uuidKey = res.getString(R.string.read_desc_xml_key_uuid);
-        String nameKey = res.getString(R.string.read_desc_xml_key_name);
-        String typeKey = res.getString(R.string.read_desc_xml_key_type);
-        String sourceKey = res.getString(R.string.read_desc_xml_key_source);
-        String creationKey = res.getString(R.string.read_desc_xml_key_creation_date);
-        String accessedKey = res.getString(R.string.read_desc_xml_key_accessed_date);
-        String completionKey = res.getString(R.string.read_desc_xml_key_completion);
-        String thumbnailKey = res.getString(R.string.read_desc_xml_key_thumbnail);
+        String uuidKey = res.getString(R.string.activity_read_save_xml_key_uuid);
+        String nameKey = res.getString(R.string.activity_read_save_xml_key_name);
+        String typeKey = res.getString(R.string.activity_read_save_xml_key_type);
+        String sourceKey = res.getString(R.string.activity_read_save_xml_key_source);
+        String creationKey = res.getString(R.string.activity_read_save_xml_key_created_at);
+        String accessedKey = res.getString(R.string.activity_read_save_xml_key_last_accessed);
+        String completionKey = res.getString(R.string.activity_read_save_xml_key_completion);
+        String thumbnailKey = res.getString(R.string.activity_read_save_xml_key_thumbnail);
 
         // Build the `XML` structure. The following resource proved very useful for
         // providing insights about this:

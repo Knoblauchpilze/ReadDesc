@@ -149,7 +149,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         Intent will = getIntent();
 
         // The `Read` to display should be registered under the following key.
-        String key = getResources().getString(R.string.start_reading_intent_desc);
+        String key = getResources().getString(R.string.activity_read_key_in);
 
         // Retrieve the description of the read to display. Android is already able
         // to return `null` in case the parcelable cannot be found.
@@ -190,7 +190,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // the read that was reached by the user. To do so we will once again use the
         // intent mechanism.
         Resources res = getResources();
-        String keySuccess = res.getString(R.string.read_mode_success_notification);
+        String keySuccess = res.getString(R.string.activity_read_key_out);
 
         // Create and post the result as an intent.
         Intent ret = new Intent();
@@ -306,7 +306,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         if (!success) {
             Resources res = getResources();
-            String msg = String.format(res.getString(R.string.read_desc_failure_save_progress), m_parser.getName());
+            String msg = String.format(res.getString(R.string.activity_recent_reads_save_progress_failure), m_parser.getName());
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         }
 
@@ -326,7 +326,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     private String formatProgressionDisplay() {
         // Retrieve the progression message.
         Resources res = getResources();
-        String msg = res.getString(R.string.read_desc_success_save_progress);
+        String msg = res.getString(R.string.activity_recent_reads_save_progress_success);
 
         // Convert the progression into a nice integer (rather than a float value).
         int prg = Math.round(100.0f * m_parser.getCompletion());

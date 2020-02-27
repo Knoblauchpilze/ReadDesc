@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default values for the configuration of the preferences -->
+    <string name="activity.settings.pref.storage_location.default">"Documents/reads</string>
+    <integer name="activity.settings.pref.word_flip.default">200</integer>
+    <color name="activity.settings.pref.color.bg.default">#303030</color>
+    <color name="activity.settings.pref.color.text.default">#FFF700</color>
+
+    <!-- Values to assign to component in activities -->
+    <integer name="activity.settings.pref.word_flip.min">50</integer>
+    <integer name="activity.settings.pref.word_flip.max">1000</integer>
+    <integer name="activity.create_read.new.title.max">30</integer>
+
+    <integer name="activity.create_read.res_code.source">0</integer>
+    <integer name="activity.create_read.res_code.thumbnail">1</integer>
+    <integer name="activity.create_read.res_code">2</integer>
+    <integer name="activity.read.res_code">3</integer>
+
+    <string name="activity.create_read.key.out">new_read_intent</string>
+
+    <!-- Return code for reading mode -->
+    <string name="activity.read.key.in">open_read_intent</string>
+    <string name="activity.read.key.out">reading_mode_success</string>
+</resources>

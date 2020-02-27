@@ -32,7 +32,7 @@ public class DeleteReadItemDialog extends NotifierDialog {
      * @return - the message displayed on this dialog.
      */
     String getMessage() {
-        return String.format(getResources().getString(R.string.delete_read_confirmation_text), m_read.getName());
+        return String.format(getResources().getString(R.string.activity_recent_reads_read_delete_prompt), m_read.getName());
     }
 
     /**
@@ -40,9 +40,7 @@ public class DeleteReadItemDialog extends NotifierDialog {
      * for this dialog.
      * @return - the resource of the affirmative text.
      */
-    int getYesResource() {
-        return R.string.delete_read_confirmation_yes;
-    }
+    int getYesResource() { return R.string.activity_request_text_accept; }
 
     /**
      * Reimplementation of the base interface method to provide the negative answer
@@ -50,7 +48,7 @@ public class DeleteReadItemDialog extends NotifierDialog {
      * @return - the resource of the negative text.
      */
     int getNoResource() {
-        return R.string.delete_read_confirmation_no;
+        return R.string.activity_request_text_cancel;
     }
 
 }

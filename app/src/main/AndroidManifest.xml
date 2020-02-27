@@ -13,16 +13,16 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".gui.activity.ReadActivity"
-            android:label="@string/read_activity_title"/>
+            android:label="@string/activity.read.title"/>
         <activity
             android:name=".gui.activity.CreateReadActivity"
-            android:label="@string/create_read_activity_title" />
+            android:label="@string/activity.create_read.title" />
         <activity
             android:name=".gui.activity.SettingsActivity"
-            android:label="@string/settings_activity_title" />
+            android:label="@string/activity.settings.title" />
         <activity
             android:name=".gui.activity.RecentReadsActivity"
-            android:label="@string/recent_reads_activity_title">
+            android:label="@string/activity.recent_reads.title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

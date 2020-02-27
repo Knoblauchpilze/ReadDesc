@@ -16,7 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/recent_reads_fab_margin"
+        android:layout_margin="@dimen/activity.recent_reads.fab.margin"
         app:srcCompat="@drawable/ic_menu_create_read"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/read_open_menu_opt"
-          android:title="@string/read_item_ctx_menu_open"/>
+          android:title="@string/activity.recent_reads.read.menu.open"/>
     <item android:id="@+id/read_open_source_menu_opt"
-        android:title="@string/read_item_ctx_menu_source"/>
+        android:title="@string/activity.recent_reads.read.menu.source"/>
     <item android:id="@+id/read_delete_menu_opt"
-          android:title="@string/read_item_ctx_menu_delete"/>
+          android:title="@string/activity.recent_reads.read.menu.delete"/>
 </menu>

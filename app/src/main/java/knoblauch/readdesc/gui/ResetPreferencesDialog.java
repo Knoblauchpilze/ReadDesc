@@ -24,7 +24,7 @@ public class ResetPreferencesDialog extends NotifierDialog {
      * @return - the message displayed on this dialog.
      */
     String getMessage() {
-        return getResources().getString(R.string.settings_reset_pref_confirmation_text);
+        return getResources().getString(R.string.activity_settings_pref_reset_text_prompt);
     }
 
     /**
@@ -33,7 +33,7 @@ public class ResetPreferencesDialog extends NotifierDialog {
      * @return - the resource of the affirmative text.
      */
     int getYesResource() {
-        return R.string.settings_reset_pref_confirmation_yes;
+        return R.string.activity_request_text_accept;
     }
 
     /**
@@ -42,7 +42,7 @@ public class ResetPreferencesDialog extends NotifierDialog {
      * @return - the resource of the negative text.
      */
     int getNoResource() {
-        return R.string.settings_reset_pref_confirmation_no;
+        return R.string.activity_request_text_cancel;
     }
 }
 

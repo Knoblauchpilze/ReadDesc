@@ -103,14 +103,14 @@ class ReadDescXMLParser extends DefaultHandler {
         // Detect which kind of element is active for now.
         Resources res = m_context.getResources();
 
-        String uuidKey = res.getString(R.string.read_desc_xml_key_uuid);
-        String nameKey = res.getString(R.string.read_desc_xml_key_name);
-        String typeKey = res.getString(R.string.read_desc_xml_key_type);
-        String sourceKey = res.getString(R.string.read_desc_xml_key_source);
-        String creationKey = res.getString(R.string.read_desc_xml_key_creation_date);
-        String accessedKey = res.getString(R.string.read_desc_xml_key_accessed_date);
-        String completionKey = res.getString(R.string.read_desc_xml_key_completion);
-        String thumbnailKey = res.getString(R.string.read_desc_xml_key_thumbnail);
+        String uuidKey = res.getString(R.string.activity_read_save_xml_key_uuid);
+        String nameKey = res.getString(R.string.activity_read_save_xml_key_name);
+        String typeKey = res.getString(R.string.activity_read_save_xml_key_type);
+        String sourceKey = res.getString(R.string.activity_read_save_xml_key_source);
+        String creationKey = res.getString(R.string.activity_read_save_xml_key_created_at);
+        String accessedKey = res.getString(R.string.activity_read_save_xml_key_last_accessed);
+        String completionKey = res.getString(R.string.activity_read_save_xml_key_completion);
+        String thumbnailKey = res.getString(R.string.activity_read_save_xml_key_thumbnail);
 
         if (qName.equals(uuidKey)) {
             m_key = Key.UUID;

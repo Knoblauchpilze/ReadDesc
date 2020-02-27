@@ -168,7 +168,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
             m_prefs.setWordFlipInterval(progress);
 
             // Update the display text.
-            String wordFlip = String.format(getResources().getString(R.string.settings_word_flip_text), m_prefs.getWordFlipInterval());
+            String wordFlip = String.format(getResources().getString(R.string.activity_settings_word_flip_text), m_prefs.getWordFlipInterval());
             m_wordFlipText.setText(wordFlip);
 
             return;
@@ -291,7 +291,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     private void loadPreferencesToGraphics() {
         // Word flip interval.
         int wordFlipInterval = m_prefs.getWordFlipInterval();
-        String wordFlipText = String.format(getResources().getString(R.string.settings_word_flip_text), wordFlipInterval);
+        String wordFlipText = String.format(getResources().getString(R.string.activity_settings_word_flip_text), wordFlipInterval);
         m_wordFlipText.setText(wordFlipText);
         m_wordFlipValue.setProgress(wordFlipInterval);
 

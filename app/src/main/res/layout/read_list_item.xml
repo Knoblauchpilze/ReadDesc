@@ -12,7 +12,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/read_item_name"
             android:layout_weight="9"
-            android:textSize="@dimen/read_item_title_size"
+            android:textSize="@dimen/activity.size.title"
             android:textStyle="bold"/>
         <ImageView
             android:layout_width="0dp"
@@ -20,7 +20,7 @@
             android:id="@+id/read_item_delete"
             android:layout_weight="1"
             android:src="@mipmap/ic_delete"
-            android:contentDescription="@string/read_item_delete_read_img_desc"/>
+            android:contentDescription="@string/activity.recent_reads.read.content_desc.delete"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -35,18 +35,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_source"
-                android:textSize="@dimen/read_item_desc_size"/>
+                android:textSize="@dimen/activity.size.content.primary"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_date"
-                android:textSize="@dimen/read_item_second_desc_size"
+                android:textSize="@dimen/activity.size.content.secondary"
                 android:textStyle="italic"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_completion"
-                android:textSize="@dimen/read_item_second_desc_size" />
+                android:textSize="@dimen/activity.size.content.secondary" />
         </LinearLayout>
         <ImageView
             android:layout_width="0dp"
@@ -56,8 +56,8 @@
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
             android:src="@android:color/transparent"
-            android:contentDescription="@string/read_item_thumbnail_img_desc"
-            android:maxWidth="@dimen/read_item_max_thumbnail_size"
-            android:maxHeight="@dimen/read_item_max_thumbnail_size"/>
+            android:contentDescription="@string/activity.recent_reads.read.content_desc.thumbnail"
+            android:maxWidth="@dimen/activity.recent_reads.read.thumbnail.max_size"
+            android:maxHeight="@dimen/activity.recent_reads.read.thumbnail.max_size"/>
     </LinearLayout>
 </LinearLayout>

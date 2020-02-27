@@ -16,29 +16,28 @@
             android:id="@+id/read_current_word"
             android:layout_weight="80"
             android:gravity="center_vertical|center_horizontal"
-            android:text="Toto"
-            android:textSize="@dimen/reading_text_size"
-            android:background="@color/settings_default_bg_color"
-            android:textColor="@color/settings_default_text_color"/>
+            android:textSize="@dimen/activity.read.text.size"
+            android:background="@color/activity.settings.pref.color.bg.default"
+            android:textColor="@color/activity.settings.pref.color.text.default"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:id="@+id/read_controls_centering_layout"
             android:layout_weight="10"
-            android:background="@color/settings_default_bg_color">
+            android:background="@color/activity.settings.pref.color.bg.default">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_controls_layout"
                 android:orientation="horizontal"
-                android:background="@color/settings_default_bg_color"
+                android:background="@color/activity.settings.pref.color.bg.default"
                 android:layout_centerInParent="true"
                 style="?android:attr/buttonBarStyle">
 
                 <Space
-                    android:layout_width="@dimen/reading_buttons_bar_margins"
+                    android:layout_width="@dimen/activity.read.controls.margin"
                     android:layout_height="0dp"/>
 
                 <ImageButton
@@ -46,15 +45,15 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/read_restart_read_id"
                     android:src="@drawable/read_rew_control_selector"
-                    android:background="@color/settings_default_bg_color"
+                    android:background="@color/activity.settings.pref.color.bg.default"
                     android:enabled="false"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
-                    android:contentDescription="@string/reading_reset_content_desc"
+                    android:contentDescription="@string/activity.read.content_desc.reset"
                     style="?android:attr/buttonBarButtonStyle"/>
 
                 <Space
-                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_width="@dimen/activity.read.controls.spacing"
                     android:layout_height="0dp"/>
 
                 <ImageButton
@@ -62,15 +61,15 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/read_previous_chapter_id"
                     android:src="@drawable/read_prev_control_selector"
-                    android:background="@color/settings_default_bg_color"
+                    android:background="@color/activity.settings.pref.color.bg.default"
                     android:enabled="false"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
-                    android:contentDescription="@string/reading_previous_chapter_content_desc"
+                    android:contentDescription="@string/activity.read.content_desc.previous"
                     style="?android:attr/buttonBarButtonStyle"/>
 
                 <Space
-                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_width="@dimen/activity.read.controls.spacing"
                     android:layout_height="0dp"/>
 
                 <ImageButton
@@ -78,15 +77,15 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/read_pause_id"
                     android:src="@drawable/read_pause_control_selector"
-                    android:background="@color/settings_default_bg_color"
+                    android:background="@color/activity.settings.pref.color.bg.default"
                     android:enabled="false"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
-                    android:contentDescription="@string/reading_pause_content_desc"
+                    android:contentDescription="@string/activity.read.content_desc.pause"
                     style="?android:attr/buttonBarButtonStyle"/>
 
                 <Space
-                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_width="@dimen/activity.read.controls.spacing"
                     android:layout_height="0dp"/>
 
                 <ImageButton
@@ -94,14 +93,14 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/read_resume_id"
                     android:src="@drawable/read_play_control_selector"
-                    android:background="@color/settings_default_bg_color"
+                    android:background="@color/activity.settings.pref.color.bg.default"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
-                    android:contentDescription="@string/reading_resume_content_desc"
+                    android:contentDescription="@string/activity.read.content_desc.resume"
                     style="?android:attr/buttonBarButtonStyle"/>
 
                 <Space
-                    android:layout_width="@dimen/reading_buttons_bar_spacing"
+                    android:layout_width="@dimen/activity.read.controls.spacing"
                     android:layout_height="0dp"/>
 
                 <ImageButton
@@ -109,14 +108,14 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/read_next_chapter_id"
                     android:src="@drawable/read_next_control_selector"
-                    android:background="@color/settings_default_bg_color"
+                    android:background="@color/activity.settings.pref.color.bg.default"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
-                    android:contentDescription="@string/reading_next_chapter_content_desc"
+                    android:contentDescription="@string/activity.read.content_desc.next"
                     style="?android:attr/buttonBarButtonStyle"/>
 
                 <Space
-                    android:layout_width="@dimen/reading_buttons_bar_margins"
+                    android:layout_width="@dimen/activity.read.controls.margin"
                     android:layout_height="0dp"/>
 
             </LinearLayout>
@@ -128,9 +127,7 @@
             android:layout_height="0dp"
             android:layout_weight="5"
             android:id="@+id/read_completion_percentage_id"
-            android:min="@integer/reading_min_read_completion"
-            android:max="@integer/reading_max_read_completion"
-            android:background="@color/settings_default_bg_color"
+            android:background="@color/activity.settings.pref.color.bg.default"
             style="?android:attr/progressBarStyleHorizontal"/>
 
     </LinearLayout>

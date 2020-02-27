@@ -11,39 +11,39 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_text_flip_title"
-                android:textSize="@dimen/settings_general_menu_title_size"
+                android:text="@string/activity.settings.word_flip.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/settings_title_to_content_margin"/>
+                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_word_flip_value"
                     android:layout_weight="40"
-                    android:text="@string/settings_word_flip_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"/>
+                    android:text="@string/activity.settings.word_flip.text"
+                    android:textSize="@dimen/activity.size.content.primary"/>
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_word_flip_seek_bar"
                     android:layout_weight="60"
-                    android:min="@integer/settings_min_world_flip_interval"
-                    android:max="@integer/settings_max_world_flip_interval"/>
+                    android:min="@integer/activity.settings.pref.word_flip.min"
+                    android:max="@integer/activity.settings.pref.word_flip.max"/>
 
             </LinearLayout>
 
@@ -52,35 +52,35 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_read_location_title"
-                android:textSize="@dimen/settings_general_menu_title_size"
+                android:text="@string/activity.settings.storage_location.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/settings_title_to_content_margin"/>
+                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_read_storage_location"
                     android:layout_weight="80"
-                    android:text="@string/settings_default_read_storage_location"
-                    android:textSize="@dimen/settings_general_menu_opt_size"/>
+                    android:text="@string/activity.settings.pref.storage_location.default"
+                    android:textSize="@dimen/activity.size.content.primary"/>
 
                 <Button
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_read_storage_browse"
                     android:layout_weight="20"
-                    android:layout_marginLeft="@dimen/settings_component_margin"
-                    android:layout_marginRight="@dimen/settings_component_margin"
-                    android:text="@string/settings_storage_browse"
-                    android:textSize="@dimen/settings_general_secondary_opt_size"
+                    android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                    android:layout_marginRight="@dimen/activity.setting.margin.component"
+                    android:text="@string/activity.title.browse"
+                    android:textSize="@dimen/activity.size.content.secondary"
                     android:textAllCaps="false"
                     android:gravity="start|center_vertical"/>
 
@@ -92,23 +92,23 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_bg_color_text"
-                android:textSize="@dimen/settings_general_menu_title_size"
+                android:text="@string/activity.settings.color.bg.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/settings_title_to_content_margin"/>
+                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_red_color_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.red"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <SeekBar
@@ -124,14 +124,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_green_color_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.green"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <SeekBar
@@ -147,14 +147,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_blue_color_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.blue"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <SeekBar
@@ -170,14 +170,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_color_preview_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.preview"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <Button
@@ -186,7 +186,7 @@
                     android:id="@+id/settings_bg_color_preview"
                     android:clickable="false"
                     android:layout_weight="70"
-                    android:background="@color/settings_default_bg_color"/>
+                    android:background="@color/activity.settings.pref.color.bg.default"/>
 
             </LinearLayout>
 
@@ -195,23 +195,23 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_text_color_text"
-                android:textSize="@dimen/settings_general_menu_title_size"
+                android:text="@string/activity.settings.color.text.title"
+                android:textSize="@dimen/activity.size.title"
                 android:textStyle="bold"
-                android:layout_marginBottom="@dimen/settings_title_to_content_margin"/>
+                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_red_color_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.red"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <SeekBar
@@ -227,14 +227,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_green_color_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.green"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <SeekBar
@@ -250,14 +250,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_blue_color_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.blue"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <SeekBar
@@ -273,14 +273,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/settings_component_margin"
-                android:layout_marginRight="@dimen/settings_component_margin">
+                android:layout_marginLeft="@dimen/activity.setting.margin.component"
+                android:layout_marginRight="@dimen/activity.setting.margin.component">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/settings_color_preview_text"
-                    android:textSize="@dimen/settings_general_menu_opt_size"
+                    android:text="@string/activity.title.preview"
+                    android:textSize="@dimen/activity.size.content.primary"
                     android:layout_weight="30"/>
 
                 <Button
@@ -289,7 +289,7 @@
                     android:id="@+id/settings_text_color_preview"
                     android:clickable="false"
                     android:layout_weight="70"
-                    android:background="@color/settings_default_text_color"/>
+                    android:background="@color/activity.settings.pref.color.text.default"/>
 
             </LinearLayout>
 
