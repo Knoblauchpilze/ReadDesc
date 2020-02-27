@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="activity.size.title">25sp</dimen>
-    <dimen name="activity.size.content.primary">20sp</dimen>
+    <dimen name="activity.size.content.primary">18sp</dimen>
     <dimen name="activity.size.content.secondary">15sp</dimen>
     <dimen name="activity.size.content.details">12sp</dimen>
 

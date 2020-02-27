@@ -41,7 +41,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/activity.create_read.new.title"
+                android:text="@string/activity.create_read.type.title"
                 style="@style/TextViewTitle"
                 />
 
