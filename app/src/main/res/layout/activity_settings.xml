@@ -3,31 +3,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".gui.activity.SettingsActivity">
+    tools:context=".gui.activity.SettingsActivity"
+    >
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        style="@style/MarginScrollableLayout"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            >
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activity.settings.word_flip.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
+                android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
+                style="@style/TextViewTitle"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
@@ -35,7 +38,8 @@
                     android:id="@+id/settings_word_flip_value"
                     android:layout_weight="40"
                     android:text="@string/activity.settings.word_flip.text"
-                    android:textSize="@dimen/activity.size.content.primary"/>
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
@@ -43,7 +47,8 @@
                     android:id="@+id/settings_word_flip_seek_bar"
                     android:layout_weight="60"
                     android:min="@integer/activity.settings.pref.word_flip.min"
-                    android:max="@integer/activity.settings.pref.word_flip.max"/>
+                    android:max="@integer/activity.settings.pref.word_flip.max"
+                    />
 
             </LinearLayout>
 
@@ -53,36 +58,33 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activity.settings.storage_location.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
+                android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
+                style="@style/TextViewTitle"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_read_storage_location"
-                    android:layout_weight="80"
+                    android:layout_weight="70"
                     android:text="@string/activity.settings.pref.storage_location.default"
-                    android:textSize="@dimen/activity.size.content.primary"/>
+                    style="@style/SecondaryItem"
+                    />
 
                 <Button
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_read_storage_browse"
-                    android:layout_weight="20"
-                    android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                    android:layout_marginRight="@dimen/activity.setting.margin.component"
+                    android:layout_weight="30"
                     android:text="@string/activity.title.browse"
-                    android:textSize="@dimen/activity.size.content.secondary"
-                    android:textAllCaps="false"
-                    android:gravity="start|center_vertical"/>
+                    style="@style/GenericButton"
+                    />
 
             </LinearLayout>
 
@@ -93,30 +95,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activity.settings.color.bg.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
+                android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
+                style="@style/TextViewTitle"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.red"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_red_bg_seek_bar"
                     android:layout_weight="70"
-                    android:max="255"/>
+                    android:max="255"
+                    />
 
             </LinearLayout>
 
@@ -124,22 +127,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.green"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_green_bg_seek_bar"
                     android:layout_weight="70"
-                    android:max="255"/>
+                    android:max="255"
+                    />
 
             </LinearLayout>
 
@@ -147,22 +151,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.blue"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_blue_bg_seek_bar"
                     android:layout_weight="70"
-                    android:max="255"/>
+                    android:max="255"
+                    />
 
             </LinearLayout>
 
@@ -170,15 +175,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.preview"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <Button
                     android:layout_width="0dp"
@@ -186,7 +191,8 @@
                     android:id="@+id/settings_bg_color_preview"
                     android:clickable="false"
                     android:layout_weight="70"
-                    android:background="@color/activity.settings.pref.color.bg.default"/>
+                    android:background="@color/activity.settings.pref.color.bg.default"
+                    />
 
             </LinearLayout>
 
@@ -196,30 +202,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activity.settings.color.text.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/activity.setting.margin.title_to_content"/>
+                android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
+                style="@style/TextViewTitle"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.red"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_red_text_seek_bar"
                     android:layout_weight="70"
-                    android:max="255"/>
+                    android:max="255"
+                    />
 
             </LinearLayout>
 
@@ -227,22 +234,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.green"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_green_text_seek_bar"
                     android:layout_weight="70"
-                    android:max="255"/>
+                    android:max="255"
+                    />
 
             </LinearLayout>
 
@@ -250,22 +258,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.blue"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <SeekBar
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_blue_text_seek_bar"
                     android:layout_weight="70"
-                    android:max="255"/>
+                    android:max="255"
+                    />
 
             </LinearLayout>
 
@@ -273,15 +282,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginLeft="@dimen/activity.setting.margin.component"
-                android:layout_marginRight="@dimen/activity.setting.margin.component">
+                >
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/activity.title.preview"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:layout_weight="30"/>
+                    android:layout_weight="30"
+                    style="@style/SecondaryItem"
+                    />
 
                 <Button
                     android:layout_width="0dp"
@@ -289,7 +298,8 @@
                     android:id="@+id/settings_text_color_preview"
                     android:clickable="false"
                     android:layout_weight="70"
-                    android:background="@color/activity.settings.pref.color.text.default"/>
+                    android:background="@color/activity.settings.pref.color.text.default"
+                    />
 
             </LinearLayout>
 

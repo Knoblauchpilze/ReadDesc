@@ -2,52 +2,71 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    >
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        >
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/read_item_name"
             android:layout_weight="9"
-            android:textSize="@dimen/activity.size.title"
-            android:textStyle="bold"/>
+            style="@style/TextViewTitle"
+            />
+
         <ImageView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/read_item_delete"
             android:layout_weight="1"
             android:src="@mipmap/ic_delete"
-            android:contentDescription="@string/activity.recent_reads.read.content_desc.delete"/>
+            android:contentDescription="@string/activity.recent_reads.read.content_desc.delete"
+            />
+
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        >
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_weight="7">
+            android:layout_weight="7"
+            >
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_source"
-                android:textSize="@dimen/activity.size.content.primary"/>
+                style="@style/GenericItem"
+                />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_date"
-                android:textSize="@dimen/activity.size.content.secondary"
-                android:textStyle="italic"/>
+                android:textStyle="italic"
+                style="@style/SecondaryItem"
+                />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/read_item_completion"
-                android:textSize="@dimen/activity.size.content.secondary" />
+                style="@style/SecondaryItem"
+                />
+
         </LinearLayout>
+
         <ImageView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -58,6 +77,9 @@
             android:src="@android:color/transparent"
             android:contentDescription="@string/activity.recent_reads.read.content_desc.thumbnail"
             android:maxWidth="@dimen/activity.recent_reads.read.thumbnail.max_size"
-            android:maxHeight="@dimen/activity.recent_reads.read.thumbnail.max_size"/>
+            android:maxHeight="@dimen/activity.recent_reads.read.thumbnail.max_size"
+            />
+
     </LinearLayout>
+
 </LinearLayout>

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="activity.size.title">30sp</dimen>
+    <dimen name="activity.size.title">25sp</dimen>
     <dimen name="activity.size.content.primary">20sp</dimen>
     <dimen name="activity.size.content.secondary">15sp</dimen>
+    <dimen name="activity.size.content.details">12sp</dimen>
 
     <dimen name="activity.recent_reads.read.thumbnail.max_size">60dp</dimen>
     <dimen name="activity.recent_reads.fab.margin">16dp</dimen>
@@ -12,6 +13,6 @@
     <dimen name="activity.read.controls.spacing">30dp</dimen>
     <dimen name="activity.read.controls.margin">10dp</dimen>
     <dimen name="activity.create_read.margin.component">10dp</dimen>
-    <dimen name="activity.setting.margin.component">10dp</dimen>
-    <dimen name="activity.setting.margin.title_to_content">15dp</dimen>
+    <dimen name="activity.margin.component">10dp</dimen>
+    <dimen name="activity.settings.margin.title_to_content">15dp</dimen>
 </resources>

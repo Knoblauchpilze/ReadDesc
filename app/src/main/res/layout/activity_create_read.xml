@@ -3,49 +3,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".gui.activity.CreateReadActivity">
+    tools:context=".gui.activity.CreateReadActivity"
+    >
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        style="@style/MarginScrollableLayout"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginLeft="@dimen/activity.create_read.margin.component"
-            android:layout_marginRight="@dimen/activity.create_read.margin.component">
+            >
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activity.create_read.new.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"/>
+                style="@style/TextViewTitle"
+                />
 
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_name"
                 android:hint="@string/activity.create_read_name.hint"
-                android:textSize="@dimen/activity.size.content.primary"
                 android:maxLength="@integer/activity.create_read.new.title.max"
                 android:maxLines="1"
                 android:inputType="text"
                 android:importantForAutofill="no"
-                android:layout_marginBottom="@dimen/activity.create_read.margin.component"/>
+                android:layout_marginBottom="@dimen/activity.create_read.margin.component"
+                style="@style/SecondaryItem"
+                />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activity.create_read.new.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"/>
+                style="@style/TextViewTitle"
+                />
 
             <RadioGroup
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/activity.create_read.margin.component">
+                android:layout_marginBottom="@dimen/activity.create_read.margin.component"
+                >
 
                 <View style="@style/Divider"/>
 
@@ -55,31 +59,35 @@
                     android:id="@+id/new_read_file"
                     android:checked="true"
                     android:text="@string/activity.create_read.source.file.title"
-                    android:textSize="@dimen/activity.size.content.primary"/>
+                    style="@style/GenericItem"
+                    />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_file_layout"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    >
 
                     <EditText
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_file_source"
-                        android:layout_weight="80"
+                        android:layout_weight="70"
                         android:hint="@string/activity.create_read.source.hint"
                         android:inputType="textUri"
                         android:importantForAutofill="no"
-                        android:textSize="@dimen/activity.size.content.secondary"/>
+                        style="@style/SecondaryItem"
+                        />
 
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_file_source_browse"
-                        android:layout_weight="20"
+                        android:layout_weight="30"
                         android:text="@string/activity.title.browse"
-                        android:textAllCaps="false"/>
+                        style="@style/GenericButton"
+                        />
 
                 </LinearLayout>
 
@@ -91,32 +99,36 @@
                     android:id="@+id/new_read_website"
                     android:checked="false"
                     android:text="@string/activity.create_read.source.webpage.title"
-                    android:textSize="@dimen/activity.size.content.primary"/>
+                    style="@style/GenericItem"
+                    />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_website_layout"
                     android:orientation="horizontal"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    >
 
                     <EditText
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_website_source"
-                        android:layout_weight="80"
+                        android:layout_weight="70"
                         android:hint="@string/activity.create_read.source.hint"
                         android:inputType="textUri"
                         android:importantForAutofill="no"
-                        android:textSize="@dimen/activity.size.content.secondary"/>
+                        style="@style/SecondaryItem"
+                        />
 
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_website_source_browse"
-                        android:layout_weight="20"
+                        android:layout_weight="30"
                         android:text="@string/activity.title.browse"
-                        android:textAllCaps="false"/>
+                        style="@style/GenericButton"
+                        />
 
                 </LinearLayout>
 
@@ -128,32 +140,36 @@
                     android:id="@+id/new_read_e_book"
                     android:checked="false"
                     android:text="@string/activity.create_read.source.ebook.title"
-                    android:textSize="@dimen/activity.size.content.primary"/>
+                    style="@style/GenericItem"
+                    />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_e_book_layout"
                     android:orientation="horizontal"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    >
 
                     <EditText
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_e_book_source"
-                        android:layout_weight="80"
+                        android:layout_weight="70"
                         android:hint="@string/activity.create_read.source.hint"
                         android:inputType="textUri"
                         android:importantForAutofill="no"
-                        android:textSize="@dimen/activity.size.content.secondary"/>
+                        style="@style/SecondaryItem"
+                        />
 
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:id="@+id/new_read_e_book_source_browse"
-                        android:layout_weight="20"
+                        android:layout_weight="30"
                         android:text="@string/activity.title.browse"
-                        android:textAllCaps="false"/>
+                        style="@style/GenericButton"
+                        />
 
                 </LinearLayout>
 
@@ -166,42 +182,44 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/new_read_thumbnail"
                 android:text="@string/activity.create_read.thumbnail.title"
-                android:textSize="@dimen/activity.size.title"
-                android:textStyle="bold"/>
+                style="@style/TextViewTitle"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                >
 
                 <CheckBox
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_thumbnail_enable"
                     android:layout_weight="10"
-                    android:checked="false"/>
+                    android:checked="false"
+                    />
 
                 <EditText
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_thumbnail_location"
-                    android:layout_weight="70"
+                    android:layout_weight="60"
                     android:hint="@string/activity.create_read.thumbnail.hint"
                     android:inputType="textUri"
                     android:importantForAutofill="no"
-                    android:textSize="@dimen/activity.size.content.primary"
-                    android:enabled="false"/>
+                    android:enabled="false"
+                    style="@style/SecondaryItem"
+                    />
 
                 <Button
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_thumbnail_browse"
-                    android:layout_weight="20"
+                    android:layout_weight="30"
                     android:text="@string/activity.title.browse"
-                    android:textSize="@dimen/activity.size.content.secondary"
-                    android:textAllCaps="false"
-                    android:gravity="start|center_vertical"
-                    android:enabled="false"/>
+                    android:enabled="false"
+                    style="@style/GenericButton"
+                    />
 
             </LinearLayout>
 
@@ -210,29 +228,30 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/activity.create_read.margin.component">
+                android:layout_marginTop="@dimen/activity.create_read.margin.component"
+                >
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_cancel"
-                    android:textAllCaps="false"
                     android:text="@string/activity.title.cancel"
-                    android:textSize="@dimen/activity.size.content.secondary"
                     android:layout_marginStart="@dimen/activity.create_read.margin.component"
                     android:layout_alignParentStart="true"
-                    android:layout_toStartOf="@+id/new_read_accept"/>
+                    android:layout_toStartOf="@+id/new_read_accept"
+                    style="@style/GenericButton"
+                    />
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/new_read_accept"
-                    android:textAllCaps="false"
                     android:text="@string/activity.title.create"
-                    android:textSize="@dimen/activity.size.content.secondary"
                     android:enabled="false"
                     android:layout_marginEnd="@dimen/activity.create_read.margin.component"
-                    android:layout_alignParentEnd="true"/>
+                    android:layout_alignParentEnd="true"
+                    style="@style/GenericButton"
+                    />
 
             </RelativeLayout>
 
