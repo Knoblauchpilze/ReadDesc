@@ -173,8 +173,10 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         m_controls.next.setEnabled(!m_parser.isAtEnd());
 
         // Also update the text of the main view so that it is consistent with the
-        // current content of the parser.
+        // current content of the parser. We will also update the progression value
+        // to set up the seek bar accordingly.
         m_text.setText(m_parser.getCurrentWord());
+        m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
     }
 
     /**
@@ -237,6 +239,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
             // We should also update the current word once the parser has been changed.
             m_text.setText(m_parser.getCurrentWord());
+            m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
 
             // Reset buttons.
             toggleStartStop(true);
@@ -251,6 +254,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
             // Update the word displayed by the parser.
             m_text.setText(m_parser.getCurrentWord());
+            m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
 
             // Update the controls.
             toggleStartStop(true);
@@ -266,6 +270,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
             // Update the word displayed by the parser.
             m_text.setText(m_parser.getCurrentWord());
+            m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
 
             // Update the controls.
             toggleStartStop(true);

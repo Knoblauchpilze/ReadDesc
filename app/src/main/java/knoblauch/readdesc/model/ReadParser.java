@@ -97,7 +97,7 @@ public class ReadParser {
      *           so far by this reader.
      */
     public int getCompletionAsPercentage() {
-        return Math.round(getCompletion());
+        return Math.round(100.0f * getCompletion());
     }
 
     /**
