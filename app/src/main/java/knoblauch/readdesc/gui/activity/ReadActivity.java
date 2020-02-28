@@ -211,7 +211,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         int wordFlip = prefs.getWordFlipInterval();
 
         // Create the wrapper for the timing task.
-        m_timer = new WordFlipTask(wordFlip, m_text, m_parser, new Handler(), this);
+        m_timer = new WordFlipTask(wordFlip, m_text, m_parser, new Handler(), m_controls.completion, this);
     }
 
     @Override

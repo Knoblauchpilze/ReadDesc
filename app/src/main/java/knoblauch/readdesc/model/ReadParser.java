@@ -89,6 +89,18 @@ public class ReadParser {
     }
 
     /**
+     * Convenience wrapper around the `getCompletion` method which allows to
+     * retrieve the progression as a percentage value. Uses said method as
+     * a way to compute this percentage (so it requires the lock on this item
+     * to be acquired).
+     * @return - an integer representing the percentage of completion reached
+     *           so far by this reader.
+     */
+    public int getCompletionAsPercentage() {
+        return Math.round(getCompletion());
+    }
+
+    /**
      * Retrieves the name of the read associated to this parser.
      * @return - the name of the read linked to this parser.
      */

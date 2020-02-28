@@ -2,6 +2,7 @@ package knoblauch.readdesc.gui;
 
 import android.os.Handler;
 import android.util.Log;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.util.concurrent.locks.Lock;
@@ -40,6 +41,13 @@ public class WordFlipTask implements Runnable {
      * This element is used every time a new word is needed.
      */
     private ReadParser m_parser;
+
+    /**
+     * Used internally to notify the progression reached by this task. It
+     * will be updated each time a new word is handled so that the state
+     * of the bar reflects the internal progression of the read.
+     */
+    private SeekBar m_progression;
 
     /**
      * A once-and-for-all value indicating how often this task should be
@@ -86,13 +94,17 @@ public class WordFlipTask implements Runnable {
      * @param parser - the parser allowing to fetch the newt words to be
      *                 displayed in the text view.
      * @param handler - the handler to use to re-schedule this task regularly.
+     * @param progress - an object which should be notified of any progress
+     *                   in the read. This brings the current completion value
+     *                   to the user in a visual way.
      * @param listener - the listener (potentially empty) that should be used
      *                   in case a new paragraph is reached by this task.
      */
-    public WordFlipTask(int flip, TextView text, ReadParser parser, Handler handler, ParagraphListener listener) {
+    public WordFlipTask(int flip, TextView text, ReadParser parser, Handler handler, SeekBar progress, ParagraphListener listener) {
         m_text = text;
         m_flipInterval = flip;
         m_parser = parser;
+        m_progression = progress;
         m_handler = handler;
         m_listener = listener;
 
@@ -107,9 +119,16 @@ public class WordFlipTask implements Runnable {
         // read is finished or when we reached a paragraph of some sort
         // in the input data.
         // This will allow to stop the reading process and allow the user
-        // to see whether the reading should pursue or stop.
+        // to see whether the reading should pursue or stop. Also we need
+        // to reflect the current progression of the parser to the right
+        // object registered in the `m_progression` attribute: this will
+        // bring this information as a visual representation to the user.
         Log.i("word", "Parser is at " + m_parser.getCompletion() + ", st: " + m_parser.isAtStart() + ", prg: " + m_parser.isAtParagraph() + ", en: " + m_parser.isAtEnd());
 
+        // Update the progression.
+        m_progression.setProgress(m_parser.getCompletionAsPercentage());
+
+        // Check whether we reached a paragraph.
         if (m_parser.isAtParagraph() || m_parser.isAtEnd()) {
             // Check whether we should stop on this paragraph.
             m_locker.lock();
