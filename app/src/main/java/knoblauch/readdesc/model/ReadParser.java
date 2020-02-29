@@ -89,6 +89,22 @@ public class ReadParser {
     }
 
     /**
+     * Used to update the internal values so that this parser reaches the
+     * desired progression. This usually means moving the virtual cursor
+     * on the attached data to reach at least this progression value.
+     * This value is clamped to the range `[0; 1]` if it is not already
+     * in this interval.
+     * @param progress - the progression to set for this parser.
+     */
+    public void setProgress(float progress) {
+        // Acquire the lock on this parser.
+        m_locker.lock();
+        m_completion = Math.min(1.0f, Math.max(0.0f, progress));
+        m_count = Math.round(100.0f * m_completion);
+        m_locker.unlock();
+    }
+
+    /**
      * Convenience wrapper around the `getCompletion` method which allows to
      * retrieve the progression as a percentage value. Uses said method as
      * a way to compute this percentage (so it requires the lock on this item
@@ -147,32 +163,18 @@ public class ReadParser {
     }
 
     /**
-     * Retrieve the next word available in this parser. This accounts for the
-     * already decoded content and will move the virtual cursor of this parser
-     * by one word.
-     * In case the parser reached the end of the read an empty string is set
-     * as the return value.
-     * @return - a string representing the next word for this parser.
+     * Used by external elements to make this parser advance to the next word.
+     * This will usually move to the next element of the data stream based on
+     * the actual type of the content to fetch.
      */
-    public String getNextWord() {
+    public void advance() {
         // Acquire the lock on this parser.
         m_locker.lock();
 
-        String str;
-        try {
-            // Retrieve the next word.
-             str = "" + m_count;
-            m_count++;
+        m_count++;
+        m_completion = 1.0f * m_count / 100.0f;
 
-            m_completion = 1.0f * m_count / 100.0f;
-        }
-        finally {
-            // Safe to unlock the mutex.
-            m_locker.unlock();
-        }
-
-        // Return the created string.
-        return str;
+        m_locker.unlock();
     }
 
     /**
@@ -199,6 +201,36 @@ public class ReadParser {
         }
 
         // The current word is given by `str`.
+        return str;
+    }
+
+    /**
+     * Retrieve the next word available in this parser. This accounts for the
+     * already decoded content and will move the virtual cursor of this parser
+     * by one word. In case the parser reached the end of the read an empty
+     * string is set as the return value.
+     * Similar to calling `getCurrentWord` and then `advance` but guarantees
+     * the atomicity of the whole process.
+     * @return - a string representing the next word for this parser.
+     */
+    public String getNextWord() {
+        // Acquire the lock on this parser.
+        m_locker.lock();
+
+        String str;
+        try {
+            // Retrieve the next word.
+            str = "" + m_count;
+            m_count++;
+
+            m_completion = 1.0f * m_count / 100.0f;
+        }
+        finally {
+            // Safe to unlock the mutex.
+            m_locker.unlock();
+        }
+
+        // Return the created string.
         return str;
     }
 

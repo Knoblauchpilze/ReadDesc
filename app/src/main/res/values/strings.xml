@@ -56,7 +56,6 @@
 
     <!-- Read local storage file structure -->
     <string name="activity.read.save.name">%1$s_save.xml</string>
-
     <string name="activity.read.save.xml.key.root">root</string>
     <string name="activity.read.save.xml.key.uuid">uuid</string>
     <string name="activity.read.save.xml.key.name">name</string>

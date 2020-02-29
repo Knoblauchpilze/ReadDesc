@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -88,8 +89,24 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         m_text = findViewById(R.id.read_current_word);
 
         // We now need to retrieve the intent that started this activity so that we
-        // can instantiate the related parser.
-        instantiateParser();
+        // can instantiate the related parser. Note that we will analyze the input
+        // bundle to determine whether we have a chance to retrieve the progression
+        // reached by an earlier version of this activity.
+        // This typically happen when the orientation is changed: we successfully
+        // save the progression for this read to the disk but we need to also save
+        // and transmit it to this activity (so as not to be forced to read again
+        // from the disk).
+        // In case we can't find anything we will use a default negative value so
+        // that the `instantiateParser` method knows that we should retrieve the
+        // progression from the described read.
+        float progress = -1.0f;
+        if (savedInstanceState != null) {
+            String key = getResources().getString(R.string.activity_read_key_bundle_progress);
+            progress = savedInstanceState.getFloat(key, -1.0f);
+            Log.i("reads", "Recreating activity with saved state describing progress " + progress);
+        }
+
+        instantiateParser(progress);
 
         // We need to update the properties of the main element to match the colors
         // defined in the preferences.
@@ -140,11 +157,19 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Used upon building this activity to fetch the intent that started it. Normally
      * we should get an extra field describing the `Read` that should be displayed by
-     * this activity.
-     * If this is not the case we will terminate the activity and get back to previous
-     * view as we don't know what to display in here.
+     * this activity. If this is not the case we will terminate the activity and get
+     * back to previous view as we don't know what to display in here.
+     * Note also that as this activity might be subject to orientation changes we can
+     * have to re-instantiate it from an existing reading session. In this case the
+     * progress for the read have theoretically be saved through the `onPause` method
+     * but in order to avoid a reload of this information from the disk we actually
+     * also save it in the bundle that is passed to the next instance of the activity.
+     * This value is then passed to this method as the `progress` argument.
+     * In case no previous instance could be found a negative value is passed which
+     * indicates that we need to fetch the progression from the read itself.
+     * @param progress - the progress saved from a previous execution of the activity.
      */
-    private void instantiateParser() {
+    private void instantiateParser(float progress) {
         // Retrieve the intent that started this activity.
         Intent will = getIntent();
 
@@ -157,9 +182,16 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         if (read == null) {
             // Terminate the activity if the creation of the `ReadIntent` failed.
             prepareForTermination(false);
+
+            return;
         }
         else {
             m_parser = ReadParser.fromRead(read);
+        }
+
+        // Update the parser if we have been recreated from a previous execution.
+        if (progress >= 0.0f) {
+            m_parser.setProgress(progress);
         }
 
         // Update controls so that they match the state of the parser (i.e. reset
@@ -241,6 +273,8 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             m_text.setText(m_parser.getCurrentWord());
             m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
 
+            Log.i("reads", "onClick::rewind: progress is now " + m_parser.getCompletion());
+
             // Reset buttons.
             toggleStartStop(true);
         }
@@ -255,6 +289,8 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             // Update the word displayed by the parser.
             m_text.setText(m_parser.getCurrentWord());
             m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
+
+            Log.i("reads", "onClick::prev: progress is now " + m_parser.getCompletion());
 
             // Update the controls.
             toggleStartStop(true);
@@ -271,6 +307,8 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             // Update the word displayed by the parser.
             m_text.setText(m_parser.getCurrentWord());
             m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
+
+            Log.i("reads", "onClick::next: progress is now " + m_parser.getCompletion());
 
             // Update the controls.
             toggleStartStop(true);
@@ -318,8 +356,27 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // Notify the progression reached on this read.
         Toast.makeText(this, formatProgressionDisplay(), Toast.LENGTH_SHORT).show();
 
+        Log.i("reads", "onPause, saving progress of " + m_parser.getCompletion());
+
         // Use the base handler.
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // We need to save the current completion reached by the parser. Indeed even though we
+        // will successfully save the read to the file when the activity is destroyed (through
+        // the `onPause` method mechanism), we still need to make sure that the controls will
+        // be populated with the correct value.
+        // This is done here by saving the progression reached. We will not save anything else
+        // (for example the controls state) because we are okay with their initial state if the
+        // activity needs to be recreated. It is actually even a desired side effect because we
+        // want the user to have time to resume the reading again.
+        String progress = getResources().getString(R.string.activity_read_key_bundle_progress);
+        outState.putFloat(progress, m_parser.getCompletion());
+
+        // Use the base handler.
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -331,12 +388,12 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     private String formatProgressionDisplay() {
         // Retrieve the progression message.
         Resources res = getResources();
-        String msg = res.getString(R.string.activity_recent_reads_save_progress_success);
+        String msg = res.getString(R.string.activity_recent_reads_save_progress_message);
 
         // Convert the progression into a nice integer (rather than a float value).
         int prg = Math.round(100.0f * m_parser.getCompletion());
 
-        // Format it using the
+        // Format it so as to display relevant information.
         return String.format(msg, prg, m_parser.getName());
     }
 

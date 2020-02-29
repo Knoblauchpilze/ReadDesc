@@ -18,7 +18,12 @@
 
     <string name="activity.create_read.key.out">new_read_intent</string>
 
+    <!-- Information that should be persisted through orientation changes -->
+    <string name="activity.read.key.bundle.progress">read_bundle_progress</string>
+
     <!-- Return code for reading mode -->
     <string name="activity.read.key.in">open_read_intent</string>
     <string name="activity.read.key.out">reading_mode_success</string>
+
+
 </resources>

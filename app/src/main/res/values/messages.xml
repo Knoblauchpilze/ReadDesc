@@ -15,7 +15,6 @@
     <string name="activity.recent_reads.save.desc.failure">Failed to save \"%1$s\" to local storage</string>
     <string name="activity.recent_reads.save.progress.failure">Failed to save progression for \"%1$s\"</string>
     <string name="activity.recent_reads.save.progress.message">Reached %1$d%% completion for \"%2$s\"</string>
-    <string name="activity.recent_reads.save.progress.success">Saved progress for read \"%1$s\"</string>
     <string name="activity.recent_reads.remove.read.failure">Failed to delete read \"%1$s\ from local storage"</string>
     <string name="activity.recent_reads.remove.save.failure">Failed to delete corrupted read \"%1$s\"</string>
     <string name="activity.recent_reads.remove.save.success">Successfully deleted corrupted read \"%1$s\"</string>
