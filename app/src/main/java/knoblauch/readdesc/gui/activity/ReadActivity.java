@@ -372,6 +372,11 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // (for example the controls state) because we are okay with their initial state if the
         // activity needs to be recreated. It is actually even a desired side effect because we
         // want the user to have time to resume the reading again.
+        //
+        // More information can be found here:
+        // https://developer.android.com/guide/components/activities/activity-lifecycle
+        // https://developer.android.com/guide/components/activities/activity-lifecycle#saras
+        
         String progress = getResources().getString(R.string.activity_read_key_bundle_progress);
         outState.putFloat(progress, m_parser.getCompletion());
 
