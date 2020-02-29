@@ -3,7 +3,7 @@
     <string name="app_name">Fastreader</string>
 
     <!-- Titles for activities -->
-    <string name="activity.read.title">Reading</string>
+    <string name="activity.read.title">Reading \"%1$s\"</string>
     <string name="activity.settings.title">Settings</string>
     <string name="activity.create_read.title">Create read</string>
     <string name="activity.recent_reads.title">Recent</string>

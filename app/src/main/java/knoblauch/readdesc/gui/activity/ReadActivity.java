@@ -119,6 +119,10 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         m_controls.pause.setOnClickListener(this);
         m_controls.play.setOnClickListener(this);
         m_controls.next.setOnClickListener(this);
+
+        // Update the title for this activity: we should display the name of the read.
+        String title = getResources().getString(R.string.activity_read_title);
+        setTitle(String.format(title, m_parser.getName()));
     }
 
     /**
