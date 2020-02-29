@@ -54,6 +54,8 @@
     <string name="activity.create_read.source.webpage.title">From web page</string>
     <string name="activity.create_read.source.ebook.title">From e-book</string>
 
+    <string name="activity.recent_reads.completion.text">%1$s%%</string>
+
     <!-- Read local storage file structure -->
     <string name="activity.read.save.name">%1$s_save.xml</string>
     <string name="activity.read.save.xml.key.root">root</string>

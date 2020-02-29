@@ -191,9 +191,12 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
 
         // We want to display the percentage using two decimal places.
+        String msg = m_context.getString(R.string.activity_recent_reads_completion_text);
         DecimalFormat printer = new DecimalFormat();
+        printer.setMinimumFractionDigits(2);
         printer.setMaximumFractionDigits(2);
-        holder.completionView.setText(printer.format(desc.getCompletionPercentage()));
+        String progress = printer.format(desc.getCompletionPercentage());
+        holder.completionView.setText(String.format(msg, progress));
 
         // Handle the thumbnail creation.
         loadThumbnail(holder.thumbnail, desc);
