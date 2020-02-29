@@ -131,6 +131,7 @@ public class WordFlipTask implements Runnable {
         // Update the next word: this should be done no matter whether
         // we reached a paragraph or not as we want to stop *after* the
         // current word anyways.
+        m_parser.advance();
         m_text.setText(m_parser.getCurrentWord());
 
         // Check whether we reached a paragraph.
@@ -155,9 +156,6 @@ public class WordFlipTask implements Runnable {
             m_stopOnNextParagraph = true;
             m_locker.unlock();
         }
-
-        // Advance to the next word.
-        m_parser.advance();
 
         // Schedule a new repaint within the required time interval from
         // the preferences.

@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import knoblauch.readdesc.R;
@@ -188,7 +189,11 @@ public class ReadsAdapter extends BaseAdapter implements LazyLoadingTask.LazyLoa
         holder.nameView.setText(desc.getName());
         holder.sourceView.setText(UriUtils.condenseUri(desc.getSource(), m_context));
         holder.dateView.setText(getDateString(desc.getLastAccessedDate()));
-        holder.completionView.setText(String.valueOf(desc.getCompletionPercentage()));
+
+        // We want to display the percentage using two decimal places.
+        DecimalFormat printer = new DecimalFormat();
+        printer.setMaximumFractionDigits(2);
+        holder.completionView.setText(printer.format(desc.getCompletionPercentage()));
 
         // Handle the thumbnail creation.
         loadThumbnail(holder.thumbnail, desc);

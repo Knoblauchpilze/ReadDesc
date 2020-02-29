@@ -376,7 +376,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // More information can be found here:
         // https://developer.android.com/guide/components/activities/activity-lifecycle
         // https://developer.android.com/guide/components/activities/activity-lifecycle#saras
-        
+
         String progress = getResources().getString(R.string.activity_read_key_bundle_progress);
         outState.putFloat(progress, m_parser.getCompletion());
 
