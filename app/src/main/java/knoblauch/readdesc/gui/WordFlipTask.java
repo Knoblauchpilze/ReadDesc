@@ -4,9 +4,6 @@ import android.os.Handler;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import knoblauch.readdesc.model.ReadParser;
 
 public class WordFlipTask implements Runnable {
@@ -62,23 +59,6 @@ public class WordFlipTask implements Runnable {
     private Handler m_handler;
 
     /**
-     * Protect this object from concurrent accesses to the internal variable
-     * indicating whether we should stop on the next paragraph encountered
-     * by the parser.
-     */
-    private Lock m_locker;
-
-    /**
-     * Internal variable allowing to determine whether we should stop on the
-     * next paragraph we encounter with the parser. This is set to `true` in
-     * case we are processing word and to `false` whenever the task is moved
-     * to a running state again.
-     * Indeed without this value we would get stuck forever on any paragraph
-     * as we would have no mean to move through it.
-     */
-    private boolean m_stopOnNextParagraph;
-
-    /**
      * Contains the potential listener of this task which should be notified
      * whenever a new paragraph is reached by this task.
      */
@@ -106,9 +86,6 @@ public class WordFlipTask implements Runnable {
         m_progression = progress;
         m_handler = handler;
         m_listener = listener;
-
-        m_locker = new ReentrantLock();
-        m_stopOnNextParagraph = false;
     }
 
     @Override
@@ -134,25 +111,12 @@ public class WordFlipTask implements Runnable {
 
         // Check whether we reached a paragraph.
         if (m_parser.isAtParagraph() || m_parser.isAtEnd()) {
-            // Check whether we should stop on this paragraph.
-            m_locker.lock();
-            if (m_stopOnNextParagraph) {
-                // We need to stop on this paragraph (so presumably we
-                // already parsed a whole paragraph).
-                m_locker.unlock();
-
-                // Notify the listener if any.
-                if (m_listener != null) {
-                    m_listener.onParagraphReached();
-                }
-
-                return;
+            // We reached a paragraph, notify listeners.
+            if (m_listener != null) {
+                m_listener.onParagraphReached();
             }
 
-            // We won't stop on this paragraph but we should indicate
-            // that we *will* stop on the next one.
-            m_stopOnNextParagraph = true;
-            m_locker.unlock();
+            return;
         }
 
         // Schedule a new repaint within the required time interval from
@@ -166,13 +130,6 @@ public class WordFlipTask implements Runnable {
      * requested interval of time.
      */
     public void start() {
-        // Make this parser ignore the next paragraph: indeed as we might
-        // have stopped the task precisely because of such a paragraph we
-        // don't want to get stuck in a loop.
-        m_locker.lock();
-        m_stopOnNextParagraph = false;
-        m_locker.unlock();
-
         // Schedule this task.
         m_handler.post(this);
     }

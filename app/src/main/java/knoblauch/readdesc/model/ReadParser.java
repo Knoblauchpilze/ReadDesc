@@ -2,7 +2,6 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.net.Uri;
-import android.text.Html;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +28,13 @@ public abstract class ReadParser {
     float m_completion;
 
     /**
+     * Internal object used to perform resolution of resources and potential
+     * links in the data to read. This is mostly used as a way to determine
+     * the correct way to access to the data source of this reader.
+     */
+    Context m_context;
+
+    /**
      * A mutex allowing to protect concurrent access to the data in this parser
      * so that we can safely handle modifications of the internal state such as
      * a request on a new word or a jump to a later paragraph.
@@ -40,22 +46,24 @@ public abstract class ReadParser {
      * of the read a specific parser is instantiated so that we can successfully
      * fetch and display data from the source of the read.
      * @param desc - the read description from which a parser should be built.
+     * @param context - the context to use to perform link resolution and access
+     *                  to resources in general.
      * @return - a valid parser for this read or `null` if the type of the read
      *           does not correspond to a known parser.
      */
-    public static ReadParser fromRead(ReadIntent desc) {
+    public static ReadParser fromRead(ReadIntent desc, Context context) throws IOException {
         // Detect the type of the read and instantiate the correct parser.
         ReadParser reader = null;
 
         switch (desc.getType()) {
             case WebPage:
-                reader = new HtmlReader(desc.getName(), Uri.parse(desc.getDataUri()));
+                reader = new HtmlParser(desc.getName(), Uri.parse(desc.getDataUri()), context);
                 break;
             case EBook:
-                reader = new EbookReader(desc.getName(), Uri.parse(desc.getDataUri()));
+                reader = new EBookParser(desc.getName(), Uri.parse(desc.getDataUri()), context);
                 break;
             case File:
-                reader = new PdfReader(desc.getName(), Uri.parse(desc.getDataUri()));
+                reader = new PdfParser(desc.getName(), Uri.parse(desc.getDataUri()), context);
                 break;
         }
 
@@ -70,11 +78,16 @@ public abstract class ReadParser {
      * Create a new parser from the specified name. Note that such a parser does
      * not actually have any data source associated to it and its progression is
      * set to `0`.
+     * The user should provide a context to use to perform the resolution of the
+     * links and resources that are manipulated by this reader.
      * @param name - the name of the read.
      */
-    ReadParser(String name) {
+    ReadParser(String name, Context context) {
         // Assign the name of the read.
         m_name = name;
+
+        // Assign the context to use to resolve and access resources.
+        m_context = context;
 
         // Create the multi-threading protection.
         m_locker = new ReentrantLock();

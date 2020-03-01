@@ -104,7 +104,11 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             progress = savedInstanceState.getFloat(key, -1.0f);
         }
 
-        instantiateParser(progress);
+        // Try to instantiate a parser and return in case of failure.
+        if (!instantiateParser(progress)) {
+
+            return;
+        }
 
         // We need to update the properties of the main element to match the colors
         // defined in the preferences.
@@ -170,8 +174,10 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
      * In case no previous instance could be found a negative value is passed which
      * indicates that we need to fetch the progression from the read itself.
      * @param progress - the progress saved from a previous execution of the activity.
+     * @return - `true` if the parser could correctly be instantiated and `false` if
+     *           this is not the case.
      */
-    private void instantiateParser(float progress) {
+    private boolean instantiateParser(float progress) {
         // Retrieve the intent that started this activity.
         Intent will = getIntent();
 
@@ -183,12 +189,21 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         ReadIntent read = will.getParcelableExtra(key);
         if (read == null) {
             // Terminate the activity if the creation of the `ReadIntent` failed.
-            prepareForTermination(false);
+            prepareForTermination();
 
-            return;
+            return false;
         }
         else {
-            m_parser = ReadParser.fromRead(read);
+            try {
+                m_parser = ReadParser.fromRead(read, this);
+            }
+            catch (Exception e) {
+                // We failed to load the parser from the read's description. There's
+                // no point in continuing further, get back to the recent reads view.
+                prepareForTermination();
+
+                return false;
+            }
         }
 
         // Update the parser if we have been recreated from a previous execution.
@@ -211,6 +226,8 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // to set up the seek bar accordingly.
         m_text.setText(m_parser.getCurrentWord());
         m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
+
+        return true;
     }
 
     /**
@@ -218,10 +235,8 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
      * save the `uuid` of the read that was attempted to be opened during the reading
      * session so that one can provide a relevant error message in the parent activity.
      * Whether or not the reading was a success is set as defined by the input arg.
-     * @param success - `true` if the termination should consider that the reading was
-     *                  a success and `false` otherwise.
      */
-    private void prepareForTermination(boolean success) {
+    private void prepareForTermination() {
         // We want to terminate the activity with the actual completion percentage of
         // the read that was reached by the user. To do so we will once again use the
         // intent mechanism.
@@ -230,7 +245,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         // Create and post the result as an intent.
         Intent ret = new Intent();
-        ret.putExtra(keySuccess, success);
+        // For now we only call this method when some failure occur so we always set
+        // the return value to `false`: this might change if needed.
+        ret.putExtra(keySuccess, false);
         setResult(RESULT_OK, ret);
 
         // Terminate the activity if needed.

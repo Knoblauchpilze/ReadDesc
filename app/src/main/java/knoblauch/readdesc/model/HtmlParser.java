@@ -1,31 +1,33 @@
 package knoblauch.readdesc.model;
 
+import android.content.Context;
 import android.net.Uri;
 
-public class EbookReader extends ReadParser {
+public class HtmlParser extends ReadParser {
 
     /**
      * Describe the source of the data that can be accessed to this parser. It
      * is retrieved from the `ReadDesc` from which this parser is instantiated
      * and is used as the primary data source of the content.
-     * We assume in this parser that the source describes a valid `EBook` item.
+     * We assume in this parser that the source describes a valid `HTML` page.
      */
     private Uri m_source;
 
     private int m_count;
 
     /**
-     * Create a new `E-book` parser from the specified name and source. The source
+     * Create a new `HTML` parser from the specified name and source. The source
      * will be assigned internally and used whenever some new data is required
      * to advance the parser.
      * @param name - the name of the read.
      * @param source - an `uri` describing the data source for this parser. In
-     *                 case this is not a valid `E-book` document an error is
-     *                 raised.
+     *                 case this is not a valid `HTML` page an error is raised.
+     * @param context - the context to use to perform link resolution and access
+     *                  to resources in general.
      */
-    EbookReader(String name, Uri source) {
+    HtmlParser(String name, Uri source, Context context) {
         // Call the base construction method.
-        super(name);
+        super(name, context);
 
         // Assign the source for this read.
         setData(source);
@@ -34,8 +36,8 @@ public class EbookReader extends ReadParser {
     /**
      * Used internally to setup the provided `source` as the main baking data
      * for this reader. Some checks are performed to make sure that the input
-     * `uri` refers to a valid `E-book` document.
-     * @param source - an `uri` describing a valid `E-book` document.
+     * `uri` refers to a valid `HTML` page.
+     * @param source - an `uri` describing a valid `HTML` page.
      */
     private void setData(Uri source) {
         m_source = source;

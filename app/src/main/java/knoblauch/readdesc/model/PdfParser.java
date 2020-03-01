@@ -1,8 +1,15 @@
 package knoblauch.readdesc.model;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.net.Uri;
 
-public class PdfReader extends ReadParser {
+import com.itextpdf.text.pdf.PdfReader;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+public class PdfParser extends ReadParser {
 
     /**
      * Describe the source of the data that can be accessed to this parser. It
@@ -11,6 +18,13 @@ public class PdfReader extends ReadParser {
      * We assume in this parser that the source describes a valid `PDF` item.
      */
     private Uri m_source;
+
+    /**
+     * Internal object used to actually fetch data from the `PDF` document used
+     * by this reader. Guaranteed to never be `null` if the construction of the
+     * reader succeeded.
+     */
+    private PdfReader m_reader;
 
     private int m_count;
 
@@ -21,10 +35,12 @@ public class PdfReader extends ReadParser {
      * @param name - the name of the read.
      * @param source - an `uri` describing the data source for this parser. In
      *                 case this is not a valid `PDF` file an error is raised.
+     * @param context - the context to use to perform link resolution and access
+     *                  to resources in general.
      */
-    PdfReader(String name, Uri source) {
+    PdfParser(String name, Uri source, Context context) throws IOException {
         // Call the base construction method.
-        super(name);
+        super(name, context);
 
         // Assign the source for this read.
         setData(source);
@@ -36,9 +52,48 @@ public class PdfReader extends ReadParser {
      * `uri` refers to a valid `PDF` document.
      * @param source - an `uri` describing a valid `PDF` document.
      */
-    private void setData(Uri source) {
+    private void setData(Uri source) throws IOException {
+        // Assign the source so that we can refer to it later on.
         m_source = source;
 
+        // Try to instantiate a valid `PDF` reader from this source.
+        if (m_source == null || m_source.getPath() == null) {
+            throw new IOException("Cannot set invalid PDF source in parser for \"" + getName() + "\"");
+        }
+
+        // We need to create a file as the source of the `PDF` reader. Note
+        // that as we store the content's `uri` we need to resolve the link
+        // in order to access to the file.
+        ContentResolver res = m_context.getContentResolver();
+        InputStream inStream = res.openInputStream(m_source);
+        if (inStream == null) {
+            throw new IOException("Cannot load PDF content \"" + source.toString() + "\" in parser for \"" + getName() + "\"");
+        }
+
+        m_reader = new PdfReader(inStream);
+
+        // TODO: Include this in the relevant methods.
+//        try {
+//            Log.i("main", "a");
+//            PdfReaderContentParser parser;
+//            Log.i("main", "b");
+//            PdfDictionary dic = m_reader.getPageN(1);
+//            if (dic == null) {
+//                Log.i("main", "Dictionary is null !!");
+//            }
+//            Log.i("main", "c");
+//            Log.i("main", "Dictionary has " + dic.getKeys().size() + " key(s)");
+//            Set<PdfName> keys = dic.getKeys();
+//            Log.i("main", "d");
+//            for (PdfName s : keys) {
+//                Log.i("main", "Key \"" + s + "\"");
+//            }
+//        }
+//        catch (Exception e) {
+//            Log.i("main", "Big failure: " + e.toString());
+//            throw e;
+//        }
+//
         // TODO: Remove this temporary hack for the completion.
         m_count = Math.round(m_completion * 100.0f);
     }
@@ -79,7 +134,7 @@ public class PdfReader extends ReadParser {
     @Override
     boolean advanceTo(float progress) {
         // TODO: Handle properly the advance to a certain position in the read.
-        m_count = Math.round(100.0f * m_completion);
+        m_count = Math.round(100.0f * progress);
         return true;
     }
 
