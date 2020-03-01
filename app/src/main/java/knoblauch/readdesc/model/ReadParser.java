@@ -2,6 +2,7 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.Html;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,7 +12,7 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ReadParser {
+public abstract class ReadParser {
 
     /**
      * The name of the underlying read backing the data for this parser. It is
@@ -21,27 +22,18 @@ public class ReadParser {
     private String m_name;
 
     /**
-     * Describe the source of the data that can be accessed to this parser. It
-     * is retrieved from the `ReadDesc` from which this parser is instantiated
-     * and is used as the primary data source of the content.
-     */
-    private Uri m_source;
-
-    /**
      * Holds the current progression of this parser. Upon building the object
      * it is updated with the completion reached so far by previous openings
      * of the read and is updated while the next word is retrieved.
      */
-    private float m_completion;
+    float m_completion;
 
     /**
      * A mutex allowing to protect concurrent access to the data in this parser
      * so that we can safely handle modifications of the internal state such as
      * a request on a new word or a jump to a later paragraph.
      */
-    private Lock m_locker;
-
-    private int m_count;
+    Lock m_locker;
 
     /**
      * Instantiate a suitable parser for the input `desc`. Depending on the type
@@ -52,23 +44,39 @@ public class ReadParser {
      *           does not correspond to a known parser.
      */
     public static ReadParser fromRead(ReadIntent desc) {
-        return new ReadParser(desc.getName(), Uri.parse(desc.getDataUri()), desc.getCompletion());
+        // Detect the type of the read and instantiate the correct parser.
+        ReadParser reader = null;
+
+        switch (desc.getType()) {
+            case WebPage:
+                reader = new HtmlReader(desc.getName(), Uri.parse(desc.getDataUri()));
+                break;
+            case EBook:
+                reader = new EbookReader(desc.getName(), Uri.parse(desc.getDataUri()));
+                break;
+            case File:
+                reader = new PdfReader(desc.getName(), Uri.parse(desc.getDataUri()));
+                break;
+        }
+
+        // Assign the completion specified by the intent.
+        reader.setProgress(desc.getCompletion());
+
+        // Return the built-in parser.
+        return reader;
     }
 
     /**
-     * Create a new parser from the specified content `uri` and name.
+     * Create a new parser from the specified name. Note that such a parser does
+     * not actually have any data source associated to it and its progression is
+     * set to `0`.
      * @param name - the name of the read.
-     * @param uri - the `uri` of the primary data source for this parser.
-     * @param completion - the completion to associated to this parser.
      */
-    private ReadParser(String name, Uri uri, float completion) {
+    ReadParser(String name) {
+        // Assign the name of the read.
         m_name = name;
-        m_source = uri;
-        m_completion = completion;
 
-        // TODO: Remove this temporary hack for the completion.
-        m_count = Math.round(m_completion * 100.0f);
-
+        // Create the multi-threading protection.
         m_locker = new ReentrantLock();
     }
 
@@ -85,22 +93,6 @@ public class ReadParser {
         m_locker.unlock();
 
         return cp;
-    }
-
-    /**
-     * Used to update the internal values so that this parser reaches the
-     * desired progression. This usually means moving the virtual cursor
-     * on the attached data to reach at least this progression value.
-     * This value is clamped to the range `[0; 1]` if it is not already
-     * in this interval.
-     * @param progress - the progression to set for this parser.
-     */
-    public void setProgress(float progress) {
-        // Acquire the lock on this parser.
-        m_locker.lock();
-        m_completion = Math.min(1.0f, Math.max(0.0f, progress));
-        m_count = Math.round(100.0f * m_completion);
-        m_locker.unlock();
     }
 
     /**
@@ -122,16 +114,39 @@ public class ReadParser {
     public String getName() { return m_name; }
 
     /**
+     * Used to update the internal values so that this parser reaches the
+     * desired progression. This usually means moving the virtual cursor
+     * on the attached data to reach at least this progression value.
+     * This value is clamped to the range `[0; 1]` if it is not already
+     * in this interval.
+     * Note that in this virtual base we will only update the internal
+     * completion value if the interface method returns a valid result.
+     * @param progress - the progression to set for this parser.
+     */
+    public void setProgress(float progress) {
+        // Lock this object.
+        m_locker.lock();
+
+        // Use the abstract handler and update the internal completion value
+        // if it succeeds.
+        try {
+            if (advanceTo(Math.min(1.0f, Math.max(0.0f, progress)))) {
+                m_completion = progress;
+            }
+        }
+        finally {
+            m_locker.unlock();
+        }
+    }
+
+    /**
      * Returns `true` if this parser has reached the end of the data stream
      * describing the read. This can be used to detect whenever some actions
      * that require some data to be left to be triggered have to be disabled.
      * @return - `true` if this parser has reached the end of the data stream
      *           and `false` otherwise.
      */
-    public boolean isAtEnd() {
-        // TODO: Handle the case where the parser is at the end of the data.
-        return m_count >= 100;
-    }
+    public abstract boolean isAtEnd();
 
     /**
      * Similar to the `isAtEnd` method but allows to determine whether the
@@ -140,41 +155,37 @@ public class ReadParser {
      * @return - `true` if the parser has reached the beginning of the data
      *           stream associated to it.
      */
-    public boolean isAtStart() {
-        // TODO: Handle the correct state of the parser.
-        return m_count == 0;
-    }
+    public abstract boolean isAtStart();
 
     /**
      * Similar to the `isAtEnd` but allows to determine whether this parser
-     * has reached an inner paragpraph of some sort in the reading data. It
+     * has reached an inner paragraph of some sort in the reading data. It
      * is usually used to give a break to the user and prompt him whether
      * the read should be stopped or continued.
      * @return - `true` if the reader reached the end of the paragraph and
      *           `false` otherwise.
      */
-    public boolean isAtParagraph() {
-        m_locker.lock();
-        boolean par = (m_count % 10 == 0);
-        m_locker.unlock();
-        // TODO: Should handle this.
-        return par;
-    }
+    public abstract boolean isAtParagraph();
 
     /**
      * Used by external elements to make this parser advance to the next word.
      * This will usually move to the next element of the data stream based on
      * the actual type of the content to fetch.
      */
-    public void advance() {
-        // Acquire the lock on this parser.
-        m_locker.lock();
+    public abstract void advance();
 
-        m_count++;
-        m_completion = 1.0f * m_count / 100.0f;
-
-        m_locker.unlock();
-    }
+    /**
+     * Used internally to advance to a certain progression. Depending on the
+     * actual data source baking this parser it might means fetching content
+     * from the disk or querying another source, etc. It is up to the concrete
+     * parser to determine what is needed.
+     * @param progress - the progress that should be reached by this parser.
+     *                   Note that this value is guaranteed to be in the range
+     *                   `[0; 1]`.
+     * @return - `true` if the parser could reach the specified progress value
+     *           and `false` otherwise.
+     */
+    abstract boolean advanceTo(float progress);
 
     /**
      * Used for external elements to retrieve the current word pointed at by
@@ -185,53 +196,7 @@ public class ReadParser {
      * end of the data stream.
      * @return - a string representing the current word.
      */
-    public String getCurrentWord() {
-        // Acquire the lock on this parser.
-        m_locker.lock();
-
-        String str;
-        try {
-            // Convert the current word.
-            str = "" + m_count;
-        }
-        finally {
-            // Safe to unlock the mutex protecting this object.
-            m_locker.unlock();
-        }
-
-        // The current word is given by `str`.
-        return str;
-    }
-
-    /**
-     * Retrieve the next word available in this parser. This accounts for the
-     * already decoded content and will move the virtual cursor of this parser
-     * by one word. In case the parser reached the end of the read an empty
-     * string is set as the return value.
-     * Similar to calling `getCurrentWord` and then `advance` but guarantees
-     * the atomicity of the whole process.
-     * @return - a string representing the next word for this parser.
-     */
-    public String getNextWord() {
-        // Acquire the lock on this parser.
-        m_locker.lock();
-
-        String str;
-        try {
-            // Retrieve the next word.
-            str = "" + m_count;
-            m_count++;
-
-            m_completion = 1.0f * m_count / 100.0f;
-        }
-        finally {
-            // Safe to unlock the mutex.
-            m_locker.unlock();
-        }
-
-        // Return the created string.
-        return str;
-    }
+    public abstract String getCurrentWord();
 
     /**
      * Used to indicate to the parser that it should be moved to the previous
@@ -241,13 +206,7 @@ public class ReadParser {
      * Note that in case the previous paragraph does not exist (typically when
      * the user did not get past the first) nothing happens.
      */
-    public void moveToPrevious() {
-        // TODO: Handle the previous paragraph.
-        m_locker.lock();
-        m_count = Math.max(m_count - 10, 0);
-        m_completion = 1.0f * m_count / 100.0f;
-        m_locker.unlock();
-    }
+    public abstract void moveToPrevious();
 
     /**
      * Similar method to `moveToPrevious` but used in case the parser should
@@ -255,25 +214,13 @@ public class ReadParser {
      * nothing happens in case the reader already reached the last paragraph
      * available in the read.
      */
-    public void moveToNext() {
-        // TODO: Handle properly the next paragraph.
-        m_locker.lock();
-        m_count = Math.min(m_count + 10, 100);
-        m_completion = 1.0f * m_count / 100.0f;
-        m_locker.unlock();
-    }
+    public abstract void moveToNext();
 
     /**
      * Used to perform a rewind of all the data read so far by the parser. This
      * is useful to get back to the beginning of a read.
      */
-    public void rewind() {
-        // TODO: Handle properly the rewind of the parser.
-        m_locker.lock();
-        m_count = 0;
-        m_completion = 1.0f * m_count / 100.0f;
-        m_locker.unlock();
-    }
+    public abstract void rewind();
 
     /**
      * Used to perform a save operation on the progression reached by this parser
