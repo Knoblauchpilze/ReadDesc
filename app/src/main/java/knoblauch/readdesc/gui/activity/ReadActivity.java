@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -103,7 +102,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         if (savedInstanceState != null) {
             String key = getResources().getString(R.string.activity_read_key_bundle_progress);
             progress = savedInstanceState.getFloat(key, -1.0f);
-            Log.i("reads", "Recreating activity with saved state describing progress " + progress);
         }
 
         instantiateParser(progress);
@@ -277,8 +275,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             m_text.setText(m_parser.getCurrentWord());
             m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
 
-            Log.i("reads", "onClick::rewind: progress is now " + m_parser.getCompletion());
-
             // Reset buttons.
             toggleStartStop(true);
         }
@@ -293,8 +289,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             // Update the word displayed by the parser.
             m_text.setText(m_parser.getCurrentWord());
             m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
-
-            Log.i("reads", "onClick::prev: progress is now " + m_parser.getCompletion());
 
             // Update the controls.
             toggleStartStop(true);
@@ -311,8 +305,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
             // Update the word displayed by the parser.
             m_text.setText(m_parser.getCurrentWord());
             m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
-
-            Log.i("reads", "onClick::next: progress is now " + m_parser.getCompletion());
 
             // Update the controls.
             toggleStartStop(true);
@@ -359,8 +351,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         // Notify the progression reached on this read.
         Toast.makeText(this, formatProgressionDisplay(), Toast.LENGTH_SHORT).show();
-
-        Log.i("reads", "onPause, saving progress of " + m_parser.getCompletion());
 
         // Use the base handler.
         super.onPause();

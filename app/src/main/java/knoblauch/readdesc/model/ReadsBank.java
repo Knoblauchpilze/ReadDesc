@@ -2,7 +2,6 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -338,9 +337,6 @@ public class ReadsBank {
         String name = ReadDesc.generateReadSaveName(m_context, read.getName());
 
         File out = new File(m_context.getFilesDir(), name);
-
-
-        Log.i("main", "Deleting local file \"" + name + "\" for \"" + read.getName() + "\" (exist: " + out.exists() + ")");
 
         // Check consistency.
         if (!out.exists()) {

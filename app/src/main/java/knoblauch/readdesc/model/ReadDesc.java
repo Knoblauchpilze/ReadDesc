@@ -2,7 +2,6 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -228,7 +227,6 @@ public class ReadDesc {
             desc.m_creationDate = handler.creation;
             desc.m_lastAccessDate = handler.access;
             desc.m_completionPercentage = handler.completion;
-            Log.i("desc", "Loading desc \"" + desc.getName() + "\" with completion " + desc.m_completionPercentage);
             desc.m_thumbnail = handler.thumbnail;
         }
         catch (Exception e) {
@@ -319,7 +317,6 @@ public class ReadDesc {
             str = String.valueOf(m_completionPercentage);
             Element completion = xmlDoc.createElement(completionKey);
             completion.appendChild(xmlDoc.createTextNode(str));
-            Log.i("desc", "Saving desc \"" + getName() + "\" with completion " + str);
             root.appendChild(completion);
 
             // Save the thumbnail if needed.
@@ -439,7 +436,7 @@ public class ReadDesc {
     /**
      * Returns the last access date for this read. Should usually be more
      * recent than the creation date.
-     * @return - the last time the suer accessed this read.
+     * @return - the last time the user accessed this read.
      */
     public Date getLastAccessedDate() {
         return m_lastAccessDate;
@@ -479,16 +476,6 @@ public class ReadDesc {
      */
     void setProgression(float completion) {
         m_completionPercentage = Math.max(Math.min(completion, 1.0f), 0.0f);
-    }
-
-    /**
-     * Used to determine whether the user has finished this read or not. It
-     * queries the completion percentage and check whether it is set to 100%.
-     * @return - `true` if the user has reached the end of this read and `false` if
-     *           this is not the case.
-     */
-    public boolean isCompleted() {
-        return getCompletionPercentage() >= 100.0f;
     }
 
     /**

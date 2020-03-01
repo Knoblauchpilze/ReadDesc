@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Pair;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -241,8 +240,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         Resources res = getResources();
         int createReadReq = res.getInteger(R.integer.activity_create_read_res_code);
         int readCompletedReq = res.getInteger(R.integer.activity_read_res_code);
-
-        Log.i("reads", "Result is " + requestCode + " (read: " + createReadReq + ", complete: " + readCompletedReq + "), res: " + resultCode + " (ok: " + RESULT_OK + ")");
 
         if ((resultCode != RESULT_OK && requestCode == createReadReq) || (requestCode != createReadReq && requestCode != readCompletedReq)) {
             super.onActivityResult(requestCode, resultCode, data);

@@ -2,7 +2,6 @@ package knoblauch.readdesc.model;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -308,8 +307,6 @@ public class ReadParser {
         if (id >= reads.length) {
             return false;
         }
-
-        Log.i("main", "Saving progress " + m_completion + " for \"" + m_name + "\" (id: " + id + " to file \"" + reads[id].getName() + "\")");
 
         // Save the progression to this file: we need to first open it, then
         // update the progression key and finally serialize back the data. In

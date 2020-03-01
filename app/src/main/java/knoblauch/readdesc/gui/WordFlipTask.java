@@ -1,7 +1,6 @@
 package knoblauch.readdesc.gui;
 
 import android.os.Handler;
-import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -123,7 +122,6 @@ public class WordFlipTask implements Runnable {
         // to reflect the current progression of the parser to the right
         // object registered in the `m_progression` attribute: this will
         // bring this information as a visual representation to the user.
-        Log.i("word", "Parser is at " + m_parser.getCompletion() + ", st: " + m_parser.isAtStart() + ", prg: " + m_parser.isAtParagraph() + ", en: " + m_parser.isAtEnd());
 
         // Update the progression.
         m_progression.setProgress(m_parser.getCompletionAsPercentage());
