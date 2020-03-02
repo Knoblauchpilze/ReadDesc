@@ -74,17 +74,17 @@ public class EBookParser extends ReadParser {
         m_locker.lock();
         // TODO: Handle properly the advance in the read.
 
-        m_count++;
+        ++m_count;
         m_completion = 1.0f * m_count / 100.0f;
 
         m_locker.unlock();
     }
 
     @Override
-    boolean advanceTo(float progress) {
+    float advanceTo(float progress) {
         // TODO: Handle properly the advance to a certain position in the read.
-        m_count = Math.round(100.0f * m_completion);
-        return true;
+        m_count = Math.round(100.0f * progress);
+        return progress;
     }
 
     @Override

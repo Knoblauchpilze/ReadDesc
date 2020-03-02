@@ -14,6 +14,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class ReadParser {
 
     /**
+     * Defines the maximum progression possible for a parser.
+     */
+    static final float MAX_PROGRESSION = 1.0f;
+
+    /**
      * The name of the underlying read backing the data for this parser. It is
      * used as a way to identify the read associated to this object so that the
      * result of the progression can be saved back to the disk.
@@ -143,9 +148,7 @@ public abstract class ReadParser {
         // Use the abstract handler and update the internal completion value
         // if it succeeds.
         try {
-            if (advanceTo(Math.min(1.0f, Math.max(0.0f, progress)))) {
-                m_completion = progress;
-            }
+            m_completion = advanceTo(Math.min(1.0f, Math.max(0.0f, progress)));
         }
         finally {
             m_locker.unlock();
@@ -195,10 +198,11 @@ public abstract class ReadParser {
      * @param progress - the progress that should be reached by this parser.
      *                   Note that this value is guaranteed to be in the range
      *                   `[0; 1]`.
-     * @return - `true` if the parser could reach the specified progress value
-     *           and `false` otherwise.
+     * @return - the actual progression reached by this parser. In case the
+     *           specified progression cannot be exactly reached the closest
+     *           approximation is returned.
      */
-    abstract boolean advanceTo(float progress);
+    abstract float advanceTo(float progress);
 
     /**
      * Used for external elements to retrieve the current word pointed at by
@@ -260,7 +264,7 @@ public abstract class ReadParser {
 
         int id = 0;
         while (id < reads.length && !reads[id].getName().equals(saveFile)) {
-            id++;
+            ++id;
         }
 
         // Check whether we could find the save for this read.
