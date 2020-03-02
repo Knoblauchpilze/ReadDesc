@@ -76,6 +76,10 @@ public class PdfParser extends ReadParser {
         m_globalWordIndex = 0;
 
         // Assign the source for this read.
+        // TODO: Actually this is the specific part of the parser. Maybe we could make this
+        // abstract and set all the other methods to be implemented in the base class which
+        // would be more interesting for factorization.
+        // We only have to find a way to correctly handle lazy loading of data.
         setData(source);
     }
 
