@@ -3,7 +3,6 @@ package knoblauch.readdesc.model;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
@@ -123,19 +122,26 @@ public class PdfParser extends ReadParser {
 
                 for (Paragraph p : paragraphs) {
                     // Sanitize the paragraph.
-                    int s = p.size();
                     p.sanitize();
 
-                    if (p.size() != s) {
-                        Log.i("main", "Paragraph shrinked from " + s + " to " + p.size());
+                    // Discard empty paragraph.
+                    if (p.isEmpty()) {
+                        continue;
                     }
 
-                    // Register this paragraph if it contains at least one word.
-                    if (!p.isEmpty()) {
+                    // Check whether we can group it with another existing one.
+                    if (p.canBeGrouped() && !m_paragraphs.isEmpty()) {
+                        Paragraph last = m_paragraphs.get(m_paragraphs.size() - 1);
+                        m_totalWordCount -= last.size();
+                        last.merge(p);
+                        m_totalWordCount += last.size();
 
-                        m_totalWordCount += p.size();
-                        m_paragraphs.add(p);
+                        continue;
                     }
+
+                    // Register this paragraph as it cannot be grouped.
+                    m_totalWordCount += p.size();
+                    m_paragraphs.add(p);
                 }
 
                 // Clear the extractor to be ready for the next page.

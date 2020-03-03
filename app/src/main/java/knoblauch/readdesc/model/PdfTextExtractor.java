@@ -76,9 +76,6 @@ public class PdfTextExtractor implements RenderListener {
             beginTextBlock();
         }
 
-        // TODO: Refine the model to extract better the paragraphs. We could
-        // also group the punctuation.
-
         for (String word : words) {
             // Keep only valid words.
             Matcher matcher = SPACE_PATTERN.matcher(word);

@@ -26,10 +26,19 @@ class Paragraph {
     private ArrayList<String> m_words;
 
     /**
+     * Holds `true` whenever this paragraph is composed only of items that can
+     * be grouped together with words (such as punctuation symbols, etc.). This
+     * will help collapse entire paragraph together and thus provide a better
+     * reading experience.
+     */
+    private boolean m_needsGrouping;
+
+    /**
      * Create a new paragraph with no words associated to it.
      */
     Paragraph() {
         m_words = new ArrayList<>();
+        m_needsGrouping = true;
     }
 
     /**
@@ -40,6 +49,16 @@ class Paragraph {
     boolean isEmpty() {
         return m_words.isEmpty();
     }
+
+    /**
+     * Used to determine whether it makes sense to collapse this
+     * paragraph into a single one with its predecessor. This is
+     * usually the case when a paragraph contains a single symbol
+     * of punctuation for example.
+     * @return - `true` if it makes sense to group this paragraph
+     *           with another one.
+     */
+    boolean canBeGrouped() { return m_needsGrouping; }
 
     /**
      * Return the number of words registered in this paragraph.
@@ -58,6 +77,7 @@ class Paragraph {
      */
     void addWord(String word) {
         if (word != null && !word.isEmpty()) {
+            m_needsGrouping = (m_needsGrouping && word.length() == 1 && (PUNCTUATION.contains(word) || CURRENCIES.contains(word)));
             m_words.add(word);
         }
     }
@@ -121,6 +141,38 @@ class Paragraph {
 
         // Assign the list of words as the internal attribute.
         m_words = words;
+    }
+
+    /**
+     * Attempt to merge the `other` paragraph with this one. This usually
+     * indicates that the `other` paragraph only contains punctuation item
+     * or currencies that can be concatenated with the last word of this
+     * one.
+     * @param other - the other paragraph to merge.
+     */
+    void merge(Paragraph other) {
+        // Check that the other paragraph can effectively be merged.
+        if (!other.canBeGrouped()) {
+            return;
+        }
+
+        // In case this paragraph is empty, copy the list of words.
+        if (isEmpty()) {
+            m_words = other.m_words;
+            m_needsGrouping = other.m_needsGrouping;
+
+            return;
+        }
+
+        // Traverse the list of words of the `other` paragraph and
+        // merge them with the latest element of this paragraph.
+        String last = m_words.get(m_words.size() - 1);
+
+        for (String w : other.m_words) {
+            last = last.concat(w);
+        }
+
+        m_words.set(m_words.size() - 1, last);
     }
 
     /**
