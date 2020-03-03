@@ -266,8 +266,6 @@ public class PdfParser extends ReadParser {
 
             m_completion = 0.0f;
 
-            // TODO: We should move not word by word but try at least to move paragraph
-            // by paragraph to save some time.
             // TODO: We should also load this asynchronously and protect the object with
             // some sort of a locker.
 
@@ -277,13 +275,45 @@ public class PdfParser extends ReadParser {
             }
 
             float last = 0.0f;
-            while (m_completion <= progress) {
-                // Move to the next word.
-                advance();
+            while (m_completion < progress) {
+                // Check whether we can move one paragraph ahead.
+                float nextP = 1.0f * (m_globalWordIndex + m_paragraphs.get(m_paragraphIndex).size()) / m_totalWordCount;
+                if (nextP < progress) {
+                    m_globalWordIndex += m_paragraphs.get(m_paragraphIndex).size();
+                    m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+                    ++m_paragraphIndex;
 
-                // Save the last progress in case we need to rewind one word because
-                // it was closer than the current one.
-                last = m_completion;
+                    // Save the last progress in case we need to rewind one word because
+                    // it was closer than the current one.
+                    last = nextP;
+
+                    continue;
+                }
+
+                // Advancing from a whole paragraph is not possible, check how many words
+                // we can advance at most within this paragraph.
+                float remaining = progress - 1.0f * m_globalWordIndex / m_totalWordCount;
+                float pProgress = 1.0f * m_paragraphs.get(m_paragraphIndex).size() / m_totalWordCount;
+                int expected = (int)Math.round(Math.floor((double)remaining* m_paragraphs.get(m_paragraphIndex).size() / pProgress)) + 1;
+
+                // Handle the additional `1` at the end: indeed imagine the following case
+                // where we have 2 paragraphs, each one composed of `1` word. We want to
+                // reach `53%` completion.
+                // We will first skip the first paragraph (as it only brings us to `50%`).
+                // Then we will compute the remaining progression within the second one and
+                // find `3%` which is not a complete word so we will add `1` to be sure so
+                // we will end up past the last word of the paragraph.
+                if (expected >= m_paragraphs.get(m_paragraphIndex).size()) {
+                    m_globalWordIndex += m_paragraphs.get(m_paragraphIndex).size();
+                    ++m_paragraphIndex;
+                    expected = 0;
+                }
+
+                m_wordIndex = expected;
+                m_globalWordIndex += expected;
+
+                m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+                last = 1.0f * (m_globalWordIndex - 1) / m_totalWordCount;
             }
 
             // Determine whether the previous word was closer to the desired progress.
