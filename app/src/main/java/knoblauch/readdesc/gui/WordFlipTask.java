@@ -131,6 +131,7 @@ public class WordFlipTask implements Runnable {
      */
     public void start() {
         // Schedule this task.
+        // TODO: Should be linked to the fact that the parser has finished to load the data.
         m_handler.post(this);
     }
 

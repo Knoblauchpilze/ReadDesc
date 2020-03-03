@@ -1,101 +1,138 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
-import android.net.Uri;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class ReadParser {
+public class ReadParser implements ReadLoader.ReadLoaderListener {
 
     /**
      * Defines the maximum progression possible for a parser.
      */
-    static final float MAX_PROGRESSION = 1.0f;
+    private static final float MAX_PROGRESSION = 1.0f;
 
     /**
-     * The name of the underlying read backing the data for this parser. It is
-     * used as a way to identify the read associated to this object so that the
-     * result of the progression can be saved back to the disk.
+     * The read description associated to this parser. It describes the data
+     * and where to find it, along with the progression that has been reached
+     * on this read.
+     * The progress will be matched as soon as the data has been fetched. It
+     * is also used as a way to identify the read so that we can save back on
+     * the disk the progression reached in this reading session.
      */
-    private String m_name;
+    private ReadIntent m_desc;
 
     /**
      * Holds the current progression of this parser. Upon building the object
      * it is updated with the completion reached so far by previous openings
      * of the read and is updated while the next word is retrieved.
      */
-    float m_completion;
-
-    /**
-     * Internal object used to perform resolution of resources and potential
-     * links in the data to read. This is mostly used as a way to determine
-     * the correct way to access to the data source of this reader.
-     */
-    Context m_context;
+    private float m_completion;
 
     /**
      * A mutex allowing to protect concurrent access to the data in this parser
      * so that we can safely handle modifications of the internal state such as
      * a request on a new word or a jump to a later paragraph.
      */
-    Lock m_locker;
+    private Lock m_locker;
 
     /**
-     * Instantiate a suitable parser for the input `desc`. Depending on the type
-     * of the read a specific parser is instantiated so that we can successfully
-     * fetch and display data from the source of the read.
-     * @param desc - the read description from which a parser should be built.
-     * @param context - the context to use to perform link resolution and access
-     *                  to resources in general.
-     * @return - a valid parser for this read or `null` if the type of the read
-     *           does not correspond to a known parser.
+     * Holds the list of paragraphs that have been parsed from the reader's
+     * source. This is a full list of the content that should be navigated
+     * and displayed by this reader.
+     * Note that each paragraph is composed of words and that the controls
+     * should aim at providing level of control intra-paragraph and not only
+     * at a macro (i.e. paragraph) level.
      */
-    public static ReadParser fromRead(ReadIntent desc, Context context) throws IOException {
-        // Detect the type of the read and instantiate the correct parser.
-        ReadParser reader = null;
-
-        switch (desc.getType()) {
-            case WebPage:
-                reader = new HtmlParser(desc.getName(), Uri.parse(desc.getDataUri()), context);
-                break;
-            case EBook:
-                reader = new EBookParser(desc.getName(), Uri.parse(desc.getDataUri()), context);
-                break;
-            case File:
-                reader = new PdfParser(desc.getName(), Uri.parse(desc.getDataUri()), context);
-                break;
-        }
-
-        // Assign the completion specified by the intent.
-        reader.setProgress(desc.getCompletion());
-
-        // Return the built-in parser.
-        return reader;
-    }
+    private ArrayList<Paragraph> m_paragraphs;
 
     /**
-     * Create a new parser from the specified name. Note that such a parser does
-     * not actually have any data source associated to it and its progression is
-     * set to `0`.
-     * The user should provide a context to use to perform the resolution of the
-     * links and resources that are manipulated by this reader.
-     * @param name - the name of the read.
+     * Holds the current index of the virtual cursor in the total list of
+     * paragraphs registered in this object. This value is set to a value
+     * larger than the size of the `m_paragraphs` size in case we reached
+     * the end of the last paragraph.
      */
-    ReadParser(String name, Context context) {
+    private int m_paragraphIndex;
+
+    /**
+     * Holds the index of the current word in the active paragraph. This
+     * value is never greater than the size of the active paragraph and
+     * is reset to `0` in case the next paragraph should be processed.
+     */
+    private int m_wordIndex;
+
+    /**
+     * Holds the total number of words contained in all the paragraphs
+     * encountered by this parser. This is used in order to speed up
+     * some computations where we need to quickly access the position
+     * of a word within the total document.
+     */
+    private int m_totalWordCount;
+
+    /**
+     * Holds the position of the `m_wordIndex` in terms of global word
+     * index. This is useful to easily compute a progress in addition
+     * to the `m_totalWordCount`.
+     */
+    private int m_globalWordIndex;
+
+    /**
+     * Describes the actual element able to fetch the data from the
+     * source of the read and to populate the paragraphs (and thus
+     * the content) of this reader.
+     * The source is expected to fill the corresponding interface
+     * and knows what each operation mean in terms of its type. It
+     * notifies this reader whenever the loading is done through the
+     * interface method which allows to not block the process for
+     * too long if the source is either long to respond or heavy to
+     * load.
+     */
+    private ReadLoader m_source;
+
+    /**
+     * Create a new parser from the specified read. The parser will detect the
+     * type of the read and instantiate a valid data source to fetch and load
+     * it.
+     * @param read - the read containing information about the data source to
+     *               use to get the data.
+     * @param context - the context to use to resolve links and resources so
+     *                  that we can access to the read's content for example.
+     */
+    public ReadParser(ReadIntent read, Context context) {
         // Assign the name of the read.
-        m_name = name;
-
-        // Assign the context to use to resolve and access resources.
-        m_context = context;
+        m_desc = read;
 
         // Create the multi-threading protection.
         m_locker = new ReentrantLock();
+
+        // Create the list of paragraphs and the rest of the properties.
+        m_paragraphs = new ArrayList<>();
+        m_paragraphIndex = 0;
+        m_wordIndex = 0;
+
+        m_totalWordCount = 0;
+        m_globalWordIndex = 0;
+
+        // Create the data source based on the type of the read associated
+        // to this parser.
+        switch (m_desc.getType()) {
+            case WebPage:
+                m_source = new HtmlSourceLoader(context, m_desc.getDataUri(), this);
+            case EBook:
+                m_source = new EBookSourceLoader(context, m_desc.getDataUri(), this);
+            case File:
+                m_source = new PdfSourceLoader(context, m_desc.getDataUri(), this);
+                break;
+        }
+
+        // Start the loading of the data.
+        m_source.start();
     }
 
     /**
@@ -129,7 +166,7 @@ public abstract class ReadParser {
      * Retrieves the name of the read associated to this parser.
      * @return - the name of the read linked to this parser.
      */
-    public String getName() { return m_name; }
+    public String getName() { return m_desc.getName(); }
 
     /**
      * Used to update the internal values so that this parser reaches the
@@ -162,7 +199,15 @@ public abstract class ReadParser {
      * @return - `true` if this parser has reached the end of the data stream
      *           and `false` otherwise.
      */
-    public abstract boolean isAtEnd();
+    public boolean isAtEnd() {
+        // The parser reached the end of the read in case the current paragraph
+        // index is larger (or equal) to the size of the paragraphs list.
+        m_locker.lock();
+        boolean atEnd = isAtEndPrivate();
+        m_locker.unlock();
+
+        return atEnd;
+    }
 
     /**
      * Similar to the `isAtEnd` method but allows to determine whether the
@@ -171,7 +216,15 @@ public abstract class ReadParser {
      * @return - `true` if the parser has reached the beginning of the data
      *           stream associated to it.
      */
-    public abstract boolean isAtStart();
+    public boolean isAtStart() {
+        // The parser is at the beginning of the read if at least one paragraph
+        // is available and we didn't even read a single word.
+        m_locker.lock();
+        boolean atStart = isAtStartPrivate();
+        m_locker.unlock();
+
+        return atStart;
+    }
 
     /**
      * Similar to the `isAtEnd` but allows to determine whether this parser
@@ -181,14 +234,48 @@ public abstract class ReadParser {
      * @return - `true` if the reader reached the end of the paragraph and
      *           `false` otherwise.
      */
-    public abstract boolean isAtParagraph();
+    public boolean isAtParagraph() {
+        // We are right at a paragraph if the current word index is `0`, no matter
+        // the current paragraph index.
+        m_locker.lock();
+        boolean atParagraph = (m_wordIndex == 0);
+        m_locker.unlock();
+
+        return atParagraph;
+    }
 
     /**
      * Used by external elements to make this parser advance to the next word.
      * This will usually move to the next element of the data stream based on
      * the actual type of the content to fetch.
      */
-    public abstract void advance();
+    public void advance() {
+        // Discard cases where the parser is not valid or is already at the end.
+        m_locker.lock();
+        if (!isValid() || isAtEndPrivate()) {
+            m_locker.unlock();
+            return;
+        }
+
+        try {
+            // Move to the next word. This might include moving to the next paragraph
+            // if we reach the last word.
+            ++m_wordIndex;
+            ++m_globalWordIndex;
+
+            // Check whether we need to move to the next paragraph.
+            if (m_wordIndex >= m_paragraphs.get(m_paragraphIndex).size()) {
+                m_wordIndex = 0;
+                ++m_paragraphIndex;
+            }
+
+            // Update completion.
+            m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+        }
+        finally {
+            m_locker.unlock();
+        }
+    }
 
     /**
      * Used internally to advance to a certain progression. Depending on the
@@ -202,7 +289,94 @@ public abstract class ReadParser {
      *           specified progression cannot be exactly reached the closest
      *           approximation is returned.
      */
-    abstract float advanceTo(float progress);
+    private float advanceTo(float progress) {
+        // We can't do anything if the parser is not valid.
+        m_locker.lock();
+        if (!isValid()) {
+            m_locker.unlock();
+            return MAX_PROGRESSION;
+        }
+
+        float completion;
+
+        try {
+            // We need to traverse the list of paragraphs until we reach the desired
+            // progression or at least the closest approximation possible.
+            m_paragraphIndex = 0;
+            m_wordIndex = 0;
+
+            m_globalWordIndex = 0;
+
+            m_completion = 0.0f;
+
+            // TODO: We should load this asynchronously.
+
+            // Avoid unnecessary processing in case the progress should be set to `0`.
+            if (progress == 0.0f) {
+                return 0.0f;
+            }
+
+            float last = 0.0f;
+            while (m_completion < progress) {
+                // Check whether we can move one paragraph ahead.
+                float nextP = 1.0f * (m_globalWordIndex + m_paragraphs.get(m_paragraphIndex).size()) / m_totalWordCount;
+                if (nextP < progress) {
+                    m_globalWordIndex += m_paragraphs.get(m_paragraphIndex).size();
+                    m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+                    ++m_paragraphIndex;
+
+                    // Save the last progress in case we need to rewind one word because
+                    // it was closer than the current one.
+                    last = nextP;
+
+                    continue;
+                }
+
+                // Advancing from a whole paragraph is not possible, check how many words
+                // we can advance at most within this paragraph.
+                float remaining = progress - 1.0f * m_globalWordIndex / m_totalWordCount;
+                float pProgress = 1.0f * m_paragraphs.get(m_paragraphIndex).size() / m_totalWordCount;
+                int expected = (int)Math.round(Math.floor((double)remaining* m_paragraphs.get(m_paragraphIndex).size() / pProgress)) + 1;
+
+                // Handle the additional `1` at the end: indeed imagine the following case
+                // where we have 2 paragraphs, each one composed of `1` word. We want to
+                // reach `53%` completion.
+                // We will first skip the first paragraph (as it only brings us to `50%`).
+                // Then we will compute the remaining progression within the second one and
+                // find `3%` which is not a complete word so we will add `1` to be sure so
+                // we will end up past the last word of the paragraph.
+                if (expected >= m_paragraphs.get(m_paragraphIndex).size()) {
+                    m_globalWordIndex += m_paragraphs.get(m_paragraphIndex).size();
+                    ++m_paragraphIndex;
+                    expected = 0;
+                }
+
+                m_wordIndex = expected;
+                m_globalWordIndex += expected;
+
+                m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+                last = 1.0f * (m_globalWordIndex - 1) / m_totalWordCount;
+            }
+
+            // Determine whether the previous word was closer to the desired progress.
+            if (Math.abs(progress - last) <= Math.abs(progress - m_completion)) {
+                if (m_wordIndex == 0) {
+                    moveToPrevious();
+                } else {
+                    --m_wordIndex;
+                    --m_globalWordIndex;
+                }
+            }
+        }
+        finally {
+            completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+
+            m_locker.unlock();
+        }
+
+        // Return the progression that was reached.
+        return completion;
+    }
 
     /**
      * Used for external elements to retrieve the current word pointed at by
@@ -213,7 +387,18 @@ public abstract class ReadParser {
      * end of the data stream.
      * @return - a string representing the current word.
      */
-    public abstract String getCurrentWord();
+    public String getCurrentWord() {
+        // In case the parser is not a valid state, do nothing (i.e.
+        // return an empty string).
+        m_locker.lock();
+        if (!isValid() || isAtEndPrivate()) {
+            m_locker.unlock();
+            return "";
+        }
+
+        // Retrieve the current word of the paragraph we're at.
+        return m_paragraphs.get(m_paragraphIndex).getWord(m_wordIndex);
+    }
 
     /**
      * Used to indicate to the parser that it should be moved to the previous
@@ -223,7 +408,46 @@ public abstract class ReadParser {
      * Note that in case the previous paragraph does not exist (typically when
      * the user did not get past the first) nothing happens.
      */
-    public abstract void moveToPrevious();
+    public void moveToPrevious() {
+        // When moving to the previous paragraph we also reset the word
+        // index so as to start from the beginning of the paragraph.
+        // If the action is not possible (i.e. if we're already in the
+        // first paragraph) we just reset the word index. Note that we
+        // handle the case where the user is in the middle of a paragraph
+        // by first rewinding to the first word of the current paragraph
+        // and if the user is right at the beginning to the previous one.
+        // And if none of that is possible we don't do anything (because
+        // we are most likely already at the beginning).
+        m_locker.lock();
+        if (!isValid() || isAtStartPrivate()) {
+            m_locker.unlock();
+            return;
+        }
+
+        // Handle the global word index by counting how many words we
+        // are rewinding.
+        boolean updated = false;
+        if (m_wordIndex != 0) {
+            m_globalWordIndex -= m_wordIndex;
+            updated = true;
+        }
+
+        // In any case we will reset the word index to `0`.
+        m_wordIndex = 0;
+
+        // We want to move to the previous paragraph only if we were at
+        // the beginning of a paragraph: otherwise we will just reset the
+        // position in the current paragraph.
+        if (!updated) {
+            m_paragraphIndex = Math.max(0, m_paragraphIndex - 1);
+            m_globalWordIndex -= m_paragraphs.get(m_paragraphIndex).size();
+        }
+
+        // Update the completion.
+        m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+
+        m_locker.unlock();
+    }
 
     /**
      * Similar method to `moveToPrevious` but used in case the parser should
@@ -231,13 +455,58 @@ public abstract class ReadParser {
      * nothing happens in case the reader already reached the last paragraph
      * available in the read.
      */
-    public abstract void moveToNext();
+    public void moveToNext() {
+        // Similar to the `moveToPrevious` but to the next paragraph.
+        // Note that we also reset the word index to start at the
+        // beginning of the paragraph.
+        // In case we're already in the last paragraph we will reach
+        // the end of the read.
+        m_locker.lock();
+        if (!isValid() || isAtEndPrivate()) {
+            m_locker.unlock();
+            return;
+        }
+
+        // Handle the global word index by counting how many words we
+        // are skipping.
+        m_globalWordIndex += (m_paragraphs.get(m_paragraphIndex).size() - m_wordIndex);
+
+        // Reset as we are at the beginning of the next paragraph.
+        m_wordIndex = 0;
+
+        // Update the paragraph index.
+        m_paragraphIndex = Math.min(m_paragraphs.size(), m_paragraphIndex + 1);
+
+        // Update the completion.
+        m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+
+        m_locker.unlock();
+    }
 
     /**
      * Used to perform a rewind of all the data read so far by the parser. This
      * is useful to get back to the beginning of a read.
      */
-    public abstract void rewind();
+    public void rewind() {
+        // Discard invalid cases.
+        m_locker.lock();
+        if (!isValid()) {
+            m_locker.unlock();
+            return;
+        }
+
+        // Reset the parser to the first paragraph.
+        m_wordIndex = 0;
+        m_paragraphIndex = 0;
+
+        // Also update the word index.
+        m_globalWordIndex = 0;
+
+        // Update the completion.
+        m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
+
+        m_locker.unlock();
+    }
 
     /**
      * Used to perform a save operation on the progression reached by this parser
@@ -260,7 +529,7 @@ public abstract class ReadParser {
         }
 
         // Try to find the file describing the current read.
-        String saveFile = ReadDesc.generateReadSaveName(context, m_name);
+        String saveFile = ReadDesc.generateReadSaveName(context, m_desc.getName());
 
         int id = 0;
         while (id < reads.length && !reads[id].getName().equals(saveFile)) {
@@ -315,5 +584,59 @@ public abstract class ReadParser {
 
         // We successfully saved the progression for the underlying read.
         return true;
+    }
+
+    @Override
+    public void onDataLoaded(ArrayList<Paragraph> paragraphs) {
+        // Copy data to the local attribute.
+        m_paragraphs = paragraphs;
+
+        // Count the total number of words available.
+        m_totalWordCount = 0;
+        for (Paragraph p : m_paragraphs) {
+            m_totalWordCount += p.size();
+        }
+
+        // Once the data has been loaded we can setup the progress to match
+        // the value that was reached in a previous read session.
+        setProgress(m_desc.getCompletion());
+
+        // TODO: We should connect this signal to the `ReadActivity` view in order to
+        // hide the progress bar and show the text view.
+        // TODO: We should also probably prevent most of the controls such as `rewind`,
+        // `moveToPrevious` etc. as long as the parser has not finished fetching data.
+    }
+
+    @Override
+    public void onFailureToLoadData() {
+        // TODO: Should handle failure to load the data.
+    }
+
+    /**
+     * Determine whether this parser is valid or not based on whether it
+     * has at least some paragraphs.
+     * @return - `true` if the parser is valid or `false` otherwise.
+     */
+    private boolean isValid() {
+        return !m_paragraphs.isEmpty() && m_totalWordCount > 0;
+    }
+
+    /**
+     * Similar to the `isAtEnd` method but does not try to acquire the lock
+     * on this object which allows to use it in internal methods.
+     * @return - `true` if the parser is at the end of the data stream and
+     *           `false` otherwise.
+     */
+    private boolean isAtEndPrivate() {
+        return m_paragraphIndex >= m_paragraphs.size();
+    }
+
+    /**
+     * Fills a similar role to `isAtEndPrivate` for the `isAtEnd` method: as
+     * it does not acquire the internal lock we can use it in internal calls.
+     * @return - `true` if the parser is at the beginning of the data stream.
+     */
+    private boolean isAtStartPrivate() {
+        return isValid() && m_paragraphIndex == 0 && m_wordIndex == 0;
     }
 }

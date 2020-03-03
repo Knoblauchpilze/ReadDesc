@@ -12,6 +12,8 @@
 
     <dimen name="activity.read.controls.spacing">30dp</dimen>
     <dimen name="activity.read.controls.margin">10dp</dimen>
+    <dimen name="activity.read.progress.max.width">100dp</dimen>
+    <dimen name="activity.read.progress.max.height">100dp</dimen>
     <dimen name="activity.create_read.margin.component">10dp</dimen>
     <dimen name="activity.margin.component">10dp</dimen>
     <dimen name="activity.settings.margin.title_to_content">15dp</dimen>

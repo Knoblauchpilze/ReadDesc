@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -51,6 +52,13 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     private TextView m_text;
 
     /**
+     * Used to hold the progress bar allowing to make the user wait for the
+     * content of this read in case it takes some time to be loaded. We use
+     * this as a replacement of the text view whenever needed.
+     */
+    private ProgressBar m_progressBar;
+
+    /**
      * Internal attribute populated from the `ReadDesc` that is currently being
      * read by this activity. We instantiate it so that we can fetch words from
      * the source and display them sequentially in the main text view.
@@ -87,6 +95,8 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         m_text = findViewById(R.id.read_current_word);
 
+        m_progressBar = findViewById(R.id.read_progress_bar);
+
         // We now need to retrieve the intent that started this activity so that we
         // can instantiate the related parser. Note that we will analyze the input
         // bundle to determine whether we have a chance to retrieve the progression
@@ -106,7 +116,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         // Try to instantiate a parser and return in case of failure.
         if (!instantiateParser(progress)) {
-
             return;
         }
 
@@ -136,6 +145,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         ReadPref prefs = new ReadPref(this);
 
         // Retrieve auxiliary elements.
+        LinearLayout general = findViewById(R.id.read_general_layout);
         RelativeLayout centering = findViewById(R.id.read_controls_centering_layout);
         LinearLayout controls = findViewById(R.id.read_controls_layout);
 
@@ -145,6 +155,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         m_text.setBackgroundColor(bg);
         m_text.setTextColor(prefs.getTextColor());
 
+        m_progressBar.setBackgroundColor(bg);
+
+        general.setBackgroundColor(bg);
         centering.setBackgroundColor(bg);
         controls.setBackgroundColor(bg);
 
@@ -195,7 +208,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         }
         else {
             try {
-                m_parser = ReadParser.fromRead(read, this);
+                m_parser = new ReadParser(read, this);
             }
             catch (Exception e) {
                 // We failed to load the parser from the read's description. There's
@@ -280,6 +293,11 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         // We need to determine what to do based on the view producing the click.
+
+        // TODO: We could maybe have a `isReady` method in the `m_reader` so that
+        // we can disable controls until we receive a notification that the parser
+        // is ready (or better yet check pro-actively that it is ready through this
+        // method).
         if (v == m_controls.reset) {
             // Stop the parser as we want the user to notice that the content has
             // started from the beginning again.
