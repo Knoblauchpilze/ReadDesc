@@ -3,6 +3,7 @@ package knoblauch.readdesc.model;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
@@ -121,8 +122,17 @@ public class PdfParser extends ReadParser {
                 ArrayList<Paragraph> paragraphs = extractor.getParagraphs();
 
                 for (Paragraph p : paragraphs) {
+                    // Sanitize the paragraph.
+                    int s = p.size();
+                    p.sanitize();
+
+                    if (p.size() != s) {
+                        Log.i("main", "Paragraph shrinked from " + s + " to " + p.size());
+                    }
+
                     // Register this paragraph if it contains at least one word.
                     if (!p.isEmpty()) {
+
                         m_totalWordCount += p.size();
                         m_paragraphs.add(p);
                     }
