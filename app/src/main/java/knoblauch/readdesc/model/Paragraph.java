@@ -1,7 +1,5 @@
 package knoblauch.readdesc.model;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
 class Paragraph {
