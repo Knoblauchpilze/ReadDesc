@@ -428,6 +428,17 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onStop() {
+        // In case we're stopping the activity we want to stop any loading process of the
+        // associated parser: indeed as we won't be reusing the activity it does not make
+        // sense to continue loading meaningless data.
+        m_parser.cancel();
+
+        // Call the base handler.
+        super.onStop();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         // We need to save the current completion reached by the parser. Indeed even though we
         // will successfully save the read to the file when the activity is destroyed (through

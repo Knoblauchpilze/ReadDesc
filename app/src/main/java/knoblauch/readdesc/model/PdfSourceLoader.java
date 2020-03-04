@@ -39,7 +39,7 @@ class PdfSourceLoader extends ReadLoader {
         ArrayList<Paragraph> out = new ArrayList<>();
 
         try {
-            for (int i = 1 ; i <= reader.getNumberOfPages() ; ++i) {
+            for (int i = 1 ; i <= reader.getNumberOfPages() && !isCancelled(); ++i) {
                 // Parse the paragraphs for this page.
                 Log.i("main", "Processing page " + i + "/" + reader.getNumberOfPages() + " of PDF doc");
                 extractor = parser.processContent(i, extractor);

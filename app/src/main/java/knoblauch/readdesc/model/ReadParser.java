@@ -224,6 +224,18 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
     }
 
     /**
+     * Used by external objects to cancel the loading operation that might
+     * be pending for this parser. Note that in case nothing is loading it
+     * does not change anything.
+     */
+    public void cancel() {
+        // Acquire the lock and stop the loading if something is running.
+        m_locker.lock();
+        m_source.cancel(true);
+        m_locker.unlock();
+    }
+
+    /**
      * Used to update the internal values so that this parser reaches the
      * desired progression. This usually means moving the virtual cursor
      * on the attached data to reach at least this progression value.
