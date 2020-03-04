@@ -33,6 +33,14 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
          * from the source.
          */
         void onFailureToLoadData();
+
+        /**
+         * Interface method which allows to notify progression of the
+         * loading operation. Some callers might want to display some
+         * sort of progress bar along the way.
+         * @param progress - the current progress of the loading.
+         */
+        void onLoadingProgress(float progress);
     }
 
 
@@ -124,6 +132,21 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
 
         // We successfully loaded the data from the source.
         return true;
+    }
+
+    @Override
+    protected void onProgressUpdate (Float... results) {
+        // We want to update the progress on the calling activity if possible.
+        if (results == null || results.length == 0) {
+            return;
+        }
+
+        // Retrieve the progression by assuming it's the first argument.
+        float progress = results[0];
+
+        if (m_caller.get() != null) {
+            m_caller.get().onLoadingProgress(progress);
+        }
     }
 
     @Override

@@ -31,6 +31,13 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
          * has failed.
          */
         void onParsingFailed();
+
+        /**
+         * Triggered whenever the parsing of the data associated to the read
+         * has progressed to the specified value.
+         * @param progress - the current progression of the loading operation.
+         */
+        void onLoadingProgress(float progress);
     }
 
     /**
@@ -670,6 +677,13 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         // Notify the listener so that it can take corresponding measures.
         m_listener.onParsingFailed();
     }
+
+    @Override
+    public void onLoadingProgress(float progress) {
+        // Notify the listener.
+        m_listener.onLoadingProgress(progress);
+    }
+
 
     /**
      * Determine whether this parser is valid or not based on whether it

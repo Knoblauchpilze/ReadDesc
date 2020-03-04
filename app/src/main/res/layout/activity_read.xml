@@ -32,8 +32,9 @@
             android:layout_gravity="center"
             android:maxWidth="@dimen/activity.read.progress.max.width"
             android:maxHeight="@dimen/activity.read.progress.max.height"
-            android:indeterminate="true"
             android:background="@color/activity.settings.pref.color.bg.default"
+            android:progressDrawable="@drawable/circle_progress_bar_drawable"
+            style="?android:progressBarStyleHorizontal"
             />
 
         <RelativeLayout

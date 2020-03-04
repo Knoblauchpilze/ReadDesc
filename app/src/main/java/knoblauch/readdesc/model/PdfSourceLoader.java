@@ -1,6 +1,7 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
@@ -40,6 +41,7 @@ class PdfSourceLoader extends ReadLoader {
         try {
             for (int i = 1 ; i <= reader.getNumberOfPages() ; ++i) {
                 // Parse the paragraphs for this page.
+                Log.i("main", "Processing page " + i + "/" + reader.getNumberOfPages() + " of PDF doc");
                 extractor = parser.processContent(i, extractor);
 
                 // Register each one of them in the internal array and update
@@ -69,6 +71,9 @@ class PdfSourceLoader extends ReadLoader {
 
                 // Clear the extractor to be ready for the next page.
                 extractor.clear();
+
+                // Notify progression.
+                publishProgress(1.0f * i / reader.getNumberOfPages());
             }
         }
         catch (Exception e) {

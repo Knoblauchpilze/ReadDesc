@@ -307,6 +307,12 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onLoadingProgress(float progress) {
+        // We want to update the value of the progress bar to reach the input value.
+        m_progressBar.setProgress(Math.round(100.0f * progress));
+    }
+
+    @Override
     public void onParagraphReached() {
         // We want to stop the scheduling of the word flip task.
         m_timer.stop();
