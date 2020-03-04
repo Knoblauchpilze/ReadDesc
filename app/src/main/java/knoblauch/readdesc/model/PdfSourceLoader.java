@@ -1,8 +1,6 @@
 package knoblauch.readdesc.model;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.net.Uri;
 
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
@@ -15,33 +13,22 @@ class PdfSourceLoader extends ReadLoader {
 
     /**
      * Create a new `PDF` source loader from the specified arguments. Will call
-     * the base class constructor and forward the arguments.
+     * the base class constructor and forward the arguments. Note that we don't
+     * specify the source as it will be provided as part of the execution state
+     * for this loader.
      * @param context - the context to use to resolve links and resources.
-     * @param uri - the `uri` from which the data should be loaded.
      * @param listener - the object to notify whenever the data has successfully
      *                   been loaded or a failure has been detected.
      */
-    PdfSourceLoader(Context context, String uri, ReadLoaderListener listener) {
-        super(context, uri, listener);
+    PdfSourceLoader(Context context, ReadLoaderListener listener) {
+        // Use the base handler.
+        super(context, listener);
     }
 
     @Override
-    ArrayList<Paragraph> loadFromSource(Uri source, Context context) throws IOException {
-        // Try to instantiate a valid `PDF` reader from this source.
-        if (source == null || source.getPath() == null) {
-            throw new IOException("Cannot set invalid PDF source in parser");
-        }
-
-        // We need to create a file as the source of the `PDF` reader. Note
-        // that as we store the content's `uri` we need to resolve the link
-        // in order to access to the file.
-        ContentResolver res = context.getContentResolver();
-        InputStream inStream = res.openInputStream(source);
-        if (inStream == null) {
-            throw new IOException("Cannot load PDF content \"" + source.toString() + "\" in parser");
-        }
-
-        PdfReader reader = new PdfReader(inStream);
+    ArrayList<Paragraph> loadFromSource(InputStream stream) throws IOException {
+        // Create the reader from the stream related to this element.
+        PdfReader reader = new PdfReader(stream);
 
         // Perform the extraction of the text contained in this `PDF` document
         // through a text extraction strategy.

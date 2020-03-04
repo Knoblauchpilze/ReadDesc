@@ -1,12 +1,16 @@
 package knoblauch.readdesc.model;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-abstract class ReadLoader {
+abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
 
     /**
      * Describe the interface that external objects can implement
@@ -36,67 +40,111 @@ abstract class ReadLoader {
      * The listener that should receive notifications whenever this
      * source loads some data.
      */
-    private ReadLoaderListener m_listener;
+    private WeakReference<ReadLoaderListener> m_caller;
 
     /**
-     * Internal object used to perform resolution of resources and potential
-     * links in the data to read. This is mostly used as a way to determine
-     * the correct way to access to the data source of this reader.
+     * The context to use to provide information to the task to resolve
+     * references to the resources (such as image paths, etc.).
      */
-    private Context m_context;
+    private WeakReference<Context> m_context;
 
     /**
-     * The actual path to the source of the data. This can describe a variety
-     * of elements based on whether the loader actually loads from a `PDF`, or
-     * a website, etc.
+     * The list of paragraphs that should will be loaded by the fetching
+     * process of the source's file. Should not be empty by the end of
+     * the loading (otherwise it means that the source is empty and thus
+     * we don't have anything to read).
      */
-    private Uri m_uri;
+    private ArrayList<Paragraph> m_paragraphs;
 
     /**
      * Create a new read loader with the specified listener.
-     * @param context - the context to use to resolve resources and elements
-     *                  to load by this source.
-     * @param uri - the link to the actual data source for this loader. This
-     *              defines where the data should be fetched.
-     * @param listener - the listener which should be notified upon
-     *                   successfully loading some data.
+     * @param context - the context to use to resolve links and resources
+     *                  needed for the loading operation.
+     * @param caller - the listener which should be notified whenever the
+     *                 loading operation succeeded or failed. It is also
+     *                 the calling element for this loader.
      */
-    ReadLoader(Context context, String uri, ReadLoaderListener listener) {
+    ReadLoader(Context context, ReadLoaderListener caller) {
         // Copy input arguments to local attributes.
-        m_listener = listener;
-        m_context = context;
-        m_uri = Uri.parse(uri);
+        link(caller);
+
+        m_context = new WeakReference<>(context);
+
+        m_paragraphs = null;
     }
 
     /**
-     * Used to start the loading from the data. This will typically create
-     * a thread that will be charged of loading the data from the source
-     * and notify the listener when it is done.
+     * Used both internally and by the output elements to link an activity
+     * to this loading task. The specified activity will be the one notified
+     * when the loading task is finished.
+     * This method is called when building the object but can also be used
+     * to handle some changes in the parent activity (for example a change
+     * in orientation where the activity needs to be recreated).
+     * @param caller - the new calling activity for this task.
      */
-    void start() {
-        // TODO: Start the process in a dedicated thread.
+    private void link(ReadLoaderListener caller) {
+        m_caller = new WeakReference<>(caller);
+    }
 
-        // Load from the source.
-        boolean success = true;
-        ArrayList<Paragraph> paragraphs = new ArrayList<>();
 
+    @Override
+    protected Boolean doInBackground(String... uris) {
+        // We want to perform the loading of the data described by the input `uri`
+        // which should correspond to the source file of the read. This means that
+        // all the paragraphs from the `PDF` will be retrieved.
+
+        // Retrieve the `url` to load. This is indicated by the first parameter of
+        // this method.
+        if (uris.length == 0 || uris[0] == null) {
+            return false;
+        }
+
+        Uri uri = Uri.parse(uris[0]);
+
+        // Initialize the return value.
+        m_paragraphs = null;
+
+        // Attempt to retrieve a content resolver for this task. We have to use
+        // the provided context to do so.
+        if (m_caller == null || m_context == null) {
+            return false;
+        }
+
+        ContentResolver res = m_context.get().getContentResolver();
+
+        // Load the bitmap.
         try {
-            paragraphs = loadFromSource(m_uri, m_context);
+            InputStream inStream = res.openInputStream(uri);
+            m_paragraphs = loadFromSource(inStream);
         }
         catch (IOException e) {
-            // In case we couldn't load the data from the source, notify
-            // the listener anyway.
-            success = false;
+            // We failed to load the source, this is an issue.
+            return false;
         }
 
-        // Notify listeners if any.
-        if (m_listener != null) {
-            if (success) {
-                m_listener.onDataLoaded(paragraphs);
-            }
-            else {
-                m_listener.onFailureToLoadData();
-            }
+        // We successfully loaded the data from the source.
+        return true;
+    }
+
+    @Override
+    protected void onPostExecute(Boolean success) {
+        // We want to associate the loaded paragraphs with the caller of this
+        // object if it is valid. In any other case we want to call the correct
+        // handler so that the activity can handle correctly the failure.
+
+        // Handle cancellation requests and cases where there's no caller to send
+        // the bitmap to.
+        if (isCancelled() || m_caller == null) {
+            return;
+        }
+
+        // Depending on the result of the execution we will call the dedicated
+        // handler for this task.
+        if (!success || m_paragraphs == null) {
+            m_caller.get().onFailureToLoadData();
+        }
+        else {
+            m_caller.get().onDataLoaded(m_paragraphs);
         }
     }
 
@@ -106,11 +154,10 @@ abstract class ReadLoader {
      * populate the internal values.
      * The goal of this method is to retrieve a list of paragraphs which
      * compose the read itself.
-     * @param source - the `uri` of the data to load.
-     * @param context - an object to be used to resolve links and resources
-     *                  that may be needed to load the data.
+     * @param stream - the input `stream` to use to fetch data from the
+     *                 source.
      * @return - the list of paragraphs that were fetched from the source
      *           data.
      */
-    abstract ArrayList<Paragraph> loadFromSource(Uri source, Context context) throws IOException;
+    abstract ArrayList<Paragraph> loadFromSource(InputStream stream) throws IOException;
 }

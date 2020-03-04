@@ -129,7 +129,7 @@ public class LazyLoadingTask extends AsyncTask<String, Float, Boolean> {
 
         m_uri = Uri.parse(strings[0]);
 
-        // Attempt to retrieve a content resolve for this task. We have to use
+        // Attempt to retrieve a content resolver for this task. We have to use
         // the provided context to do so.
         if (m_caller == null || m_context == null) {
             return false;

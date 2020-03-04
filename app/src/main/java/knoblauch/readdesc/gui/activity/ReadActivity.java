@@ -21,7 +21,7 @@ import knoblauch.readdesc.model.ReadIntent;
 import knoblauch.readdesc.model.ReadParser;
 import knoblauch.readdesc.model.ReadPref;
 
-public class ReadActivity extends AppCompatActivity implements View.OnClickListener, WordFlipTask.ParagraphListener {
+public class ReadActivity extends AppCompatActivity implements View.OnClickListener, WordFlipTask.ParagraphListener, ReadParser.ParsingDoneListener {
 
     /**
      * Convenience class which holds all the relevant buttons used to control
@@ -74,6 +74,13 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
      * time.
      */
     private WordFlipTask m_timer;
+
+    /**
+     * The progress of the current read as retrieved from the input intent that
+     * started this activity. Used to keep track of the desired progression as
+     * long as the data related to the read has not yet been loaded.
+     */
+    private float m_desiredProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,6 +204,9 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         // The `Read` to display should be registered under the following key.
         String key = getResources().getString(R.string.activity_read_key_in);
 
+        // Save the progression for when we receive the loading notification.
+        m_desiredProgress = progress;
+
         // Retrieve the description of the read to display. Android is already able
         // to return `null` in case the parcelable cannot be found.
         ReadIntent read = will.getParcelableExtra(key);
@@ -208,7 +218,7 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         }
         else {
             try {
-                m_parser = new ReadParser(read, this);
+                m_parser = new ReadParser(read, this, this);
             }
             catch (Exception e) {
                 // We failed to load the parser from the read's description. There's
@@ -218,27 +228,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         }
-
-        // Update the parser if we have been recreated from a previous execution.
-        if (progress >= 0.0f) {
-            m_parser.setProgress(progress);
-        }
-
-        // Update controls so that they match the state of the parser (i.e. reset
-        // button might not always be allowed (in case we didn't read any word yet
-        // and so on).
-        m_controls.reset.setEnabled(!m_parser.isAtStart());
-        m_controls.prev.setEnabled(!m_parser.isAtStart());
-        m_controls.pause.setEnabled(false);
-
-        m_controls.play.setEnabled(true);
-        m_controls.next.setEnabled(!m_parser.isAtEnd());
-
-        // Also update the text of the main view so that it is consistent with the
-        // current content of the parser. We will also update the progression value
-        // to set up the seek bar accordingly.
-        m_text.setText(m_parser.getCurrentWord());
-        m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
 
         return true;
     }
@@ -281,6 +270,43 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    public void onParsingFinished() {
+        // Receiving this signal indicates that the parser is now ready to display the
+        // text of the read. We can hide the progress bar and start display the actual
+        // text.
+        m_text.setVisibility(View.VISIBLE);
+        m_progressBar.setVisibility(View.GONE);
+
+        // Update the parser if we have been recreated from a previous execution.
+        if (m_desiredProgress >= 0.0f) {
+            m_parser.setProgress(m_desiredProgress);
+        }
+
+        // Update controls so that they match the state of the parser (i.e. reset
+        // button might not always be allowed (in case we didn't read any word yet
+        // and so on).
+        m_controls.reset.setEnabled(!m_parser.isAtStart());
+        m_controls.prev.setEnabled(!m_parser.isAtStart());
+        m_controls.pause.setEnabled(false);
+
+        m_controls.play.setEnabled(true);
+        m_controls.next.setEnabled(!m_parser.isAtEnd());
+
+        // Also update the text of the main view so that it is consistent with the
+        // current content of the parser. We will also update the progression value
+        // to set up the seek bar accordingly.
+        m_text.setText(m_parser.getCurrentWord());
+        m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
+    }
+
+    @Override
+    public void onParsingFailed() {
+        // The parsing of the read's source failed: we can't do anything more, we just
+        // have to return to the recent reads activity.
+        prepareForTermination();
+    }
+
+    @Override
     public void onParagraphReached() {
         // We want to stop the scheduling of the word flip task.
         m_timer.stop();
@@ -293,11 +319,15 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         // We need to determine what to do based on the view producing the click.
+        // Also we don't want to allow the controls in case the parser is not yet
+        // ready to receive orders.
+        // As of now there's only ever a view related to the controls that can be
+        // the source of such an event so it is safe to assume that if the parser
+        // is not ready we won't do anything.
+        if (!m_parser.isReady()) {
+            return;
+        }
 
-        // TODO: We could maybe have a `isReady` method in the `m_reader` so that
-        // we can disable controls until we receive a notification that the parser
-        // is ready (or better yet check pro-actively that it is ready through this
-        // method).
         if (v == m_controls.reset) {
             // Stop the parser as we want the user to notice that the content has
             // started from the beginning again.
@@ -408,6 +438,10 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         String progress = getResources().getString(R.string.activity_read_key_bundle_progress);
         outState.putFloat(progress, m_parser.getCompletion());
+
+        // TODO: We should probably find a way to serialize part of the reader, maybe only the
+        // current paragraph or a span of 10 paragraph around the current position so that we
+        // can load and handle orientation changes more easily.
 
         // Use the base handler.
         super.onSaveInstanceState(outState);

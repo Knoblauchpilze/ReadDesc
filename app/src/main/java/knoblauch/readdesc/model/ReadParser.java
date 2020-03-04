@@ -14,6 +14,26 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ReadParser implements ReadLoader.ReadLoaderListener {
 
     /**
+     * Describe a convenience interface allowing for anyone to listen to the
+     * notification fired whenever the parser finishes to load its data from
+     * its source.
+     */
+    public interface ParsingDoneListener {
+
+        /**
+         * Triggered whenever the parsing of the data associated to the read
+         * has succeeded.
+         */
+        void onParsingFinished();
+
+        /**
+         * Triggered whenever the parsing of the data associated to the read
+         * has failed.
+         */
+        void onParsingFailed();
+    }
+
+    /**
      * Defines the maximum progression possible for a parser.
      */
     private static final float MAX_PROGRESSION = 1.0f;
@@ -96,6 +116,13 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
     private ReadLoader m_source;
 
     /**
+     * The listener that should be notified whenever the data loaded
+     * from the source is successfully received. It will also be used
+     * if the data fails to be loaded.
+     */
+    private ParsingDoneListener m_listener;
+
+    /**
      * Create a new parser from the specified read. The parser will detect the
      * type of the read and instantiate a valid data source to fetch and load
      * it.
@@ -103,8 +130,10 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
      *               use to get the data.
      * @param context - the context to use to resolve links and resources so
      *                  that we can access to the read's content for example.
+     * @param listener - a listener that should be notified when the data has
+     *                   been loaded for this parser.
      */
-    public ReadParser(ReadIntent read, Context context) {
+    public ReadParser(ReadIntent read, Context context, ParsingDoneListener listener) {
         // Assign the name of the read.
         m_desc = read;
 
@@ -123,16 +152,19 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         // to this parser.
         switch (m_desc.getType()) {
             case WebPage:
-                m_source = new HtmlSourceLoader(context, m_desc.getDataUri(), this);
+                m_source = new HtmlSourceLoader(context, this);
             case EBook:
-                m_source = new EBookSourceLoader(context, m_desc.getDataUri(), this);
+                m_source = new EBookSourceLoader(context, this);
             case File:
-                m_source = new PdfSourceLoader(context, m_desc.getDataUri(), this);
+                m_source = new PdfSourceLoader(context, this);
                 break;
         }
 
+        // Register the listener so that we can notify it.
+        m_listener = listener;
+
         // Start the loading of the data.
-        m_source.start();
+        m_source.execute(m_desc.getDataUri());
     }
 
     /**
@@ -169,6 +201,22 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
     public String getName() { return m_desc.getName(); }
 
     /**
+     * Very similar to the `setProgressPrivate` method but attempts to get
+     * the lock on this object first.
+     * @param progress - the progress to assign to this parser.
+     */
+    public void setProgress(float progress) {
+        m_locker.lock();
+
+        try {
+            setProgressPrivate(progress);
+        }
+        finally {
+            m_locker.unlock();
+        }
+    }
+
+    /**
      * Used to update the internal values so that this parser reaches the
      * desired progression. This usually means moving the virtual cursor
      * on the attached data to reach at least this progression value.
@@ -178,18 +226,10 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
      * completion value if the interface method returns a valid result.
      * @param progress - the progression to set for this parser.
      */
-    public void setProgress(float progress) {
-        // Lock this object.
-        m_locker.lock();
-
+    private void setProgressPrivate(float progress) {
         // Use the abstract handler and update the internal completion value
         // if it succeeds.
-        try {
-            m_completion = advanceTo(Math.min(1.0f, Math.max(0.0f, progress)));
-        }
-        finally {
-            m_locker.unlock();
-        }
+        m_completion = advanceTo(Math.min(1.0f, Math.max(0.0f, progress)));
     }
 
     /**
@@ -308,8 +348,6 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
             m_globalWordIndex = 0;
 
             m_completion = 0.0f;
-
-            // TODO: We should load this asynchronously.
 
             // Avoid unnecessary processing in case the progress should be set to `0`.
             if (progress == 0.0f) {
@@ -586,30 +624,51 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         return true;
     }
 
+    /**
+     * Return `true` if the parser is ready, which means that the data from the
+     * source has been retrieved and is accessible in the `m_paragraphs` item
+     * in this object.
+     * @return - `true` if the data is ready and `false` otherwise.
+     */
+    public boolean isReady() {
+        m_locker.lock();
+        boolean ready = !m_paragraphs.isEmpty();
+        m_locker.unlock();
+
+        return ready;
+    }
+
     @Override
     public void onDataLoaded(ArrayList<Paragraph> paragraphs) {
-        // Copy data to the local attribute.
-        m_paragraphs = paragraphs;
+        // Acquire the lock on this object.
+        m_locker.lock();
 
-        // Count the total number of words available.
-        m_totalWordCount = 0;
-        for (Paragraph p : m_paragraphs) {
-            m_totalWordCount += p.size();
+        try {
+            // Copy data to the local attribute.
+            m_paragraphs = paragraphs;
+
+            // Count the total number of words available.
+            m_totalWordCount = 0;
+            for (Paragraph p : m_paragraphs) {
+                m_totalWordCount += p.size();
+            }
+
+            // Once the data has been loaded we can setup the progress to match
+            // the value that was reached in a previous read session.
+            setProgressPrivate(m_desc.getCompletion());
+        }
+        finally {
+            m_locker.unlock();
         }
 
-        // Once the data has been loaded we can setup the progress to match
-        // the value that was reached in a previous read session.
-        setProgress(m_desc.getCompletion());
-
-        // TODO: We should connect this signal to the `ReadActivity` view in order to
-        // hide the progress bar and show the text view.
-        // TODO: We should also probably prevent most of the controls such as `rewind`,
-        // `moveToPrevious` etc. as long as the parser has not finished fetching data.
+        // Notify the listener that the data has been successfully loaded.
+        m_listener.onParsingFinished();
     }
 
     @Override
     public void onFailureToLoadData() {
-        // TODO: Should handle failure to load the data.
+        // Notify the listener so that it can take corresponding measures.
+        m_listener.onParsingFailed();
     }
 
     /**
