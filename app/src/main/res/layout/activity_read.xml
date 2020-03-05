@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:id="@+id/read_current_word"
-            android:layout_weight="80"
+            android:layout_weight="85"
             android:gravity="center_vertical|center_horizontal"
             android:textSize="@dimen/activity.read.text.size"
             android:background="@color/activity.settings.pref.color.bg.default"
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:id="@+id/read_progress_bar"
-            android:layout_weight="80"
+            android:layout_weight="85"
             android:layout_gravity="center"
             android:maxWidth="@dimen/activity.read.progress.max.width"
             android:maxHeight="@dimen/activity.read.progress.max.height"
@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:id="@+id/read_controls_centering_layout"
-            android:layout_weight="10"
+            android:layout_weight="15"
             android:background="@color/activity.settings.pref.color.bg.default"
             >
 
@@ -151,15 +151,6 @@
             </LinearLayout>
 
         </RelativeLayout>
-
-        <SeekBar
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="5"
-            android:id="@+id/read_completion_percentage_id"
-            android:background="@color/activity.settings.pref.color.bg.default"
-            style="?android:attr/progressBarStyleHorizontal"
-            />
 
     </LinearLayout>
 

@@ -22,6 +22,12 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
 
         /**
          * Triggered whenever the parsing of the data associated to the read
+         * has started.
+         */
+        void onParsingStarted();
+
+        /**
+         * Triggered whenever the parsing of the data associated to the read
          * has succeeded.
          */
         void onParsingFinished();
@@ -61,6 +67,13 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
      * of the read and is updated while the next word is retrieved.
      */
     private float m_completion;
+
+    /**
+     * The progress of the current read as desired when instantiating this
+     * parser. Used to keep track of the desired progression as long as the
+     * data related to the read has not yet been loaded.
+     */
+    private float m_desiredProgress;
 
     /**
      * A mutex allowing to protect concurrent access to the data in this parser
@@ -123,11 +136,11 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
     private ReadLoader m_source;
 
     /**
-     * The listener that should be notified whenever the data loaded
-     * from the source is successfully received. It will also be used
-     * if the data fails to be loaded.
+     * The list of listeners that should be notified whenever the data
+     * loaded from the source is successfully received. It will also be
+     * used if the data fails to be loaded.
      */
-    private ParsingDoneListener m_listener;
+    private ArrayList<ParsingDoneListener> m_listeners;
 
     /**
      * Create a new parser from the specified read. The parser will detect the
@@ -137,10 +150,12 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
      *               use to get the data.
      * @param context - the context to use to resolve links and resources so
      *                  that we can access to the read's content for example.
-     * @param listener - a listener that should be notified when the data has
-     *                   been loaded for this parser.
+     * @param desiredProgress - a value in the range `[0; 1]` which represents
+     *                          the desired progress to be reached by this
+     *                          parser. This will be interpreted by the parser
+     *                          to load directly the relevant data.
      */
-    public ReadParser(ReadIntent read, Context context, ParsingDoneListener listener) {
+    public ReadParser(ReadIntent read, Context context, float desiredProgress) {
         // Assign the name of the read.
         m_desc = read;
 
@@ -168,10 +183,28 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         }
 
         // Register the listener so that we can notify it.
-        m_listener = listener;
+        m_listeners = new ArrayList<>();
+
+        // Update progress. We want to set the desired progress to either the
+        // provided value or the value saved in the read description if none
+        // is provided (or rather if the input `desiredProgress` is negative).
+        m_completion = 0.0f;
+        m_desiredProgress = (desiredProgress < 0.0f ? m_desc.getCompletion() : desiredProgress);
 
         // Start the loading of the data.
         m_source.execute(m_desc.getDataUri());
+    }
+
+    /**
+     * Used to register a new parsing done listener to the internal list
+     * handled by this object. Note that in case the listener is `null`
+     * we won't add id.
+     * @param listener - the listener to register.
+     */
+    public void addOnParsingDoneListener(ParsingDoneListener listener) {
+        if (listener != null) {
+            m_listeners.add(listener);
+        }
     }
 
     /**
@@ -658,6 +691,15 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
     }
 
     @Override
+    public void onLoadingStarted() {
+        // We want to notify the listeners that a new loading operaiton is being
+        // started.
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onParsingStarted();
+        }
+    }
+
+    @Override
     public void onDataLoaded(ArrayList<Paragraph> paragraphs) {
         // Acquire the lock on this object.
         m_locker.lock();
@@ -674,26 +716,32 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
 
             // Once the data has been loaded we can setup the progress to match
             // the value that was reached in a previous read session.
-            setProgressPrivate(m_desc.getCompletion());
+            setProgressPrivate(m_desiredProgress);
         }
         finally {
             m_locker.unlock();
         }
 
         // Notify the listener that the data has been successfully loaded.
-        m_listener.onParsingFinished();
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onParsingFinished();
+        }
     }
 
     @Override
     public void onFailureToLoadData() {
         // Notify the listener so that it can take corresponding measures.
-        m_listener.onParsingFailed();
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onParsingFailed();
+        }
     }
 
     @Override
     public void onLoadingProgress(float progress) {
         // Notify the listener.
-        m_listener.onLoadingProgress(progress);
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onLoadingProgress(progress);
+        }
     }
 
 

@@ -20,6 +20,14 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
     interface ReadLoaderListener {
 
         /**
+         * Interface method allowing to be notified when a data loading
+         * operation has just started. This method is notified *before*
+         * any loading process is started and allows listeners to get
+         * ready to receive data.
+         */
+        void onLoadingStarted();
+
+        /**
          * Interface method allowing to be notified of a data load
          * operation by this source. The loaded data is provided as
          * an argument of the method so that the listener can react
@@ -92,6 +100,14 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      */
     private void link(ReadLoaderListener caller) {
         m_caller = new WeakReference<>(caller);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        // Call the listener's corresponding interface method.
+        if (m_caller.get() != null) {
+            m_caller.get().onLoadingStarted();
+        }
     }
 
 

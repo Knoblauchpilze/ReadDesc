@@ -6,57 +6,34 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import knoblauch.readdesc.R;
-import knoblauch.readdesc.gui.WordFlipTask;
+import knoblauch.readdesc.gui.ReadingControls;
+import knoblauch.readdesc.gui.ReadingTextHandler;
 import knoblauch.readdesc.model.ReadIntent;
 import knoblauch.readdesc.model.ReadParser;
 import knoblauch.readdesc.model.ReadPref;
 
-public class ReadActivity extends AppCompatActivity implements View.OnClickListener, WordFlipTask.ParagraphListener, ReadParser.ParsingDoneListener {
-
-    /**
-     * Convenience class which holds all the relevant buttons used to control
-     * the reading process. This activity will listen to click on these so as
-     * to stop, resume or move to a specific part of the read.
-     */
-    private class Controls {
-        ImageButton reset;
-        ImageButton prev;
-        ImageButton pause;
-        ImageButton play;
-        ImageButton next;
-
-        SeekBar completion;
-    }
+public class ReadActivity extends AppCompatActivity implements ReadingControls.ControlsListener, ReadingTextHandler.ParagraphListener, ReadParser.ParsingDoneListener {
 
     /**
      * Holds the buttons allowing to control the reading process. This element
      * is initialized upon creating the view so that we can refer to it later.
      */
-    private Controls m_controls;
+    private ReadingControls m_controls;
 
     /**
-     * Used to hold the main text view allowing to display the current content
-     * of the view. Its content is updated each time a period of time defined
-     * in the preferences has past to flip to the next word of the view.
+     * Holds the text items used to either display the text to be read by the
+     * user or the waiting progress bar in case the read parser does not yet
+     * have the available data.
      */
-    private TextView m_text;
-
-    /**
-     * Used to hold the progress bar allowing to make the user wait for the
-     * content of this read in case it takes some time to be loaded. We use
-     * this as a replacement of the text view whenever needed.
-     */
-    private ProgressBar m_progressBar;
+    private ReadingTextHandler m_textHandler;
 
     /**
      * Internal attribute populated from the `ReadDesc` that is currently being
@@ -68,20 +45,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
      */
     private ReadParser m_parser;
 
-    /**
-     * The handler used by this parser to time the flipping of the word displayed
-     * in the main text view. This will be used internally to keep track of the
-     * time.
-     */
-    private WordFlipTask m_timer;
-
-    /**
-     * The progress of the current read as retrieved from the input intent that
-     * started this activity. Used to keep track of the desired progression as
-     * long as the data related to the read has not yet been loaded.
-     */
-    private float m_desiredProgress;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Create the layout and inflate it. We also need to restore saved parameters
@@ -89,54 +52,20 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read);
 
-        // We know need to retrieve the views used by this activity.
-        m_controls = new Controls();
-
-        m_controls.reset = findViewById(R.id.read_restart_read_id);
-        m_controls.prev = findViewById(R.id.read_previous_chapter_id);
-        m_controls.pause = findViewById(R.id.read_pause_id);
-        m_controls.play = findViewById(R.id.read_resume_id);
-        m_controls.next = findViewById(R.id.read_next_chapter_id);
-
-        m_controls.completion = findViewById(R.id.read_completion_percentage_id);
-
-        m_text = findViewById(R.id.read_current_word);
-
-        m_progressBar = findViewById(R.id.read_progress_bar);
-
-        // We now need to retrieve the intent that started this activity so that we
-        // can instantiate the related parser. Note that we will analyze the input
-        // bundle to determine whether we have a chance to retrieve the progression
-        // reached by an earlier version of this activity.
-        // This typically happen when the orientation is changed: we successfully
-        // save the progression for this read to the disk but we need to also save
-        // and transmit it to this activity (so as not to be forced to read again
-        // from the disk).
-        // In case we can't find anything we will use a default negative value so
-        // that the `instantiateParser` method knows that we should retrieve the
-        // progression from the described read.
-        float progress = -1.0f;
-        if (savedInstanceState != null) {
-            String key = getResources().getString(R.string.activity_read_key_bundle_progress);
-            progress = savedInstanceState.getFloat(key, -1.0f);
-        }
-
-        // Try to instantiate a parser and return in case of failure.
-        if (!instantiateParser(progress)) {
+        // Try to instantiate a parser and return in case of failure: we will pass
+        // the saved instance to the instantiation method to retrieve any existing
+        // progress.
+        if (!instantiateParser(savedInstanceState)) {
             return;
         }
+
+        // Retrieve the buttons from the layout that should be used to control
+        // the reading process.
+        createControls();
 
         // We need to update the properties of the main element to match the colors
         // defined in the preferences.
         setupFromPreferences();
-
-        // Connect signals to the local slot so that we can react to the user's will
-        // regarding the controls.
-        m_controls.reset.setOnClickListener(this);
-        m_controls.prev.setOnClickListener(this);
-        m_controls.pause.setOnClickListener(this);
-        m_controls.play.setOnClickListener(this);
-        m_controls.next.setOnClickListener(this);
 
         // Update the title for this activity: we should display the name of the read.
         String title = getResources().getString(R.string.activity_read_title);
@@ -144,99 +73,41 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Used internally to assign the colors to each menu element so that it
-     * matches the expected aspect defined in the preferences.
+     * Used to retrieve the controls buttons used to interpret user's requests
+     * and extract a valid object from it. We will also register this activity
+     * as a listener of the controls to be notified of the user's desires.
      */
-    private void setupFromPreferences() {
-        // Retrieve the preferences object.
-        ReadPref prefs = new ReadPref(this);
+    private void createControls() {
+        // Retrieve buttons from the layout.
+        ImageButton reset = findViewById(R.id.read_restart_read_id);
+        ImageButton prev = findViewById(R.id.read_previous_chapter_id);
+        ImageButton pause = findViewById(R.id.read_pause_id);
+        ImageButton play = findViewById(R.id.read_resume_id);
+        ImageButton next = findViewById(R.id.read_next_chapter_id);
 
-        // Retrieve auxiliary elements.
-        LinearLayout general = findViewById(R.id.read_general_layout);
-        RelativeLayout centering = findViewById(R.id.read_controls_centering_layout);
-        LinearLayout controls = findViewById(R.id.read_controls_layout);
+        // Create the controls object.
+        m_controls = new ReadingControls(reset, prev, pause, play, next);
 
-        // Assign values to the graphic elements of this activity.
-        int bg = prefs.getBackgroundColor();
+        // Register this view as a listener of the controls.
+        m_controls.addOnControlsListener(this);
 
-        m_text.setBackgroundColor(bg);
-        m_text.setTextColor(prefs.getTextColor());
+        // Retrieve text items.
+        TextView text = findViewById(R.id.read_current_word);
+        ProgressBar waiter = findViewById(R.id.read_progress_bar);
 
-        m_progressBar.setBackgroundColor(bg);
+        m_textHandler = new ReadingTextHandler(text, waiter, m_parser, new Handler());
 
-        general.setBackgroundColor(bg);
-        centering.setBackgroundColor(bg);
-        controls.setBackgroundColor(bg);
+        // Register this view as a listener of the paragraphs.
+        m_textHandler.addOnParagraphListener(this);
 
-        m_controls.reset.setBackgroundColor(bg);
-        m_controls.prev.setBackgroundColor(bg);
-        m_controls.pause.setBackgroundColor(bg);
-        m_controls.play.setBackgroundColor(bg);
-        m_controls.next.setBackgroundColor(bg);
-
-        m_controls.completion.setBackgroundColor(bg);
-
-        // Instantiate the timer objects used to perform the flipping of the word.
-        instantiateTimer(prefs);
+        // Register the text handler as a listener of the parsing.
+        m_parser.addOnParsingDoneListener(m_textHandler);
     }
 
     /**
-     * Used upon building this activity to fetch the intent that started it. Normally
-     * we should get an extra field describing the `Read` that should be displayed by
-     * this activity. If this is not the case we will terminate the activity and get
-     * back to previous view as we don't know what to display in here.
-     * Note also that as this activity might be subject to orientation changes we can
-     * have to re-instantiate it from an existing reading session. In this case the
-     * progress for the read have theoretically be saved through the `onPause` method
-     * but in order to avoid a reload of this information from the disk we actually
-     * also save it in the bundle that is passed to the next instance of the activity.
-     * This value is then passed to this method as the `progress` argument.
-     * In case no previous instance could be found a negative value is passed which
-     * indicates that we need to fetch the progression from the read itself.
-     * @param progress - the progress saved from a previous execution of the activity.
-     * @return - `true` if the parser could correctly be instantiated and `false` if
-     *           this is not the case.
-     */
-    private boolean instantiateParser(float progress) {
-        // Retrieve the intent that started this activity.
-        Intent will = getIntent();
-
-        // The `Read` to display should be registered under the following key.
-        String key = getResources().getString(R.string.activity_read_key_in);
-
-        // Save the progression for when we receive the loading notification.
-        m_desiredProgress = progress;
-
-        // Retrieve the description of the read to display. Android is already able
-        // to return `null` in case the parcelable cannot be found.
-        ReadIntent read = will.getParcelableExtra(key);
-        if (read == null) {
-            // Terminate the activity if the creation of the `ReadIntent` failed.
-            prepareForTermination();
-
-            return false;
-        }
-        else {
-            try {
-                m_parser = new ReadParser(read, this, this);
-            }
-            catch (Exception e) {
-                // We failed to load the parser from the read's description. There's
-                // no point in continuing further, get back to the recent reads view.
-                prepareForTermination();
-
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Used internally to terminate the activity with the success status. We will also
+     * Used internally to terminate the activity with a failure status. We will also
      * save the `uuid` of the read that was attempted to be opened during the reading
      * session so that one can provide a relevant error message in the parent activity.
-     * Whether or not the reading was a success is set as defined by the input arg.
      */
     private void prepareForTermination() {
         // We want to terminate the activity with the actual completion percentage of
@@ -254,188 +125,6 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
 
         // Terminate the activity if needed.
         finish();
-    }
-
-    /**
-     * Used to instantiate the needed objects to keep track of the time intervals to
-     * flip the main text view display.
-     * @param prefs - the preferences to use to retrieve the word flip interval.
-     */
-    private void instantiateTimer(ReadPref prefs) {
-        // Retrieve the world flip interval from the preferences.
-        int wordFlip = prefs.getWordFlipInterval();
-
-        // Create the wrapper for the timing task.
-        m_timer = new WordFlipTask(wordFlip, m_text, m_parser, new Handler(), m_controls.completion, this);
-    }
-
-    @Override
-    public void onParsingFinished() {
-        // Receiving this signal indicates that the parser is now ready to display the
-        // text of the read. We can hide the progress bar and start display the actual
-        // text.
-        m_text.setVisibility(View.VISIBLE);
-        m_progressBar.setVisibility(View.GONE);
-
-        // Update the parser if we have been recreated from a previous execution.
-        if (m_desiredProgress >= 0.0f) {
-            m_parser.setProgress(m_desiredProgress);
-        }
-
-        // Update controls so that they match the state of the parser (i.e. reset
-        // button might not always be allowed (in case we didn't read any word yet
-        // and so on).
-        m_controls.reset.setEnabled(!m_parser.isAtStart());
-        m_controls.prev.setEnabled(!m_parser.isAtStart());
-        m_controls.pause.setEnabled(false);
-
-        m_controls.play.setEnabled(true);
-        m_controls.next.setEnabled(!m_parser.isAtEnd());
-
-        // Also update the text of the main view so that it is consistent with the
-        // current content of the parser. We will also update the progression value
-        // to set up the seek bar accordingly.
-        m_text.setText(m_parser.getCurrentWord());
-        m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
-    }
-
-    @Override
-    public void onParsingFailed() {
-        // The parsing of the read's source failed: we can't do anything more, we just
-        // have to return to the recent reads activity.
-        prepareForTermination();
-    }
-
-    @Override
-    public void onLoadingProgress(float progress) {
-        // We want to update the value of the progress bar to reach the input value.
-        m_progressBar.setProgress(Math.round(100.0f * progress));
-    }
-
-    @Override
-    public void onParagraphReached() {
-        // We want to stop the scheduling of the word flip task.
-        m_timer.stop();
-
-        // We also want to reset the status of the controls to indicate to the user that
-        // a new play request should be issued.
-        toggleStartStop(true);
-    }
-
-    @Override
-    public void onClick(View v) {
-        // We need to determine what to do based on the view producing the click.
-        // Also we don't want to allow the controls in case the parser is not yet
-        // ready to receive orders.
-        // As of now there's only ever a view related to the controls that can be
-        // the source of such an event so it is safe to assume that if the parser
-        // is not ready we won't do anything.
-        if (!m_parser.isReady()) {
-            return;
-        }
-
-        if (v == m_controls.reset) {
-            // Stop the parser as we want the user to notice that the content has
-            // started from the beginning again.
-            m_timer.stop();
-
-            // Rewind the parser.
-            m_parser.rewind();
-
-            // We should also update the current word once the parser has been changed.
-            m_text.setText(m_parser.getCurrentWord());
-            m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
-
-            // Reset buttons.
-            toggleStartStop(true);
-        }
-        else if (v == m_controls.prev) {
-            // Just like for the `reset` case we want the user to notice a motion
-            // to the previous paragraph so we stop the reading.
-            m_timer.stop();
-
-            // Move the parser to reach the previous paragraph.
-            m_parser.moveToPrevious();
-
-            // Update the word displayed by the parser.
-            m_text.setText(m_parser.getCurrentWord());
-            m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
-
-            // Update the controls.
-            toggleStartStop(true);
-
-        }
-        else if (v == m_controls.next) {
-            // Similarly to when the user presses the `previous` paragraph button
-            // we stop the current reading process.
-            m_timer.stop();
-
-            // Move the parser.
-            m_parser.moveToNext();
-
-            // Update the word displayed by the parser.
-            m_text.setText(m_parser.getCurrentWord());
-            m_controls.completion.setProgress(m_parser.getCompletionAsPercentage());
-
-            // Update the controls.
-            toggleStartStop(true);
-        }
-        else if (v == m_controls.play) {
-            // Start the word flip task and update the state of the controls button.
-            m_timer.start();
-
-            toggleStartStop(false);
-        }
-        else if (v == m_controls.pause) {
-            // Stop the word flip task if it was started.
-            m_timer.stop();
-
-            // Also reset the state of the buttons so that the user can start the
-            // reading again.
-            toggleStartStop(true);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        // Perform needed de/activation of buttons so that we have a consistent state
-        // in the controls panel.
-        toggleStartStop(true);
-
-        // Use the base handler.
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        // Remove any callback for the word flip task.
-        m_timer.stop();
-
-        // We want to save the progression we reached for this read to the dedicated file.
-        boolean success = m_parser.saveProgression(this);
-
-        if (!success) {
-            Resources res = getResources();
-            String msg = String.format(res.getString(R.string.activity_recent_reads_save_progress_failure), m_parser.getName());
-            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-        }
-
-        // Notify the progression reached on this read.
-        Toast.makeText(this, formatProgressionDisplay(), Toast.LENGTH_SHORT).show();
-
-        // Use the base handler.
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        // In case we're stopping the activity we want to stop any loading process of the
-        // associated parser: indeed as we won't be reusing the activity it does not make
-        // sense to continue loading meaningless data.
-        m_parser.cancel();
-
-        // Call the base handler.
-        super.onStop();
     }
 
     @Override
@@ -465,10 +154,105 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Used internally to format the progression message to display in a nice human
-     * readable way the current state of the progression for this read.
-     * @return - a string indicating the progression for this read in a human readable
-     *           way.
+     * Used internally to assign the colors to each menu element so that it
+     * matches the expected aspect defined in the preferences.
+     */
+    private void setupFromPreferences() {
+        // Retrieve the preferences object.
+        ReadPref prefs = new ReadPref(this);
+
+        // First apply preferences to the known elements.
+        m_controls.updateFromPrefs(prefs);
+        m_textHandler.updateFromPrefs(prefs);
+
+        // We also need to apply the preferences to the auxiliary elements
+        // such as the layouts.
+        int bg = prefs.getBackgroundColor();
+
+        LinearLayout general = findViewById(R.id.read_general_layout);
+        RelativeLayout centering = findViewById(R.id.read_controls_centering_layout);
+        LinearLayout controls = findViewById(R.id.read_controls_layout);
+
+        general.setBackgroundColor(bg);
+        centering.setBackgroundColor(bg);
+        controls.setBackgroundColor(bg);
+    }
+
+    /**
+     * Used upon building this activity to fetch the intent that started it. Normally
+     * we should get an extra field describing the `Read` that should be displayed by
+     * this activity. If this is not the case we will terminate the activity and get
+     * back to previous view as we don't know what to display in here.
+     * Note also that as this activity might be subject to orientation changes we can
+     * have to re-instantiate it from an existing reading session. In this case the
+     * progress for the read have theoretically be saved through the `onPause` method
+     * but in order to avoid a reload of this information from the disk we actually
+     * also save it in the bundle that is passed to the next instance of the activity.
+     * This value is then passed to this method as the `savedInstanceState` argument.
+     * In case no previous instance could be found a `null`value is passed which tells
+     * that we need to fetch the progression from the read itself.
+     * @param savedInstanceState - the progress saved from a previous execution of the
+     *                             activity.
+     * @return - `true` if the parser could correctly be instantiated and `false` if
+     *           this is not the case.
+     */
+    private boolean instantiateParser(Bundle savedInstanceState) {
+        // Retrieve the intent that started this activity.
+        Intent will = getIntent();
+
+        // The `Read` to display should be registered under the following key.
+        String key = getResources().getString(R.string.activity_read_key_in);
+
+        // Retrieve the intent that started this activity so that we can instantiate
+        // the related parser. Note that we will analyze the input bundle to determine
+        // whether we have a chance to retrieve the progression reached by an earlier
+        // version of this activity.
+        // This typically happen when the orientation is changed: we successfully
+        // save the progression for this read to the disk but we need to also save
+        // and transmit it to this activity (so as not to be forced to read again
+        // from the disk).
+        // In case we can't find anything we will use a default negative value so
+        // that the `instantiateParser` method knows that we should retrieve the
+        // progression from the described read.
+        float savedProgress = -1.0f;
+        if (savedInstanceState != null) {
+            String prgKey = getResources().getString(R.string.activity_read_key_bundle_progress);
+            savedProgress = savedInstanceState.getFloat(prgKey, -1.0f);
+        }
+
+        // Retrieve the description of the read to display. Android is already able
+        // to return `null` in case the parcelable cannot be found.
+        ReadIntent read = will.getParcelableExtra(key);
+        if (read == null) {
+            // Terminate the activity if the creation of the `ReadIntent` failed.
+            prepareForTermination();
+
+            return false;
+        }
+        else {
+            try {
+                m_parser = new ReadParser(read, this, savedProgress);
+            }
+            catch (Exception e) {
+                // We failed to load the parser from the read's description. There's
+                // no point in continuing further, get back to the recent reads view.
+                prepareForTermination();
+
+                return false;
+            }
+
+            // Register this activity as a listener of the parser.
+            m_parser.addOnParsingDoneListener(this);
+        }
+
+        return true;
+    }
+
+    /**
+     * Used internally to format the progression message to display in a nice
+     * human readable way the current state of the progression for this read.
+     * @return - a string indicating the progression for this read in a human
+     *           readable way.
      */
     private String formatProgressionDisplay() {
         // Retrieve the progression message.
@@ -483,27 +267,156 @@ public class ReadActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Used to reset the states of the play and pause buttons so that one of them
-     * is enabled while the other one is disabled. The `play` button will be set
-     * with the status described in input while the `pause` button will be assigned
-     * a value of `!toggle`. Note that we also check whether the internal parser has
-     * reached its end state in which case the play button is not enabled even if
-     * the `toggle` boolean is set to `true`.
-     * @param toggle - `true` if the `play` button should be set to active.
+     * Used internally to update the position of the controls given the state
+     * of the parser. This is typically used in case we received a notification
+     * indicating that some data has been received or any sort of signals that
+     * can have an impact on the parser's position (and thus on the controls).
      */
-    private void toggleStartStop(boolean toggle) {
-        // Check whether it is possible to activate the `play` button based on the
-        // input `toggle` status and the parser's state.
-        m_controls.play.setEnabled(toggle && !m_parser.isAtEnd());
+    private void updateControlsPosition() {
+        // Determine a valid state from the current position of the parser in the
+        // read data stream.
+        ReadingControls.Position pos = ReadingControls.Position.Running;
+        if (m_parser.isAtStart()) {
+            pos = ReadingControls.Position.AtStart;
+        }
+        if (m_parser.isAtEnd()) {
+            pos = ReadingControls.Position.AtEnd;
+        }
 
-        // The `pause` button is enabled whenever the `play` button is disabled.
-        m_controls.pause.setEnabled(!toggle);
+        // Apply position update to the controls.
+        m_controls.setPosition(pos);
+    }
 
-        // We want to update the state of the controls based on the current parser's
-        // state.
-        m_controls.reset.setEnabled(!m_parser.isAtStart());
-        m_controls.prev.setEnabled(!m_parser.isAtStart());
-        m_controls.next.setEnabled(!m_parser.isAtEnd());
+    @Override
+    public void onActionRequested(ReadingControls.Action action) {
+        // Detect which type of action has been requested and update the parser
+        // from it. This will only be done in case the parser is ready.
+        if (!m_parser.isReady()) {
+            return;
+        }
+
+        // Update the parser from the input action.
+        switch (action) {
+            case Rewind:
+                m_parser.rewind();
+                m_textHandler.refresh();
+                break;
+            case PreviousParagraph:
+                m_parser.moveToPrevious();
+                m_textHandler.refresh();
+                break;
+            case NextParagraph:
+                m_parser.moveToNext();
+                m_textHandler.refresh();
+                break;
+            default:
+                // Nothing to do, it will be handled afterwards.
+                break;
+        }
+
+        // Also update the state of the controls based on the action.
+        if (action == ReadingControls.Action.Play) {
+            m_controls.setState(ReadingControls.State.Running);
+        }
+        else {
+            m_controls.setState(ReadingControls.State.Stopped);
+        }
+
+        // Update the controls.
+        updateControlsPosition();
+
+        // Now update the word flip task.
+        if (action == ReadingControls.Action.Play) {
+            m_textHandler.start();
+        }
+        if (action == ReadingControls.Action.Pause) {
+            m_textHandler.stop();
+        }
+    }
+
+    @Override
+    public void onParsingStarted() {
+        // We want to deactivate the controls until we receive the notification
+        // indicating that the parsing is finished.
+        m_controls.setActive(false);
+    }
+
+    @Override
+    public void onParsingFinished() {
+        // Activate the controls.
+        m_controls.setActive(true);
+
+        // Update the state of the controller to `stopped`.
+        m_controls.setState(ReadingControls.State.Stopped);
+
+        // And update the position based on the new state of the parser.
+        updateControlsPosition();
+    }
+
+    @Override
+    public void onParsingFailed() {
+        // The parsing of the read's source failed: we can't do anything more, we
+        // just have to return to the recent reads activity. We should also enable
+        // the controls but as we will be terminated soon there's really no point
+        // in doing that.
+        prepareForTermination();
+    }
+
+    @Override
+    public void onLoadingProgress(float progress) {
+        // Nothing to be done here.
+    }
+
+    @Override
+    public void onResume() {
+        // Perform needed de/activation of buttons so that we have a consistent state
+        // in the controls panel.
+        m_controls.setState(ReadingControls.State.Stopped);
+
+        // Use the base handler.
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        // Remove any callback for the word flip task.
+        m_textHandler.stop();
+
+        // We want to save the progression we reached for this read to the dedicated file.
+        boolean success = m_parser.saveProgression(this);
+
+        if (!success) {
+            Resources res = getResources();
+            String msg = String.format(res.getString(R.string.activity_recent_reads_save_progress_failure), m_parser.getName());
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        }
+
+        // Notify the progression reached on this read.
+        Toast.makeText(this, formatProgressionDisplay(), Toast.LENGTH_SHORT).show();
+
+        // Use the base handler.
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        // In case we're stopping the activity we want to stop any loading process of the
+        // associated parser: indeed as we won't be reusing the activity it does not make
+        // sense to continue loading meaningless data.
+        m_parser.cancel();
+
+        // Call the base handler.
+        super.onStop();
+    }
+
+    @Override
+    public void onParagraphReached() {
+        // We want to stop the scheduling of the word flip task.
+        m_textHandler.stop();
+
+        // Also we need to update the controls with the current state of the reader.
+        m_controls.setState(ReadingControls.State.Stopped);
+        updateControlsPosition();
     }
 
 }
