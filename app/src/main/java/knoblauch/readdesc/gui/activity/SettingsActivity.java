@@ -60,13 +60,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     private SeekBar m_wordFlipValue;
 
     /**
-     * Holds the text view representing the string for the storage location of
-     * distant read source. This will be used to fetch locally the remote reads
-     * so that the user can read them even when not connected to the internet.
-     */
-    private TextView m_readStorageLocation;
-
-    /**
      * Holds the current set of preferences defined in the settings view. This
      * attribute is populated from the local data upon creating the view and
      * is then saved when needed.
@@ -86,8 +79,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
         // Load preferences from disk.
         loadPreferences();
-
-        // TODO: We should connect the read storage location.
 
         // Register this view as a listener of relevant properties.
         m_wordFlipValue.setOnSeekBarChangeListener(this);
@@ -247,9 +238,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_wordFlipText = findViewById(R.id.settings_word_flip_value);
         m_wordFlipValue = findViewById(R.id.settings_word_flip_seek_bar);
 
-        // Retrieve the read storage location.
-        m_readStorageLocation = findViewById(R.id.settings_read_storage_location);
-
         // Save relevant views in order to be able to change the suited properties.
         // Also we need to connect signals from various sliders.
         m_bgColor = new ColorSeekBars();
@@ -294,9 +282,6 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         String wordFlipText = String.format(getResources().getString(R.string.activity_settings_word_flip_text), wordFlipInterval);
         m_wordFlipText.setText(wordFlipText);
         m_wordFlipValue.setProgress(wordFlipInterval);
-
-        // Read storage location.
-        m_readStorageLocation.setText(m_prefs.getReadStorageLocation());
 
         // Background color while in reading mode.
         int bgColor = m_prefs.getBackgroundColor();

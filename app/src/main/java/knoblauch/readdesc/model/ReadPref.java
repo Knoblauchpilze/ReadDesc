@@ -42,13 +42,6 @@ public class ReadPref {
     private int m_wordFlipInterval;
 
     /**
-     * The location at which reads should be stored in the local disk. This allows to fetch
-     * local contents and not need to retrieve them (and thus have a working internet conn)
-     * each time the user wants to load them.
-     */
-    private String m_readStorageLocation;
-
-    /**
      * Create a default read preference object with no associated preferences. The context is
      * used to retrieve the properties saved in the application and if none are defined, we
      * use the default values.
@@ -113,26 +106,6 @@ public class ReadPref {
     }
 
     /**
-     * Retrieve the current read storage location. Used for remote read source so that
-     * they can be retrieved locally and avoid fetching them from the net each time the
-     * user wants to access them.
-     * @return - the read storage location.
-     */
-    public String getReadStorageLocation() {
-        return m_readStorageLocation;
-    }
-
-    /**
-     * Assign a new location to store remote read source in local disk. This is used to
-     * save the distant source so that we don't need an internet access each time the
-     * user wants to access this distant location.
-     * @param readStorage - the new local storage location.
-     */
-    public void setReadStorageLocation(String readStorage) {
-        m_readStorageLocation = readStorage;
-    }
-
-    /**
      * Used in order to load the preferences from the values saved on the disk. Uses the
      * internal context to retrieve the previously saved values or uses the default ones
      * if none have been saved already.
@@ -155,13 +128,6 @@ public class ReadPref {
         key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         if (pref.contains(key)) {
             m_wordFlipInterval = pref.getInt(key, m_wordFlipInterval );
-        }
-
-        // Restore read storage location.
-        m_readStorageLocation = res.getString(R.string.activity_settings_pref_storage_location_default);
-        key = res.getString(R.string.activity_settings_pref_xml_key_storage_location);
-        if (pref.contains(key)) {
-            m_readStorageLocation = pref.getString(key, m_readStorageLocation);
         }
 
         // Restore background color while in reading mode.
@@ -200,10 +166,6 @@ public class ReadPref {
         key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         editor.putInt(key, m_wordFlipInterval);
 
-        // Save the default read storage location.
-        key = res.getString(R.string.activity_settings_pref_xml_key_storage_location);
-        editor.putString(key, m_readStorageLocation);
-
         // Save the background color while in reading mode.
         key = res.getString(R.string.activity_settings_pref_xml_key_color_bg);
         editor.putInt(key, m_bgColor);
@@ -234,7 +196,6 @@ public class ReadPref {
 
         // Restore each preference with its default value.
         m_wordFlipInterval = res.getInteger(R.integer.activity_settings_pref_word_flip_default);
-        m_readStorageLocation = res.getString(R.string.activity_settings_pref_storage_location_default);
         m_bgColor = ContextCompat.getColor(m_context, R.color.activity_settings_pref_color_bg_default);
         m_textColor = ContextCompat.getColor(m_context, R.color.activity_settings_pref_color_text_default);
     }

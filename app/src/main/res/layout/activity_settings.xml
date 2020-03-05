@@ -57,43 +57,6 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/activity.settings.storage_location.title"
-                android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
-                style="@style/TextViewTitle"
-                />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                >
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/settings_read_storage_location"
-                    android:layout_weight="70"
-                    android:text="@string/activity.settings.pref.storage_location.default"
-                    style="@style/SecondaryItem"
-                    />
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/settings_read_storage_browse"
-                    android:layout_weight="30"
-                    android:text="@string/activity.title.browse"
-                    style="@style/GenericButton"
-                    />
-
-            </LinearLayout>
-
-
-            <View style="@style/Divider"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:text="@string/activity.settings.color.bg.title"
                 android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
                 style="@style/TextViewTitle"

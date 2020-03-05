@@ -45,7 +45,6 @@
     <string name="activity.settings.word_flip.text">%1$d ms</string>
     <string name="activity.settings.color.bg.title">Read background color</string>
     <string name="activity.settings.color.text.title">Read text color</string>
-    <string name="activity.settings.storage_location.title">Read storage location</string>
 
     <string name="activity.create_read.new.title">Read name</string>
     <string name="activity.create_read.type.title">Read type</string>
@@ -71,7 +70,6 @@
     <!-- Preferences local storage file structure -->
     <string name="activity.settings.pref.name">fast_reader_preferences</string>
     <string name="activity.settings.pref.xml.key.word_flip">pref_word_flip_interval</string>
-    <string name="activity.settings.pref.xml.key.storage_location">pref_read_storage_location</string>
     <string name="activity.settings.pref.xml.key.color.text">pref_read_mode_bg_color</string>
     <string name="activity.settings.pref.xml.key.color.bg">pref_read_mode_text_color</string>
 </resources>
