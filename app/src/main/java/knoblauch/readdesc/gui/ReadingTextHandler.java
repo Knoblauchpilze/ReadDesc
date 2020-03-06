@@ -206,19 +206,4 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     public void stop() {
         m_handler.removeCallbacks(this);
     }
-
-    /**
-     * Used as a mean for external objects to force a refresh of the word
-     * displayed by the text view controlled by this object. This typically
-     * indicates that the parser has been updated by external means.
-     */
-    public void refresh() {
-        // Impossible to refresh the word displayed if the parser is not ready.
-        if (!m_parser.isReady()) {
-            return;
-        }
-
-        // Otherwise we can update the word displayed in the main view.
-        m_text.setText(m_parser.getCurrentWord());
-    }
 }

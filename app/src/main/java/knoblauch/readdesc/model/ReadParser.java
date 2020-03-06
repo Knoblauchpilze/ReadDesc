@@ -163,6 +163,7 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         m_locker = new ReentrantLock();
 
         // Create the list of paragraphs and the rest of the properties.
+        // TODO: Remove this: it should be kept private in the source.
         m_paragraphs = new ArrayList<>();
         m_paragraphIndex = 0;
         m_wordIndex = 0;
@@ -192,6 +193,7 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         m_desiredProgress = (desiredProgress < 0.0f ? m_desc.getCompletion() : desiredProgress);
 
         // Start the loading of the data.
+        // TODO: Include the progression in the source or in the request to execute.
         m_source.execute(m_desc.getDataUri());
     }
 
