@@ -17,45 +17,62 @@ public class PdfTextExtractor implements RenderListener {
     private static final Pattern SPACE_PATTERN = Pattern.compile("^\\s+$");
 
     /**
-     * The list of paragraphs parsed by this text extractor. Note that
-     * it is only containing the words and no additional information
-     * such as links, images, etc.
+     * Define the list of punctuations symbols that will be collapsed during
+     * the sanitize operation taking place when extracting the words from the
+     * `PDF` document.
      */
-    private ArrayList<Paragraph> m_paragraphs;
+    private static final String PUNCTUATION = ",?;.:!()°\"'";
 
+    /**
+     * Define the list of currencies that will be collapsed during a sanitize
+     * operation to be linked to their associated numerical value.
+     */
+    private static final String CURRENCIES = "€$£";
+
+    /**
+     * The list of words parsed by this text extractor. Note that it is only
+     * containing the words and no additional information such as links, or
+     * images, etc.
+     * Words are filtered upon being added to the extractor so querying the
+     * registered words through the `getWords` method is guaranteed to only
+     * return valid words.
+     */
+    private ArrayList<String> m_words;
+
+    /**
+     * Creates a new extractor with no words registered.
+     */
     PdfTextExtractor() {
-        m_paragraphs = new ArrayList<>();
+        m_words = new ArrayList<>();
     }
 
     /**
-     * Return the list of paragraphs extracted by this object so far.
-     * @return - a list of the paragraphs already extracted by this
-     *           object.
+     * Return the list of words extracted by this object so far. Note that
+     * this list is filtered and does not contain any empty words. We also
+     * pass a currencies and punctuation filter which prevent words that
+     * are composed only of currencies or punctuations to be added.
+     * @return - a list of the words extracted by this object so far.
      */
-    ArrayList<Paragraph> getParagraphs() {
-        return m_paragraphs;
+    ArrayList<String> getWords() {
+        return m_words;
     }
 
     /**
-     * Remove any existing paragraph from this object, so that it can
-     * be used again as if it has just been constructed.
+     * Remove any existing word from this object, so that it can be used
+     * again as if it had just been constructed.
      */
     void clear() {
-        m_paragraphs.clear();
+        m_words.clear();
     }
 
     @Override
     public void beginTextBlock() {
-        // Each time we encounter a new text block we want to create a
-        // new paragraph. This will help cut the document into smaller
-        // pieces that can be easier to read.
-        m_paragraphs.add(new Paragraph());
+        // No op: nothing to be done here.
     }
 
     @Override
     public void endTextBlock() {
-        // No op: nothing to be done we will create a new paragraph in
-        // the next `beginTextBlock` operation if needed.
+        // No op: nothing to be done here.
     }
 
     @Override
@@ -71,17 +88,28 @@ public class PdfTextExtractor implements RenderListener {
         // the current paragraph we're building.
         String[] words = renderInfo.getText().split("\\s+");
 
-        // Make sure that we have at least one paragraph.
-        if (m_paragraphs.isEmpty()) {
-            beginTextBlock();
-        }
-
         for (String word : words) {
-            // Keep only valid words.
+            // Discard empty words.
             Matcher matcher = SPACE_PATTERN.matcher(word);
-            if (!matcher.matches()) {
-                m_paragraphs.get(m_paragraphs.size() - 1).addWord(word);
+            if (matcher.matches()) {
+                continue;
             }
+
+            // Also check whether this word is a single punctuation or
+            // currency character: in this case we will try to perform
+            // some cleaning by associating it with the last word we
+            // parsed. Indeed it's most likely that it is linked to the
+            // existing context and it will be easier to read.
+            // Of course this only applies in case we have at least one
+            // word already defined.
+            if (!m_words.isEmpty() && word.length() == 1 && (PUNCTUATION.contains(word) || CURRENCIES.contains(word))) {
+                String c = m_words.get(m_words.size() - 1).concat(word);
+                m_words.set(m_words.size() - 1, c);
+                continue;
+            }
+
+            // Register this word normally.
+            m_words.add(word);
         }
     }
 }

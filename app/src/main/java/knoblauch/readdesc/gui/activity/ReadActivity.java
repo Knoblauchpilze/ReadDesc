@@ -305,6 +305,11 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
     }
 
     @Override
+    public void onParsingProgress(float progress) {
+        // Nothing to be done here.
+    }
+
+    @Override
     public void onParsingFinished() {
         // Nothing to be done here.
     }
@@ -316,11 +321,6 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         // the controls but as we will be terminated soon there's really no point
         // in doing that.
         prepareForTermination();
-    }
-
-    @Override
-    public void onLoadingProgress(float progress) {
-        // Nothing to be done here.
     }
 
     @Override

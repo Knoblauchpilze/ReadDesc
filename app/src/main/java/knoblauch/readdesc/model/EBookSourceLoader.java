@@ -12,13 +12,14 @@ class EBookSourceLoader extends ReadLoader {
      * Create a new `e-book` source loader from the specified arguments. Will call
      * the base class constructor and forward the arguments.
      * @param context - the context to use to resolve links and resources.
-     * @param listener - the object to notify whenever the data has successfully
-     *                   been loaded or a failure has been detected.
+     * @param progress - the desired progress to load in priority. This allows
+     *                   to orient the parsing operations to quickly reach this
+     *                   point as it's of interest for the user.
      */
-    EBookSourceLoader(Context context, ReadLoaderListener listener) { super(context, listener); }
+    EBookSourceLoader(Context context, float progress) { super(context, progress); }
 
     @Override
-    ArrayList<Paragraph> loadFromSource(InputStream stream) throws IOException {
+    ArrayList<String> loadFromSource(InputStream stream, float progress) throws IOException {
         // TODO: Should handle e-book parsing.
         return new ArrayList<>();
     }

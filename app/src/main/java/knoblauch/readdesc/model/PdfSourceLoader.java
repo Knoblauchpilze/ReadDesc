@@ -18,16 +18,14 @@ class PdfSourceLoader extends ReadLoader {
      * specify the source as it will be provided as part of the execution state
      * for this loader.
      * @param context - the context to use to resolve links and resources.
-     * @param listener - the object to notify whenever the data has successfully
-     *                   been loaded or a failure has been detected.
+     * @param progress - the desired progress to load in priority. This allows
+     *                   to orient the parsing operations to quickly reach this
+     *                   point as it's of interest for the user.
      */
-    PdfSourceLoader(Context context, ReadLoaderListener listener) {
-        // Use the base handler.
-        super(context, listener);
-    }
+    PdfSourceLoader(Context context, float progress) { super(context, progress); }
 
     @Override
-    ArrayList<Paragraph> loadFromSource(InputStream stream) throws IOException {
+    ArrayList<String> loadFromSource(InputStream stream, float progress) throws IOException {
         // Create the reader from the stream related to this element.
         PdfReader reader = new PdfReader(stream);
 
@@ -36,7 +34,7 @@ class PdfSourceLoader extends ReadLoader {
         PdfTextExtractor extractor = new PdfTextExtractor();
         PdfReaderContentParser parser = new PdfReaderContentParser(reader);
 
-        ArrayList<Paragraph> out = new ArrayList<>();
+        ArrayList<String> out = new ArrayList<>();
 
         try {
             for (int i = 1 ; i <= reader.getNumberOfPages() && !isCancelled(); ++i) {
@@ -46,28 +44,8 @@ class PdfSourceLoader extends ReadLoader {
 
                 // Register each one of them in the internal array and update
                 // the word count along the way.
-                ArrayList<Paragraph> paragraphs = extractor.getParagraphs();
-
-                for (Paragraph p : paragraphs) {
-                    // Sanitize the paragraph.
-                    p.sanitize();
-
-                    // Discard empty paragraph.
-                    if (p.isEmpty()) {
-                        continue;
-                    }
-
-                    // Check whether we can group it with another existing one.
-                    if (p.canBeGrouped() && !out.isEmpty()) {
-                        Paragraph last = out.get(out.size() - 1);
-                        last.merge(p);
-
-                        continue;
-                    }
-
-                    // Register this paragraph as it cannot be grouped.
-                    out.add(p);
-                }
+                ArrayList<String> words = extractor.getWords();
+                out.addAll(words);
 
                 // Clear the extractor to be ready for the next page.
                 extractor.clear();

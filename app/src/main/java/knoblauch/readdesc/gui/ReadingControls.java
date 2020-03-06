@@ -224,21 +224,24 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
     }
 
     @Override
-    public void onParsingFinished() {
-        // Activate the controls.
-        setActive(true);
-
-        // Update the state of the controller to `stopped`.
-        setState(ReadingControls.State.Stopped);
-    }
-
-    @Override
-    public void onParsingFailed() {
+    public void onParsingProgress(float progress) {
         // Nothing to be done here.
     }
 
     @Override
-    public void onLoadingProgress(float progress) {
+    public void onParsingFinished() {
+        // Activate the controls if needed. This will also condition whether or
+        // not we need to reset the state to `Stopped`.
+        if (!m_enabled) {
+            setActive(true);
+
+            // Update the state of the controller to `stopped`.
+            setState(ReadingControls.State.Stopped);
+        }
+    }
+
+    @Override
+    public void onParsingFailed() {
         // Nothing to be done here.
     }
 

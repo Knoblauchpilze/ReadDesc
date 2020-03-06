@@ -132,6 +132,12 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     }
 
     @Override
+    public void onParsingProgress(float progress) {
+        // We want to update the value of the progress bar to reach the input value.
+        m_waiter.setProgress(Math.round(100.0f * progress));
+    }
+
+    @Override
     public void onParsingFinished() {
         // Receiving this signal indicates that the parser is now ready to display the
         // text of the read. We can hide the progress bar and start display the actual
@@ -146,12 +152,6 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     @Override
     public void onParsingFailed() {
         // Nothing to be done here.
-    }
-
-    @Override
-    public void onLoadingProgress(float progress) {
-        // We want to update the value of the progress bar to reach the input value.
-        m_waiter.setProgress(Math.round(100.0f * progress));
     }
 
     @Override
@@ -172,7 +172,6 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // we reached a paragraph or not as we want to stop *after* the
         // current word anyways.
         m_parser.advance();
-        m_text.setText(m_parser.getCurrentWord());
 
         // Check whether we reached a paragraph.
         if (m_parser.isAtParagraph() || m_parser.isAtEnd()) {
