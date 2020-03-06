@@ -164,6 +164,7 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         // First apply preferences to the known elements.
         m_controls.updateFromPrefs(prefs);
         m_textHandler.updateFromPrefs(prefs);
+        m_parser.updateFromPrefs(prefs);
 
         // We also need to apply the preferences to the auxiliary elements
         // such as the layouts.

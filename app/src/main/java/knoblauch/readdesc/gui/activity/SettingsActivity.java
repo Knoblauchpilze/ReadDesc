@@ -60,6 +60,19 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
     private SeekBar m_wordFlipValue;
 
     /**
+     * Holds the text view displaying the current word step value expressed in
+     * words. Used to update the value whenever the user changes the seek bar
+     * allowing to control this setting.
+     */
+    private TextView m_wordStepText;
+
+    /**
+     * Holds the seek bar allowing to control the size in words of a single
+     * step when in reading mode (both forward and backwards).
+     */
+    private SeekBar m_wordStepValue;
+
+    /**
      * Holds the current set of preferences defined in the settings view. This
      * attribute is populated from the local data upon creating the view and
      * is then saved when needed.
@@ -82,6 +95,7 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
 
         // Register this view as a listener of relevant properties.
         m_wordFlipValue.setOnSeekBarChangeListener(this);
+        m_wordStepValue.setOnSeekBarChangeListener(this);
 
         m_bgColor.red.setOnSeekBarChangeListener(this);
         m_bgColor.green.setOnSeekBarChangeListener(this);
@@ -165,6 +179,17 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
             return;
         }
 
+        if (seekBar == m_wordStepValue) {
+            // Update prefs object.
+            m_prefs.setWordStep(progress);
+
+            // Update the display text.
+            String wordStep = String.format(getResources().getString(R.string.activity_settings_word_step_text), m_prefs.getWordStep());
+            m_wordStepText.setText(wordStep);
+
+            return;
+        }
+
         // Handle a modification of the background color while in reading mode.
         // Any change in the progress bar should update the preview button bg
         // color (along with the preferences' value).
@@ -238,6 +263,10 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_wordFlipText = findViewById(R.id.settings_word_flip_value);
         m_wordFlipValue = findViewById(R.id.settings_word_flip_seek_bar);
 
+        // Retrieve the word step.
+        m_wordStepText = findViewById(R.id.settings_word_step_value);
+        m_wordStepValue = findViewById(R.id.settings_word_step_seek_bar);
+
         // Save relevant views in order to be able to change the suited properties.
         // Also we need to connect signals from various sliders.
         m_bgColor = new ColorSeekBars();
@@ -282,6 +311,13 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         String wordFlipText = String.format(getResources().getString(R.string.activity_settings_word_flip_text), wordFlipInterval);
         m_wordFlipText.setText(wordFlipText);
         m_wordFlipValue.setProgress(wordFlipInterval);
+
+        // Word step.
+        int wordStep = m_prefs.getWordStep();
+        String wordStepText = String.format(getResources().getString(R.string.activity_settings_word_step_text), wordStep);
+        m_wordStepText.setText(wordStepText);
+        m_wordStepValue.setProgress(wordStep);
+
 
         // Background color while in reading mode.
         int bgColor = m_prefs.getBackgroundColor();

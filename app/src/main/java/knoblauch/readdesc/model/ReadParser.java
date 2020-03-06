@@ -47,7 +47,6 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
     /**
      * Used to define the number of words advanced at once upon processing
      * a `Next/PreviousStep` action.
-     * TODO: This should be replaced by a configurable property.
      */
     private static final int STEP_WORDS_COUNT = 10;
 
@@ -82,6 +81,15 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
     private ArrayList<ParsingDoneListener> m_listeners;
 
     /**
+     * Holds a value describing the number of word(s) that are skipped
+     * when the `moveToPrevious` or `moveToNext` is called. This value
+     * is initialized with a default (sometimes not suited for large
+     * documents) value but can be set through the `setWordStep` method
+     * for example from a value retrieved from the preferences.
+     */
+    private int m_wordStep;
+
+    /**
      * Create a new parser from the specified read. The parser will detect the
      * type of the read and instantiate a valid data source to fetch and load
      * it.
@@ -101,6 +109,8 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
         // Create the listeners' list.
         m_listeners = new ArrayList<>();
 
+        m_wordStep = STEP_WORDS_COUNT;
+
         // Create the source with a valid desired progress value. In case this
         // value is negative (indicating that no specific desired progress is
         // needed) we should rely on the value provided by the `read` itself.
@@ -119,6 +129,17 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
         if (listener != null) {
             m_listeners.add(listener);
         }
+    }
+
+    /**
+     * Used to update the internal values that can be configured from the
+     * preferences object provided as input. This helps maintaining some
+     * sort of consistent behavior across the application.
+     * @param prefs - the preferences object describing all configurable
+     *                values and which should be applied in this object.
+     */
+    public void updateFromPrefs(ReadPref prefs) {
+        m_wordStep = prefs.getWordStep();
     }
 
     /**
@@ -367,7 +388,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * try to move as far as possible.
      */
     public void moveToPrevious() {
-        m_source.perform(ReadLoader.Action.PreviousStep, STEP_WORDS_COUNT);
+        m_source.perform(ReadLoader.Action.PreviousStep, m_wordStep);
     }
 
     /**
@@ -377,7 +398,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * it might not be possible to move all the way through.
      */
     public void moveToNext() {
-        m_source.perform(ReadLoader.Action.NextStep, STEP_WORDS_COUNT);
+        m_source.perform(ReadLoader.Action.NextStep, m_wordStep);
     }
 
     /**

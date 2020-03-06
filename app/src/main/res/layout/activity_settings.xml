@@ -21,7 +21,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/activity.settings.word_flip.title"
+                android:text="@string/activity.settings.word.title"
                 android:layout_marginBottom="@dimen/activity.settings.margin.title_to_content"
                 style="@style/TextViewTitle"
                 />
@@ -37,7 +37,7 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_word_flip_value"
                     android:layout_weight="40"
-                    android:text="@string/activity.settings.word_flip.text"
+                    android:text="@string/activity.settings.word.flip.text"
                     style="@style/SecondaryItem"
                     />
 
@@ -46,8 +46,33 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/settings_word_flip_seek_bar"
                     android:layout_weight="60"
-                    android:min="@integer/activity.settings.pref.word_flip.min"
-                    android:max="@integer/activity.settings.pref.word_flip.max"
+                    android:min="@integer/activity.settings.pref.word.flip.min"
+                    android:max="@integer/activity.settings.pref.word.flip.max"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                >
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/settings_word_step_value"
+                    android:layout_weight="40"
+                    style="@style/SecondaryItem"
+                    />
+
+                <SeekBar
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/settings_word_step_seek_bar"
+                    android:layout_weight="60"
+                    android:min="@integer/activity.settings.pref.word.step.min"
+                    android:max="@integer/activity.settings.pref.word.step.max"
                     />
 
             </LinearLayout>

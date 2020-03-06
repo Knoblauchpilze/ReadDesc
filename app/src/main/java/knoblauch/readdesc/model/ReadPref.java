@@ -42,6 +42,13 @@ public class ReadPref {
     private int m_wordFlipInterval;
 
     /**
+     * The size (expressed in word(s)) of a single `step` motion when pressing the
+     * corresponding control button while in reading mode. This applies both for
+     * forward and backwards motion.
+     */
+    private int m_wordStep;
+
+    /**
      * Create a default read preference object with no associated preferences. The context is
      * used to retrieve the properties saved in the application and if none are defined, we
      * use the default values.
@@ -106,6 +113,18 @@ public class ReadPref {
     }
 
     /**
+     * Retrieve the size in word(s) of a single `step` motion while in reading mode.
+     * @return - the size in word(s) of a `step`.
+     */
+    public int getWordStep() { return m_wordStep; }
+
+    /**
+     * Assign a new word step value describing a single motion while in reading mode.
+     * @param wordStep - the new size in word(s) of a `step` motion.
+     */
+    public void setWordStep(int wordStep) { m_wordStep = wordStep; }
+
+    /**
      * Used in order to load the preferences from the values saved on the disk. Uses the
      * internal context to retrieve the previously saved values or uses the default ones
      * if none have been saved already.
@@ -127,7 +146,14 @@ public class ReadPref {
         m_wordFlipInterval = res.getInteger(R.integer.activity_settings_pref_word_flip_default);
         key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         if (pref.contains(key)) {
-            m_wordFlipInterval = pref.getInt(key, m_wordFlipInterval );
+            m_wordFlipInterval = pref.getInt(key, m_wordFlipInterval);
+        }
+
+        // Restore the word step or create it from default value if it does not exist.
+        m_wordStep = res.getInteger(R.integer.activity_settings_pref_word_step_default);
+        key = res.getString(R.string.activity_settings_pref_xml_key_word_step);
+        if (pref.contains(key)) {
+            m_wordStep = pref.getInt(key, m_wordStep);
         }
 
         // Restore background color while in reading mode.
@@ -165,6 +191,10 @@ public class ReadPref {
         // Save the word flip interval.
         key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         editor.putInt(key, m_wordFlipInterval);
+
+        // Save the word step.
+        key = res.getString(R.string.activity_settings_pref_xml_key_word_step);
+        editor.putInt(key, m_wordStep);
 
         // Save the background color while in reading mode.
         key = res.getString(R.string.activity_settings_pref_xml_key_color_bg);

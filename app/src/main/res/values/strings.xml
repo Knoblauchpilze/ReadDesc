@@ -41,8 +41,9 @@
     <string name="activity.recent_reads.read.content_desc.thumbnail">Read thumbnail</string>
 
     <!-- Text in activities -->
-    <string name="activity.settings.word_flip.title">Word flip interval</string>
-    <string name="activity.settings.word_flip.text">%1$d ms</string>
+    <string name="activity.settings.word.title">Word management</string>
+    <string name="activity.settings.word.flip.text">%1$d ms</string>
+    <string name="activity.settings.word.step.text">%1$d word(s)</string>
     <string name="activity.settings.color.bg.title">Read background color</string>
     <string name="activity.settings.color.text.title">Read text color</string>
 
@@ -69,7 +70,8 @@
 
     <!-- Preferences local storage file structure -->
     <string name="activity.settings.pref.name">fast_reader_preferences</string>
-    <string name="activity.settings.pref.xml.key.word_flip">pref_word_flip_interval</string>
+    <string name="activity.settings.pref.xml.key.word.flip">pref_word_flip_interval</string>
+    <string name="activity.settings.pref.xml.key.word.step">pref_word_step</string>
     <string name="activity.settings.pref.xml.key.color.text">pref_read_mode_bg_color</string>
     <string name="activity.settings.pref.xml.key.color.bg">pref_read_mode_text_color</string>
 </resources>
