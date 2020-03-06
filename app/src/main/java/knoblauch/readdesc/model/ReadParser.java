@@ -223,18 +223,6 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
     }
 
     /**
-     * Convenience wrapper around the `getCompletion` method which allows to
-     * retrieve the progression as a percentage value. Uses said method as
-     * a way to compute this percentage (so it requires the lock on this item
-     * to be acquired).
-     * @return - an integer representing the percentage of completion reached
-     *           so far by this reader.
-     */
-    public int getCompletionAsPercentage() {
-        return Math.round(100.0f * getCompletion());
-    }
-
-    /**
      * Retrieves the name of the read associated to this parser.
      * @return - the name of the read linked to this parser.
      */
@@ -496,7 +484,9 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
      * requests to go fetch the previous paragraph's data from the source of
      * the read.
      * Note that in case the previous paragraph does not exist (typically when
-     * the user did not get past the first) nothing happens.
+     * the user did not get past the first) nothing happens. In any other case
+     * the reader will emit a `onParsingFinished` signal whenever the data to
+     * reach the previous paragraph is received.
      */
     public void moveToPrevious() {
         // When moving to the previous paragraph we also reset the word
@@ -537,6 +527,15 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
 
         m_locker.unlock();
+
+        // TODO: We should introduce a mechanism to detect whether the
+        // source can already provide the requested data and start a
+        // loading operation if needed. This also goes for the other
+        // motion methods.
+        // Notify listeners that the data is now ready.
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onParsingFinished();
+        }
     }
 
     /**
@@ -571,6 +570,15 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
 
         m_locker.unlock();
+
+        // TODO: We should introduce a mechanism to detect whether the
+        // source can already provide the requested data and start a
+        // loading operation if needed. This also goes for the other
+        // motion methods.
+        // Notify listeners that the data is now ready.
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onParsingFinished();
+        }
     }
 
     /**
@@ -596,6 +604,15 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
         m_completion = 1.0f * m_globalWordIndex / m_totalWordCount;
 
         m_locker.unlock();
+
+        // TODO: We should introduce a mechanism to detect whether the
+        // source can already provide the requested data and start a
+        // loading operation if needed. This also goes for the other
+        // motion methods.
+        // Notify listeners that the data is now ready.
+        for (ParsingDoneListener listener : m_listeners) {
+            listener.onParsingFinished();
+        }
     }
 
     /**
@@ -692,7 +709,7 @@ public class ReadParser implements ReadLoader.ReadLoaderListener {
 
     @Override
     public void onLoadingStarted() {
-        // We want to notify the listeners that a new loading operaiton is being
+        // We want to notify the listeners that a new loading operation is being
         // started.
         for (ParsingDoneListener listener : m_listeners) {
             listener.onParsingStarted();

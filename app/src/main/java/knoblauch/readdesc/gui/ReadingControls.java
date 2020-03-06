@@ -5,9 +5,10 @@ import android.widget.ImageButton;
 
 import java.util.ArrayList;
 
+import knoblauch.readdesc.model.ReadParser;
 import knoblauch.readdesc.model.ReadPref;
 
-public class ReadingControls implements View.OnClickListener {
+public class ReadingControls implements View.OnClickListener, ReadParser.ParsingDoneListener {
 
     /**
      * Convenience enumeration describing the possible actions to
@@ -19,17 +20,6 @@ public class ReadingControls implements View.OnClickListener {
         Pause,
         Play,
         NextParagraph
-    }
-
-    /**
-     * Convenience enumeration describing the possible position of
-     * a parser which should be reflected in the availability of
-     * the controls buttons.
-     */
-    public enum Position {
-        AtStart,
-        Running,
-        AtEnd
     }
 
     /**
@@ -97,15 +87,26 @@ public class ReadingControls implements View.OnClickListener {
     private boolean m_enabled;
 
     /**
+     * The reader that is controlled by the elements in this UI. Note
+     * that it is also used to handle the availability of buttons for
+     * a given position of the reader in the virtual data stream. It
+     * allows to disable the next button when the parser reaches the
+     * end of the read, etc.
+     */
+    private ReadParser m_reader;
+
+    /**
      * Creates a new reading controls class with the specified buttons
      * to use to perform and detect the operations requested by the user.
+     * @param reader - the reader underlying the controls (i.e. the item
+     *                 controlled by the buttons in this object).
      * @param reset - the reset button.
      * @param prev - the move to previous paragraph button.
      * @param pause - the pause button.
      * @param play - the play button.
      * @param next - the move to next paragraph button.
      */
-    public ReadingControls(ImageButton reset, ImageButton prev, ImageButton pause, ImageButton play, ImageButton next) {
+    public ReadingControls(ReadParser reader, ImageButton reset, ImageButton prev, ImageButton pause, ImageButton play, ImageButton next) {
         // Assign internal attributes.
         m_reset = reset;
         m_prev = prev;
@@ -116,6 +117,11 @@ public class ReadingControls implements View.OnClickListener {
         // Create the listeners' list.
         m_listeners = new ArrayList<>();
 
+        // Update the reader and register as a listener of the parsing's
+        // related notifications.
+        m_reader = reader;
+        m_reader.addOnParsingDoneListener(this);
+
         // Register to the `onClick` single from these buttons: this will
         // allow to interpret the user's requests.
         m_reset.setOnClickListener(this);
@@ -124,8 +130,9 @@ public class ReadingControls implements View.OnClickListener {
         m_play.setOnClickListener(this);
         m_next.setOnClickListener(this);
 
-        // Assume we're disabled by default.
+        // Assume we're disabled by default and at the beginning of the read.
         setActive(false);
+        setState(State.Stopped);
     }
 
     /**
@@ -137,7 +144,7 @@ public class ReadingControls implements View.OnClickListener {
      * @param active - `true` if the command from the buttons should be
      *                 interpreted and `false` otherwise.
      */
-    public void setActive(boolean active) {
+    private void setActive(boolean active) {
         m_enabled = active;
     }
 
@@ -185,48 +192,54 @@ public class ReadingControls implements View.OnClickListener {
             return;
         }
 
+        // Update internal UI state from the requested action. We only
+        // care about a request to start the reading or to pause it as
+        // the other actions will be handled as we request the reader
+        // to update its internal state and will thus produce a signal
+        // received in `onParsingFinished`.
+        switch (action) {
+            case Pause:
+                setState(State.Stopped);
+                break;
+            case Play:
+                setState(State.Running);
+                break;
+            case Rewind:
+            case PreviousParagraph:
+            case NextParagraph:
+                break;
+        }
+
         // Notify listeners of the requested user's action.
         for (ControlsListener listener : m_listeners) {
             listener.onActionRequested(action);
         }
     }
 
-    /**
-     * Used to update the controls availability based on the position set
-     * as input parameters. Basically it allows to always enable controls
-     * that corresponds to the current state of the parser (typically we
-     * don't want to enable the `rewind` button in case the parser is set
-     * at the beginning of the read already).
-     * @param position - the position of the parser which should be set
-     *                   as a reflection of the controls available.
-     */
-    public void setPosition(Position position) {
-        // Depending on the position we will de/activate some of the buttons.
-        boolean canRewind = true;
-        boolean canGoPrev = true;
-        boolean canGoNext = true;
+    @Override
+    public void onParsingStarted() {
+        // We want to deactivate the controls until we receive the notification
+        // indicating that the parsing is finished.
+        setActive(false);
+    }
 
-        switch (position) {
-            case AtStart:
-                canRewind = false;
-                canGoPrev = false;
-                break;
-            case Running:
-                break;
-            case AtEnd:
-                canGoNext = false;
-                break;
-        }
+    @Override
+    public void onParsingFinished() {
+        // Activate the controls.
+        setActive(true);
 
-        m_reset.setEnabled(canRewind);
-        m_prev.setEnabled(canGoPrev);
-        m_next.setEnabled(canGoNext);
+        // Update the state of the controller to `stopped`.
+        setState(ReadingControls.State.Stopped);
+    }
 
-        // In case we're at the end of the read, deactivate the `play` button
-        // as well.
-        if (!canGoNext) {
-            m_play.setEnabled(false);
-        }
+    @Override
+    public void onParsingFailed() {
+        // Nothing to be done here.
+    }
+
+    @Override
+    public void onLoadingProgress(float progress) {
+        // Nothing to be done here.
     }
 
     /**
@@ -237,16 +250,44 @@ public class ReadingControls implements View.OnClickListener {
      */
     public void setState(State state) {
         // Update the availability of each state.
+        boolean controlsActive = false;
+
         switch (state) {
             case Stopped:
                 m_pause.setEnabled(false);
-                m_play.setEnabled(true);
+                m_play.setEnabled(m_reader.isReady() && !m_reader.isAtEnd());
+                controlsActive = true;
                 break;
             case Running:
                 m_pause.setEnabled(true);
                 m_play.setEnabled(false);
                 break;
         }
+
+        m_reset.setEnabled(controlsActive);
+        m_prev.setEnabled(controlsActive);
+        m_next.setEnabled(controlsActive);
+
+        // And update the controls availability based on the new state of the
+        // reader if we didn't disabled them.
+        if (controlsActive) {
+            updateControlsAvailability();
+        }
+    }
+
+
+    /**
+     * Used to update the controls availability based on the current state
+     * of the reader underlying this object. We will set the `enabled` for
+     * each motion button (i.e. the move to next/previous and the rewind)
+     * based on whether each of these operation actually makes sense given
+     * the current position of the reader in the data stream.
+     */
+    private void updateControlsAvailability() {
+        // Depending on the position we will de/activate some of the buttons.
+        m_reset.setEnabled(m_reader.isReady() && !m_reader.isAtStart());
+        m_prev.setEnabled(m_reader.isReady() && !m_reader.isAtStart());
+        m_next.setEnabled(m_reader.isReady() && !m_reader.isAtEnd());
     }
 
     /**

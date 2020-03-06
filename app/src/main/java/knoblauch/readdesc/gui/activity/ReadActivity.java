@@ -86,7 +86,7 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         ImageButton next = findViewById(R.id.read_next_chapter_id);
 
         // Create the controls object.
-        m_controls = new ReadingControls(reset, prev, pause, play, next);
+        m_controls = new ReadingControls(m_parser, reset, prev, pause, play, next);
 
         // Register this view as a listener of the controls.
         m_controls.addOnControlsListener(this);
@@ -266,27 +266,6 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         return String.format(msg, prg, m_parser.getName());
     }
 
-    /**
-     * Used internally to update the position of the controls given the state
-     * of the parser. This is typically used in case we received a notification
-     * indicating that some data has been received or any sort of signals that
-     * can have an impact on the parser's position (and thus on the controls).
-     */
-    private void updateControlsPosition() {
-        // Determine a valid state from the current position of the parser in the
-        // read data stream.
-        ReadingControls.Position pos = ReadingControls.Position.Running;
-        if (m_parser.isAtStart()) {
-            pos = ReadingControls.Position.AtStart;
-        }
-        if (m_parser.isAtEnd()) {
-            pos = ReadingControls.Position.AtEnd;
-        }
-
-        // Apply position update to the controls.
-        m_controls.setPosition(pos);
-    }
-
     @Override
     public void onActionRequested(ReadingControls.Action action) {
         // Detect which type of action has been requested and update the parser
@@ -299,31 +278,17 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         switch (action) {
             case Rewind:
                 m_parser.rewind();
-                m_textHandler.refresh();
                 break;
             case PreviousParagraph:
                 m_parser.moveToPrevious();
-                m_textHandler.refresh();
                 break;
             case NextParagraph:
                 m_parser.moveToNext();
-                m_textHandler.refresh();
                 break;
             default:
                 // Nothing to do, it will be handled afterwards.
                 break;
         }
-
-        // Also update the state of the controls based on the action.
-        if (action == ReadingControls.Action.Play) {
-            m_controls.setState(ReadingControls.State.Running);
-        }
-        else {
-            m_controls.setState(ReadingControls.State.Stopped);
-        }
-
-        // Update the controls.
-        updateControlsPosition();
 
         // Now update the word flip task.
         if (action == ReadingControls.Action.Play) {
@@ -336,21 +301,12 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
 
     @Override
     public void onParsingStarted() {
-        // We want to deactivate the controls until we receive the notification
-        // indicating that the parsing is finished.
-        m_controls.setActive(false);
+        // Nothing to be done here.
     }
 
     @Override
     public void onParsingFinished() {
-        // Activate the controls.
-        m_controls.setActive(true);
-
-        // Update the state of the controller to `stopped`.
-        m_controls.setState(ReadingControls.State.Stopped);
-
-        // And update the position based on the new state of the parser.
-        updateControlsPosition();
+        // Nothing to be done here.
     }
 
     @Override
@@ -416,7 +372,6 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
 
         // Also we need to update the controls with the current state of the reader.
         m_controls.setState(ReadingControls.State.Stopped);
-        updateControlsPosition();
     }
 
 }
