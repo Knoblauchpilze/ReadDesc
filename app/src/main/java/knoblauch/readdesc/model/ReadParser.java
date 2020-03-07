@@ -338,18 +338,6 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
     }
 
     /**
-     * Should return `true` in case this parser is right at a paragraph which
-     * indicate that the reading session should be paused in case the user is
-     * wanting to stop reading and start again later.
-     * TODO: We should instead provide some sort of counting mechanism where
-     * we only stop when a fixed amount of words have been read.
-     * @return - always `false` for now.
-     */
-    public boolean isAtParagraph() {
-        return false;
-    }
-
-    /**
      * Returns the current completion reached by this parser. This value is
      * initialized upon building the object and then updated each one a new
      * word is requested.

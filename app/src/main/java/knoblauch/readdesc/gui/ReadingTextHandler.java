@@ -30,6 +30,12 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     }
 
     /**
+     * Used to define the number of words that should be read at once when
+     * the `play` button is pressed.
+     */
+    private static final int READ_LENGTH = 10;
+
+    /**
      * Holds the main text view allowing to display the current content of
      * the view. Its content is updated each time a period of time defined
      * in the preferences has past to flip to the next word of the view.
@@ -70,6 +76,24 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     private ArrayList<ParagraphListener> m_listeners;
 
     /**
+     * Holds a value descrbing the number of words that should be read at
+     * once when the user press the `play` button. This allows to create
+     * pauses that the user can use to interpret the content just read.
+     * This value is assigned a default value and updated from preferences
+     * among other settings.
+     */
+    private int m_readLength;
+
+    /**
+     * Contains the current length of the running read session. This helps
+     * to give the user some pauses when a certain amount of words have
+     * been read.
+     * It is reset each time the user starts a new reading session (using
+     * the `play` button in the controls).
+     */
+    private int m_currentReadLength;
+
+    /**
      * Creates a new text handler from the input text view and progress bar.
      * This element will automatically switch from one element to the other
      * in case it is needed.
@@ -88,8 +112,11 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         m_handler = handler;
 
         // Assign an invalid value for the flip interval. We will wait for a
-        // call to `updateFromPrefs` to get a correct value.
+        // call to `updateFromPrefs` to get a correct value. Same scenario
+        // for the read length.
         m_flipInterval = -1;
+        m_readLength = READ_LENGTH;
+        m_currentReadLength = 0;
 
         m_listeners = new ArrayList<>();
     }
@@ -110,6 +137,12 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
 
         // Update the word flip interval.
         m_flipInterval = prefs.getWordFlipInterval();
+
+        // Retrieve the read length: we will assume that it is similar to
+        // the value defined for the word step. Indeed it makes sense to
+        // assume that the user will read for an equal amount of words it
+        // can skip at once.
+        m_readLength = prefs.getWordStep();
     }
 
     /**
@@ -173,8 +206,11 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // current word anyways.
         m_parser.advance();
 
+        // Add `1` to the current read length.
+        ++m_currentReadLength;
+
         // Check whether we reached a paragraph.
-        if (m_parser.isAtParagraph() || m_parser.isAtEnd()) {
+        if (m_currentReadLength >= m_readLength || m_parser.isAtEnd()) {
             // We reached a paragraph, notify listeners.
             for (ParagraphListener listener : m_listeners) {
                 listener.onParagraphReached();
@@ -194,7 +230,10 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
      * Note that if the interval is not valid, the task is not started.
      */
     public void start() {
+        // Only handle the start if we have been updated with a consistent flip
+        // interval. We will also reset the current read length.
         if (m_flipInterval > 0) {
+            m_currentReadLength = 0;
             m_handler.postDelayed(this, m_flipInterval);
         }
     }
