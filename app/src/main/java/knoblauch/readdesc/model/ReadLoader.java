@@ -4,6 +4,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
+import android.util.Pair;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,24 +85,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      * some information that is being loaded by the background process
      * trusted with the fetching of the data.
      */
-    private Lock m_locker;
-
-    /**
-     * The list of words representing this read. This collection is not
-     * organized in any way because it requires too much care according
-     * to the great variety of documents that could be parsed by this
-     * elements.
-     * Instead we focus in providing some sort of global collection of
-     * data that can be traversed in several ways by the user.
-     */
-    private ArrayList<String> m_words;
-
-    /**
-     * The index of the word currently pointed at by the virtual cursor
-     * used to get the words. This is the real indication of how far the
-     * user has come within the source.
-     */
-    private int m_index;
+    Lock m_locker;
 
     /**
      * An indication in the range `[0; 1]` which tells the portion of
@@ -122,6 +107,8 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      * the user already read part of the source.
      * In case the user never opened the source a value of `0` tells
      * that the data should be loaded from the beginning.
+     * Note that the `progress` should be in the range `[0; 1]`. If it
+     * is not the case it will be clamped.
      * @param context - the context to use to resolve links and resources
      *                  needed for the loading operation.
      * @param progress - a percentage representing the region from the
@@ -134,13 +121,11 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         // Create listeners' list.
         m_listeners = new ArrayList<>();
 
-        // Also assume no words are available for this loader.
+        // Create the locker to protect from concurrent accesses.
         m_locker = new ReentrantLock();
-        m_words = new ArrayList<>();
-        m_index = -1;
 
         // And define the desired progression.
-        m_progress = progress;
+        m_progress = Math.min(1.0f, Math.max(0.0f, progress));
     }
 
     /**
@@ -187,9 +172,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         ContentResolver res = m_context.get().getContentResolver();
         try {
             InputStream inStream = res.openInputStream(uri);
-            ArrayList<String> words = loadFromSource(inStream, m_progress);
-
-            handleDataLoaded(words);
+            loadFromSource(inStream, m_progress);
         }
         catch (IOException e) {
             // We failed to load the source, this is an issue.
@@ -198,30 +181,6 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
 
         // We successfully loaded the data from the source.
         return true;
-    }
-
-    /**
-     * Used internally to handle the loading of some words. The input array
-     * will be interpreted and appended to the already existing data so that
-     * it can be accessed from the rest of the application.
-     * Note that this method tries to acquire the lock on this object so as
-     * to be protected from concurrent accesses.
-     * @param words - the words that have just been loaded.
-     */
-    private void handleDataLoaded(ArrayList<String> words) {
-        // Acquire the lock.
-        m_locker.lock();
-
-        // Copy the data and update the progress.
-        try {
-            m_words = words;
-
-            // Update the current word's index.
-            m_index = Math.round(m_progress * m_words.size());
-        }
-        finally {
-            m_locker.unlock();
-        }
     }
 
     @Override
@@ -261,18 +220,6 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
     }
 
     /**
-     * Used as an internal method to determine whether the parser is in
-     * an invalid state. This helps not trying to apply processes that
-     * will most likely fail.
-     * Note that this method does not attempt to acquire the lock on the
-     * data which means it is safe to call from an internal handler.
-     * @return - `true` if the internal state indicate an invalid parser.
-     */
-    private boolean isInvalid() {
-        return !m_words.isEmpty() && m_index >= 0 && m_index < m_words.size();
-    }
-
-    /**
      * Used to determine whether some data is already accessible within
      * this parser. This usually indicates whether a loading operation
      * has already succeeded or not.
@@ -284,78 +231,6 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         m_locker.unlock();
 
         return empty;
-    }
-
-    /**
-     * Allows to determine whether this loader is currently positioned at
-     * the start of the data described by the source or not. This helps
-     * with managing the controls used to move throughout the read.
-     * @return - `true` if the virtual cursor is located at the beginning
-     *           of the read and `false` otherwise.
-     */
-    boolean isAtStart() {
-        m_locker.lock();
-        boolean atStart = (m_index == 0);
-        m_locker.unlock();
-
-        return atStart;
-    }
-
-    /**
-     * Similar to the `isAtStart` method but allows to determiner whether
-     * the parser is currently at the end of the data stream defined by
-     * the source.
-     * @return - `true` if the virtual cursor is at the end of the data
-     *           stream.
-     */
-    boolean isAtEnd() {
-        m_locker.lock();
-        boolean atEnd = (m_index == m_words.size() - 1);
-        m_locker.unlock();
-
-        return atEnd;
-    }
-
-    /**
-     * Used to retrieve the completion reached by this loader so far. This
-     * is computed from the current word index compared to the total words
-     * count available in the reader.
-     * Note that the output value is guaranteed to be in the range `[0; 1]`
-     * and that in case no data is available yet the returned value is `0`.
-     * @return - a value indicating how far in the read the current word
-     *           is.
-     */
-    float getCompletion() {
-        m_locker.lock();
-        float progress = (isInvalid() ? 0.0f : 1.0f * m_index / m_words.size());
-        m_locker.unlock();
-
-        return progress;
-    }
-
-    /**
-     * Used for external elements to retrieve the current word pointed at
-     * by this parser. The virtual cursor is left unchanged by this call
-     * which means that calling this method repeatedly will not cause the
-     * parser to reach the end of the data stream.
-     * In case no data is yet available for this parser the empty string
-     * is returned.
-     * @return - a string representing the current word.
-     */
-    String getCurrentWord() {
-        m_locker.lock();
-
-        // In case the parser is not a valid state, do nothing.
-        if (isInvalid()) {
-            m_locker.unlock();
-            return "";
-        }
-
-        // Otherwise return the current words.
-        String word = m_words.get(m_index);
-        m_locker.unlock();
-
-        return word;
     }
 
     /**
@@ -380,47 +255,118 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
             return;
         }
 
-        // TODO: We should introduce a mechanism to detect whether the source
-        // can already provide the requested data or start a loading operation
-        // if needed. This also goes for the other motion methods.
-
-        boolean changed;
+        Pair<Boolean, Boolean> status = new Pair<>(false, false);
 
         try {
             // Depending on the action we want to perform different changes
             // to the internal virtual cursor.
-            int index = m_index;
-
-            switch (action) {
-                case Rewind:
-                    m_index = 0;
-                    break;
-                case NextWord:
-                    m_index = Math.min(m_index + 1, m_words.size() - 1);
-                    break;
-                case PreviousStep:
-                    m_index = Math.max(m_index - param, 0);
-                    break;
-                case NextStep:
-                    m_index = Math.min(m_index + param, m_words.size() - 1);
-                    break;
-            }
-
-            changed = (index != m_index);
+            status = handleMotion(action, param);
 
         }
         finally {
             m_locker.unlock();
         }
 
-        // In case we actually changed the word pointed at by this loader
-        // we can fire a new signal to listeners.
-        if (changed) {
+        // Handle the status returned by the underlying source. We might need
+        // to perform a loading operation or notify listeners or nothing at
+        // all depending on what could be achieved.
+        if (status.second) {
+            // Schedule a loading operation.
+            // TODO: Handle the loading requests if needed.
+            Log.i("main", "Should perform loading to reach element");
+
+            return;
+        }
+
+        // Check whether we need to notify listeners: this is the case if the
+        // motion could at least be partially applied.
+        if (status.first) {
             for (DataLoadingListener listener : m_listeners) {
                 listener.onDataLoadingSuccess();
             }
         }
     }
+
+    /**
+     * Used as an internal method to determine whether the parser is in
+     * an invalid state. This helps not trying to apply processes that
+     * will most likely fail.
+     * Note that this method does not attempt to acquire the lock on the
+     * data which means it is safe to call from an internal handler.
+     * Inheriting classes should check against the internal data whether
+     * the loader is in a valid state.
+     * @return - `true` if the internal state indicate an invalid parser.
+     */
+    abstract boolean isInvalid();
+
+    /**
+     * Allows to determine whether this loader is currently positioned at
+     * the start of the data described by the source or not. This helps
+     * with managing the controls used to move throughout the read.
+     * @return - `true` if the virtual cursor is located at the beginning
+     *           of the read and `false` otherwise.
+     */
+    abstract boolean isAtStart();
+
+    /**
+     * Similar to the `isAtStart` method but allows to determiner whether
+     * the parser is currently at the end of the data stream defined by
+     * the source.
+     * @return - `true` if the virtual cursor is at the end of the data
+     *           stream.
+     */
+    abstract boolean isAtEnd();
+
+    /**
+     * Used to retrieve the completion reached by this loader so far. This
+     * is computed from the current word index compared to the total words
+     * count available in the reader.
+     * Note that the output value is guaranteed to be in the range `[0; 1]`
+     * and that in case no data is available yet the returned value is `0`.
+     * @return - a value indicating how far in the read the current word
+     *           is.
+     */
+    abstract float getCompletion();
+
+    /**
+     * Used for external elements to retrieve the current word pointed at
+     * by this parser. The virtual cursor is left unchanged by this call
+     * which means that calling this method repeatedly will not cause the
+     * parser to reach the end of the data stream.
+     * In case no data is yet available for this parser the empty string
+     * is returned.
+     * @return - a string representing the current word.
+     */
+    abstract String getCurrentWord();
+
+    /**
+     * Used internally as a way to actually move the virtual cursor used
+     * by this parser to a new position consistent with the requested
+     * action.
+     * Note that in case no data is available in the parser nothing should
+     * happen. Also note that this method is called with the locker on the
+     * object *already locked* which means that it's not needed to try to
+     * acquire it once more.
+     * The return value includes both whether or not the motion could at
+     * least be partially applied or not and also if the parser should be
+     * scheduled for a loading operation: this usually means that moving
+     * according to the action made the parser reach an area not loaded
+     * yet. The first element of the pair describes whether the motion has
+     * been applied (at least partially) and the second element describes
+     * whether or not a loading operation is required.
+     * @param action - the action to perform: describes the type of motion
+     *                 that should be applied to the virtual cursor.
+     * @param param - a value that is interpreted for certain value of the
+     *                action to perform. Irrelevant (and unused) in other
+     *                cases.
+     * @return - `true` if at least part of the motion could be performed
+     *           (usually indicating that notifications can be emitted to
+     *           listeners of this loader) and `false` if the action was
+     *           completely discarded.
+     *           Also the second element of the pair indicates whether a
+     *           loading operation should be scheduled or not.
+     */
+    abstract Pair<Boolean, Boolean> handleMotion(Action action, int param);
 
     /**
      * Interface method that should be implemented by inheriting classes
@@ -436,8 +382,6 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      *                   as specified by the caller: this usually refers
      *                   to the current position of the user's in the
      *                   source.
-     * @return - the list of words that were fetched from the source
-     *           data.
      */
-    abstract ArrayList<String> loadFromSource(InputStream stream, float progress) throws IOException;
+    abstract void loadFromSource(InputStream stream, float progress) throws IOException;
 }

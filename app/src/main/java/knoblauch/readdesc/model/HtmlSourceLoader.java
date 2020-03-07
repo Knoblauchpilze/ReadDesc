@@ -1,10 +1,10 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
+import android.util.Pair;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 class HtmlSourceLoader extends ReadLoader {
 
@@ -21,8 +21,38 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     @Override
-    ArrayList<String> loadFromSource(InputStream stream, float progress) throws IOException {
+    void loadFromSource(InputStream stream, float progress) throws IOException {
         // TODO: Should handle HTML parsing.
-        return new ArrayList<>();
+        throw new IOException("Could not load HTML from source, not implemented");
+    }
+
+    @Override
+    boolean isInvalid() {
+        return true;
+    }
+
+    @Override
+    boolean isAtStart() {
+        return true;
+    }
+
+    @Override
+    boolean isAtEnd() {
+        return false;
+    }
+
+    @Override
+    float getCompletion() {
+        return 0.0f;
+    }
+
+    @Override
+    String getCurrentWord() {
+        return "";
+    }
+
+    @Override
+    Pair<Boolean, Boolean> handleMotion(Action action, int param) {
+        return new Pair<>(false, false);
     }
 }

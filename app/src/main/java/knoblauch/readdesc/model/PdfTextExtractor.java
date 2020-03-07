@@ -14,7 +14,7 @@ public class PdfTextExtractor implements RenderListener {
      * A common pattern describing a string only composed of space characters.
      * Used to only accept valid words as part of this paragraph.
      */
-    private static final Pattern SPACE_PATTERN = Pattern.compile("^\\s+$");
+    private static final Pattern SPACE_PATTERN = Pattern.compile("^\\s*$");
 
     /**
      * Define the list of punctuations symbols that will be collapsed during
@@ -89,7 +89,7 @@ public class PdfTextExtractor implements RenderListener {
         String[] words = renderInfo.getText().split("\\s+");
 
         for (String word : words) {
-            // Discard empty words.
+            // Discard empty words and words composed only of spaces.
             Matcher matcher = SPACE_PATTERN.matcher(word);
             if (matcher.matches()) {
                 continue;

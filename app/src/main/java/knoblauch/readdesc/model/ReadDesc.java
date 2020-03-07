@@ -463,7 +463,7 @@ public class ReadDesc {
      * @return - the completion percentage of this read.
      */
     public float getCompletionPercentage() {
-        return 100.0f * Math.max(Math.min(m_completionPercentage, 1.0f), 0.0f);
+        return 100.0f * Math.min(1.0f, Math.max(m_completionPercentage, 0.0f));
     }
 
     /**
@@ -474,7 +474,7 @@ public class ReadDesc {
      * @param completion - the new completion for this read.
      */
     void setProgression(float completion) {
-        m_completionPercentage = Math.max(Math.min(completion, 1.0f), 0.0f);
+        m_completionPercentage = Math.min(1.0f, Math.max(completion, 0.0f));
     }
 
     /**

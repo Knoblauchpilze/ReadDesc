@@ -76,7 +76,7 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     private ArrayList<ParagraphListener> m_listeners;
 
     /**
-     * Holds a value descrbing the number of words that should be read at
+     * Holds a value describing the number of words that should be read at
      * once when the user press the `play` button. This allows to create
      * pauses that the user can use to interpret the content just read.
      * This value is assigned a default value and updated from preferences

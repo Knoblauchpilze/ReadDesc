@@ -232,12 +232,18 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
     public void onParsingFinished() {
         // Activate the controls if needed. This will also condition whether or
         // not we need to reset the state to `Stopped`.
-        if (!m_enabled) {
+        // TODO: This fails to detect when the parsing finished operation comes from
+        // this object directly. This is a problem in case the user presses `play` as
+        // we then reset the controls to the `stopped` state.
+        // We tried with the following line but it creates some issues when the user
+        // repeatedly press `previous` or `next` as we're unable to detect whenever
+        // the parser reaches the end or the beginning and fail to correctly disable
+        // the controls.
+        // `if (!m_enabled) {`
             setActive(true);
 
             // Update the state of the controller to `stopped`.
             setState(ReadingControls.State.Stopped);
-        }
     }
 
     @Override
