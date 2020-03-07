@@ -274,8 +274,6 @@ class PdfSourceLoader extends ReadLoader {
             float pProgress = 1.0f * m_wordID / Math.max(1, pi.getWordsCount());
             float pagePercentage = 1.0f / m_pagesCount;
             progress = 1.0f * m_pageID / m_pagesCount + pProgress * pagePercentage;
-
-            Log.i("main", "Settings stop: " + m_pageID + "/" + m_pagesCount + " and word " + m_wordID + "/" + pi.getWordsCount() + " (page: " + pagePercentage + ", word: " + pProgress + ", progress: " + progress + ")");
         }
 
         m_locker.unlock();

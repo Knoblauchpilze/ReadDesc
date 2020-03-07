@@ -172,6 +172,11 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         ContentResolver res = m_context.get().getContentResolver();
         try {
             InputStream inStream = res.openInputStream(uri);
+            // TODO: Either refine this progress here or when the parser is in
+            // an inconsistent state so that we can try to fix that in the next
+            // load operation.
+            // Or in the `loadFromSource` detect invalid cases and try to act
+            // by ignoring the input progress but this sounds less elegant.
             loadFromSource(inStream, m_progress);
         }
         catch (IOException e) {
