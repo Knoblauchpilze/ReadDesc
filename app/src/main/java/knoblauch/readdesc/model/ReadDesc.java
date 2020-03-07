@@ -34,8 +34,7 @@ public class ReadDesc {
      */
     public enum Type {
         File,
-        WebPage,
-        EBook
+        WebPage
     }
 
     /**

@@ -164,8 +164,6 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
         switch (m_desc.getType()) {
             case WebPage:
                 m_source = new HtmlSourceLoader(context, desiredProgress);
-            case EBook:
-                m_source = new EBookSourceLoader(context, desiredProgress);
             case File:
                 m_source = new PdfSourceLoader(context, desiredProgress);
                 break;

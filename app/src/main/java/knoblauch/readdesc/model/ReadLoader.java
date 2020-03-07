@@ -225,7 +225,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
     }
 
     @Override
-    protected void onProgressUpdate (Float... results) {
+    protected void onProgressUpdate(Float... results) {
         // We want to update the progress on the calling activity if possible.
         if (results == null || results.length == 0) {
             return;

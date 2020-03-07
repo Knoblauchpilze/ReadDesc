@@ -52,7 +52,6 @@
     <string name="activity.create_read.thumbnail.title">Thumbnail</string>
     <string name="activity.create_read.source.file.title">From file</string>
     <string name="activity.create_read.source.webpage.title">From web page</string>
-    <string name="activity.create_read.source.ebook.title">From e-book</string>
 
     <string name="activity.recent_reads.completion.text">%1$s%%</string>
 

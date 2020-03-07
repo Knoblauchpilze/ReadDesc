@@ -120,8 +120,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
          * remote resource. Bottom line is that it is usually quite long and we don't
          * want to display it in full but rather only provide a condensed description
          * of it. This value will be set with the real `uri` while the `source` text
-         * can be set with a condensed
-         * version.
+         * can be set with a condensed version.
          */
         String uri;
     }
@@ -174,12 +173,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
     CreationModeProps m_websiteProps;
 
     /**
-     * Similar to `m_fileProps` and `m_webpageProps` but used in the case of a read
-     * created from a e-book.
-     */
-    CreationModeProps m_eBookProps;
-
-    /**
      * Defines a text watcher used to react on modification of the text of the desired
      * source of the read. Depending on the type of the read it will automatically bind
      * to the correct producer.
@@ -220,7 +213,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         m_fileProps = new CreationModeProps();
         m_websiteProps = new CreationModeProps();
-        m_eBookProps = new CreationModeProps();
 
         m_sourceWatcher = new SourceTextWatcher("");
 
@@ -235,12 +227,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         m_websiteProps.browse = findViewById(R.id.new_read_website_source_browse);
         m_websiteProps.layout = findViewById(R.id.new_read_website_layout);
         m_websiteProps.uri = null;
-
-        m_eBookProps.active = findViewById(R.id.new_read_e_book);
-        m_eBookProps.source= findViewById(R.id.new_read_e_book_source);
-        m_eBookProps.browse = findViewById(R.id.new_read_e_book_source_browse);
-        m_eBookProps.layout = findViewById(R.id.new_read_e_book_layout);
-        m_eBookProps.uri = null;
 
         m_thumbnail = new ThumbnailSelectionProps();
 
@@ -258,17 +244,14 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         m_fileProps.active.setOnCheckedChangeListener(this);
         m_websiteProps.active.setOnCheckedChangeListener(this);
-        m_eBookProps.active.setOnCheckedChangeListener(this);
 
         m_fileProps.source.addTextChangedListener(m_sourceWatcher);
         m_websiteProps.source.addTextChangedListener(m_sourceWatcher);
-        m_eBookProps.source.addTextChangedListener(m_sourceWatcher);
 
         m_thumbnail.active.setOnCheckedChangeListener(this);
 
         m_fileProps.browse.setOnClickListener(this);
         m_websiteProps.browse.setOnClickListener(this);
-        m_eBookProps.browse.setOnClickListener(this);
 
         m_thumbnail.browse.setOnClickListener(this);
 
@@ -302,21 +285,16 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         }
 
         // Detect cases where the user selected one of the read types.
-        boolean valid =
-                buttonView == m_fileProps.active ||
-                buttonView == m_websiteProps.active ||
-                buttonView == m_eBookProps.active;
+        boolean valid = buttonView == m_fileProps.active || buttonView == m_websiteProps.active;
 
         int fVis = (buttonView == m_fileProps.active ? View.VISIBLE : View.GONE);
         int wVis = (buttonView == m_websiteProps.active ? View.VISIBLE : View.GONE);
-        int eVis = (buttonView == m_eBookProps.active ? View.VISIBLE : View.GONE);
 
         // If the `buttonView` actually corresponds to one of the read type, assign the
         // new layout's visibility statuses.
         if (valid) {
             m_fileProps.layout.setVisibility(fVis);
             m_websiteProps.layout.setVisibility(wVis);
-            m_eBookProps.layout.setVisibility(eVis);
         }
 
         // Update the read type and the text use for the source or the read. We will also
@@ -329,10 +307,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
         if (wVis != View.GONE) {
             m_type = ReadDesc.Type.WebPage;
             m_sourceWatcher.setText(m_websiteProps.source.getText().toString());
-        }
-        if (eVis != View.GONE) {
-            m_type = ReadDesc.Type.EBook;
-            m_sourceWatcher.setText(m_eBookProps.source.getText().toString());
         }
 
         m_accept.setEnabled(!m_readName.getText().toString().isEmpty() && m_sourceWatcher.isNotEmpty());
@@ -399,10 +373,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
 
         if (v == m_websiteProps.browse) {
             mimeTypes.add("text/html");
-        }
-
-        if (v == m_eBookProps.browse) {
-            mimeTypes.add("application/epub+zip");
         }
 
         if (v == m_thumbnail.browse) {
@@ -498,10 +468,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
                     m_websiteProps.uri = uri;
                     m_websiteProps.source.setText(UriUtils.condenseUri(uri, this));
                     break;
-                case EBook:
-                    m_eBookProps.uri = uri;
-                    m_eBookProps.source.setText(UriUtils.condenseUri(uri, this));
-                    break;
             }
         }
     }
@@ -538,12 +504,6 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
                 data = m_websiteProps.uri;
                 if (data == null) {
                     data = m_websiteProps.source.getText().toString();
-                }
-                break;
-            case EBook:
-                data = m_eBookProps.uri;
-                if (data == null) {
-                    data = m_eBookProps.source.getText().toString();
                 }
                 break;
         }

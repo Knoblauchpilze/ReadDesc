@@ -132,47 +132,6 @@
 
                 </LinearLayout>
 
-                <View style="@style/Divider"/>
-
-                <RadioButton
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_e_book"
-                    android:checked="false"
-                    android:text="@string/activity.create_read.source.ebook.title"
-                    style="@style/GenericItem"
-                    />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/new_read_e_book_layout"
-                    android:orientation="horizontal"
-                    android:visibility="gone"
-                    >
-
-                    <EditText
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/new_read_e_book_source"
-                        android:layout_weight="70"
-                        android:hint="@string/activity.create_read.source.hint"
-                        android:inputType="textUri"
-                        android:importantForAutofill="no"
-                        style="@style/SecondaryItem"
-                        />
-
-                    <Button
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/new_read_e_book_source_browse"
-                        android:layout_weight="30"
-                        android:text="@string/activity.title.browse"
-                        style="@style/GenericButton"
-                        />
-
-                </LinearLayout>
-
             </RadioGroup>
 
             <View style="@style/Divider"/>
