@@ -262,13 +262,13 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
 
     /**
      * Used as an internal method to determine whether the parser is in
-     * a valid state. This helps not trying to apply processes that will
-     * most likely fail.
+     * an invalid state. This helps not trying to apply processes that
+     * will most likely fail.
      * Note that this method does not attempt to acquire the lock on the
      * data which means it is safe to call from an internal handler.
-     * @return - `true` if the internal state indicate a valid parser.
+     * @return - `true` if the internal state indicate an invalid parser.
      */
-    private boolean isValid() {
+    private boolean isInvalid() {
         return !m_words.isEmpty() && m_index >= 0 && m_index < m_words.size();
     }
 
@@ -280,7 +280,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      */
     boolean isEmpty() {
         m_locker.lock();
-        boolean empty = !isValid();
+        boolean empty = isInvalid();
         m_locker.unlock();
 
         return empty;
@@ -327,7 +327,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      */
     float getCompletion() {
         m_locker.lock();
-        float progress = (!isValid() ? 0.0f : 1.0f * m_index / m_words.size());
+        float progress = (isInvalid() ? 0.0f : 1.0f * m_index / m_words.size());
         m_locker.unlock();
 
         return progress;
@@ -346,7 +346,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         m_locker.lock();
 
         // In case the parser is not a valid state, do nothing.
-        if (!isValid()) {
+        if (isInvalid()) {
             m_locker.unlock();
             return "";
         }
@@ -375,7 +375,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         // Acquire the lock on this object.
         m_locker.lock();
 
-        if (!isValid()) {
+        if (isInvalid()) {
             // Do not perform the action.
             return;
         }
