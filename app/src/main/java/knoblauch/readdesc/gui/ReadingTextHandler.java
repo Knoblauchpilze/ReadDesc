@@ -163,6 +163,9 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // does not display anything relevant.
         m_text.setVisibility(View.GONE);
         m_waiter.setVisibility(View.VISIBLE);
+
+        // Reset the progression.
+        m_waiter.setProgress(0);
     }
 
     @Override

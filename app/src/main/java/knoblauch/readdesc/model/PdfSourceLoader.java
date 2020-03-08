@@ -506,14 +506,38 @@ class PdfSourceLoader extends ReadLoader {
                     // We have two main cases: we moved backwards to a page that is not
                     // already loaded or we moved forward to a page.
                     if (m_wordID < 0) {
+                        // In the case of a backwards motion, we have for sure a negative
+                        // value in the `m_wordID` so we obviously need to add the words
+                        // count of the newly loaded page before checking the validity of
+                        // this index.
                         m_wordID += pi.getWordsCount();
                     }
                     else {
-                        m_wordID -= pi.getWordsCount();
+                        // In the case of a forward motion, we have for sure a positive
+                        // value in the `m_wordID` which can either be larger than the
+                        // current page words count (if we moved more than one page ahead)
+                        // or valid in case we only moved to the next page. So we only
+                        // need to update the `m_wordID` attribute in the first case.
+                        if (m_wordID >= pi.getWordsCount()) {
+                            m_wordID -= pi.getWordsCount();
+                        }
                     }
+
+                    // TODO: Maybe provide some sort of progress based on the remaining number of
+                    // elements to load to bring back the `m_wordID` to a valid number.
 
                     // Check whether we reached a valid state.
                     valid = isValidWord();
+
+                    // If this is not the case, load the next page.
+                    if (!valid) {
+                        if (m_wordID < 0) {
+                            --m_pageID;
+                        }
+                        else {
+                            ++m_pageID;
+                        }
+                    }
                 }
 
                 PageInfo pi = getCurrentPageInfo();
@@ -585,10 +609,10 @@ class PdfSourceLoader extends ReadLoader {
         // Determine whether we need to load this page at all: indeed we might
         // already have loaded it before as the loading process can overlap due
         // to the surrounding area settings.
+
         m_locker.lock();
         if (m_pages.containsKey(id)) {
             // The page already exists, don't load it again.
-            Log.i("main", "Prevented loading of page " + id + " already existing");
             m_locker.unlock();
 
             return;
