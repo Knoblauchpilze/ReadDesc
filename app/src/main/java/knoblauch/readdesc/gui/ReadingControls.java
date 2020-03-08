@@ -96,6 +96,17 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
     private ReadParser m_reader;
 
     /**
+     * Defines the current state of the reading mode as activated from
+     * the controls available in this object. This helps defining and
+     * performing a reset of the controls in the state it was before a
+     * loading operation (as we disable most of the controls during an
+     * operation like this to prevent actions and weird behaviors).
+     * This state is updated upon receiving data from the source and
+     * when the user either press on the `play` or `pause` buttons.
+     */
+    private State m_state;
+
+    /**
      * Creates a new reading controls class with the specified buttons
      * to use to perform and detect the operations requested by the user.
      * @param reader - the reader underlying the controls (i.e. the item
@@ -145,7 +156,23 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
      *                 interpreted and `false` otherwise.
      */
     private void setActive(boolean active) {
+        // Disable handling of click events.
         m_enabled = active;
+
+        // Also handle controls activation: in case this component is
+        // deactivated we will disable all controls while we need to
+        // reactivate some if the state is set to `active`.
+        if (!active) {
+            m_reset.setEnabled(false);
+            m_prev.setEnabled(false);
+            m_pause.setEnabled(false);
+            m_play.setEnabled(false);
+            m_next.setEnabled(false);
+        }
+        else {
+            m_play.setEnabled(m_state == State.Stopped);
+            m_pause.setEnabled(m_state == State.Running);
+        }
     }
 
     /**
@@ -230,20 +257,17 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
 
     @Override
     public void onParsingFinished() {
-        // Activate the controls if needed. This will also condition whether or
-        // not we need to reset the state to `Stopped`.
-        // TODO: This fails to detect when the parsing finished operation comes from
-        // this object directly. This is a problem in case the user presses `play` as
-        // we then reset the controls to the `stopped` state.
-        // We tried with the following line but it creates some issues when the user
-        // repeatedly press `previous` or `next` as we're unable to detect whenever
-        // the parser reaches the end or the beginning and fail to correctly disable
-        // the controls.
-        // `if (!m_enabled) {`
-            setActive(true);
+        // The parsing just finished: we need to both update the controls allowing
+        // to move throughout the read based on where we are now on the read and we
+        // also need to re-allow the controls related to starting the reading mode
+        // or pause it based on the current expected state of the parser.
 
-            // Update the state of the controller to `stopped`.
-            setState(ReadingControls.State.Stopped);
+        // First reset controls as active: this will also handle the `play` and the
+        // `pause` based on the current `m_state` of the controls.
+        setActive(true);
+
+        // And update controls availability based on the state of the reader.
+        updateControlsAvailability();
     }
 
     @Override
@@ -282,6 +306,8 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
         if (controlsActive) {
             updateControlsAvailability();
         }
+
+        m_state = state;
     }
 
 
