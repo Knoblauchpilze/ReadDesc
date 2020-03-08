@@ -20,6 +20,17 @@ class HtmlSourceLoader extends ReadLoader {
         super(context, progress);
     }
 
+    /**
+     * Used to copy the input loader and create a new object from it. We need to
+     * copy fields which make sense and create new one as needed.
+     * @param other - the other elements to copy.
+     */
+    HtmlSourceLoader(HtmlSourceLoader other) {
+        // Call base handler.
+        super(other);
+
+    }
+
     @Override
     void loadFromSource(InputStream stream, float progress) throws IOException {
         // TODO: Should handle HTML parsing.

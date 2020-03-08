@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.util.Pair;
 
 import java.io.IOException;
@@ -129,6 +128,22 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
     }
 
     /**
+     * Creates a new loader from the provided input instance. Note that it
+     * only copies the general fields defined by this class so inheriting
+     * classes should specialize this to copy their internal fields.
+     * @param other - the other instance to perform the copy of.
+     */
+    ReadLoader(ReadLoader other) {
+        // Copy internal fields.
+        m_context = other.m_context;
+        m_listeners = other.m_listeners;
+
+        m_locker = new ReentrantLock();
+
+        m_progress = other.m_progress;
+    }
+
+    /**
      * Register the input listener in the internal list if it is valid.
      * This object will then be notified of all available signals from
      * this object.
@@ -172,11 +187,6 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         ContentResolver res = m_context.get().getContentResolver();
         try {
             InputStream inStream = res.openInputStream(uri);
-            // TODO: Either refine this progress here or when the parser is in
-            // an inconsistent state so that we can try to fix that in the next
-            // load operation.
-            // Or in the `loadFromSource` detect invalid cases and try to act
-            // by ignoring the input progress but this sounds less elegant.
             loadFromSource(inStream, m_progress);
         }
         catch (IOException e) {
@@ -244,29 +254,30 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      * position of the virtual cursor maintained by this loader to somewhere
      * else in the source's data.
      * In case the action cannot be performed (or partially performed) it is
-     * performed as much as possible.
+     * performed as much as possible. We also return a value indicating that
+     * some loading operation is needed to actually fully perform this action.
      * @param action - the action which should be performed. This action may
      *                 require a parameter in which case the `param` value
      *                 is used.
      * @param param - a value that may be relevant depending on the value of
      *                the `action`. Unused otherwise.
+     * @return - `true` if the action requires a loading operation to be fully
+     *           performed and `false` otherwise.
      */
-    void perform(Action action, int param) {
+    boolean perform(Action action, int param) {
         // Acquire the lock on this object.
         m_locker.lock();
 
         if (isInvalid()) {
             // Do not perform the action.
-            return;
+            return false;
         }
 
-        Pair<Boolean, Boolean> status = new Pair<>(false, false);
-
+        Pair<Boolean, Boolean> status;
         try {
             // Depending on the action we want to perform different changes
             // to the internal virtual cursor.
             status = handleMotion(action, param);
-
         }
         finally {
             m_locker.unlock();
@@ -276,11 +287,9 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         // to perform a loading operation or notify listeners or nothing at
         // all depending on what could be achieved.
         if (status.second) {
-            // Schedule a loading operation.
-            // TODO: Handle the loading requests if needed.
-            Log.i("main", "Should perform loading to reach element");
-
-            return;
+            // Schedule a loading operation by returning `true`: the caller is
+            // supposed to handle this.
+            return true;
         }
 
         // Check whether we need to notify listeners: this is the case if the
@@ -290,6 +299,9 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
                 listener.onDataLoadingSuccess();
             }
         }
+
+        // No loading operation is needed.
+        return false;
     }
 
     /**

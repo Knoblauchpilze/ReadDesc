@@ -146,6 +146,39 @@ class PdfSourceLoader extends ReadLoader {
     }
 
     /**
+     * Used to copy the input loader and create a new object from it. We need to
+     * copy fields which make sense and create new one as needed.
+     * @param other - the other elements to copy.
+     */
+    PdfSourceLoader(PdfSourceLoader other) {
+        // Call base handler.
+        super(other);
+
+        // Copy internal fields.
+        m_pagesCount = other.m_pagesCount;
+
+        m_pages = other.m_pages;
+        m_words = other.m_words;
+
+        m_pageID = other.m_pageID;
+        m_wordID = other.m_wordID;
+
+    }
+
+    /**
+     * Used to determine whether this source already has some pages loaded or not.
+     * Note that this method does acquire the lock on this object.
+     * @return - `true` if some pages are already available and `false` otherwise.
+     */
+    private boolean hasPages() {
+        m_locker.lock();
+        boolean somePagesExist = !m_pages.isEmpty();
+        m_locker.unlock();
+
+        return somePagesExist;
+    }
+
+    /**
      * Used to retrieve the current page information. Note that this method
      * assumes that the locker is already acquired so it is not thread-safe.
      * It may return `null` in case no pages are defined yet for this source
@@ -361,7 +394,6 @@ class PdfSourceLoader extends ReadLoader {
 
                     // Check whether this page is already loaded.
                     if (!isValidPage()) {
-                        // TODO: This leaves the parser in a potentially inconsistent state.
                         needsLoading = true;
                     }
                     else {
@@ -386,13 +418,14 @@ class PdfSourceLoader extends ReadLoader {
             }
             else {
                 while (m_wordID >= pi.getWordsCount() && !needsLoading) {
-                    ++m_pageID;
-
+                    // Account for the fact that we move to the next page.
                     m_wordID -= pi.getWordsCount();
+
+                    // Actually move to the next page.
+                    ++m_pageID;
 
                     // Check whether this page is already loaded.
                     if (!isValidPage()) {
-                        // TODO: This leaves the parser in a potentially inconsistent state.
                         needsLoading = true;
                     } else {
                         // Otherwise, offset the current word index with the number
@@ -411,15 +444,25 @@ class PdfSourceLoader extends ReadLoader {
 
     @Override
     void loadFromSource(InputStream stream, float progress) throws IOException {
-        // Create the reader from the stream related to this element.
-        PdfReader reader = new PdfReader(stream);
+        // This method can be called in two contexts: either when it's the first time
+        // that we instantiate information for the parser or when we need to load some
+        // additional data because we reached an area not yet loaded.
+        // In the first case we will rely on the `progress` to determine the pages to
+        // load and also in the end to update the `m_pageID` and `m_wordID` values
+        // based on this progress.
+        // On the other hand if we already have some data loaded and we need to load
+        // more, we should have a somewhat valid `m_pageID` and `m_wordID` which we
+        // will interpret to load the data until we are able to bring back these to
+        // some consistent values.
 
-        // Perform the extraction of the text contained in this `PDF` document
-        // through a text extraction strategy.
-        PdfTextExtractor extractor = new PdfTextExtractor();
+        // In any case we need to create some parsing utilities.
+        PdfReader reader = new PdfReader(stream);
         PdfReaderContentParser parser = new PdfReaderContentParser(reader);
 
-        // Update the number of pages as a first step.
+        // Update the number of pages as a first step. Note that we don't verify that
+        // the number of pages stays consistent between two load. This could be the
+        // case if the file has been modified outside of the application but we will
+        // not handle this case for now.
         m_pagesCount = reader.getNumberOfPages();
 
         // If there are no valid pages, stop there.
@@ -427,75 +470,140 @@ class PdfSourceLoader extends ReadLoader {
             throw new IOException("Could not parse content of PDF source not containing any page");
         }
 
+        // Now check whether we are in the case where no data has ever been loaded
+        // in the parser or if we are in the process of loading some more data as
+        // we reached a non-loaded area.
+        // We will protect the call to each method so as to be able to provide some
+        // notification of any failure.
         try {
-            // We want to load the area around the `progress` value provided as input.
-            // Depending on the number of pages available in the source this will be
-            // translated as loaded only specific pages from the read.
-            // At first we will try to distribute the surrounding pages to load in a
-            // manner that is suited for the canonical experience of reading. Suppose
-            // the progress indicates that the user is reading page `10` we will lay
-            // `25%` of the surrounding area on the pages before and `75%` ahead as
-            // the user is most likely to read forward rather than go back.
-            // To give a numerical example if the `LOAD_SURROUNDING_PAGES_COUNT = 4`
-            // we will load the page preceding the current page and the `3` after it.
-            int pageToLoad = Math.round((int)Math.floor((double)(progress * reader.getNumberOfPages())));
-            int minPage = Math.round((int)Math.floor((double)(pageToLoad - 0.25f * LOAD_SURROUNDING_PAGES_COUNT)));
-            int maxPage = Math.round((int)(Math.floor((double)pageToLoad + 0.75f * LOAD_SURROUNDING_PAGES_COUNT)));
-
-            // Clamp the pages based on the actual structure of the `PDF` document.
-            minPage = Math.min(reader.getNumberOfPages() - 1, Math.max(0, minPage));
-            maxPage = Math.min(reader.getNumberOfPages() - 1, Math.max(0, maxPage));
-
-            int count = Math.max(1, maxPage - minPage);
-
-            for (int id = minPage ; id <= maxPage && !isCancelled(); ++id) {
-                // Determine whether we need to load this page at all: indeed we might
-                // already have loaded it before as the loading process can overlap due
-                // to the surrounding area settings.
-                m_locker.lock();
-                if (m_pages.containsKey(id)) {
-                    // The page already exists, don't load it again.
-                    Log.i("main", "Prevented loading of page " + id + " already existing");
-                    m_locker.unlock();
-                    continue;
+            if (hasPages()) {
+                // At this point we should have an invalid word index compared to the
+                // active page. This should be the case as calling this method should
+                // be a direct consequence of performing a motion that could not be
+                // achieved. We will make sure that it is the case first.
+                // Once this is done we need to keep loading pages until we can bring
+                // back the word index to consistent values. Note that the `m_pageID`
+                // should already correspond to a non-loaded page so we can start from
+                // there.
+                if (isValidPage() && isValidWord()) {
+                    // Nothing more to do.
+                    return;
                 }
-                m_locker.unlock();
 
-                // Parse the paragraphs for this page. Note that as `iText` counts page
-                // starting at `1` we need to account for this this.
-                extractor = parser.processContent(id + 1, extractor);
+                boolean valid = false;
+                while (!valid) {
+                    // Load the page corresponding to the `m_pageID` and continue until
+                    // we can bring back a `m_wordID` consistent with the page's data.
+                    loadPage(m_pageID, parser);
 
-                // Retrieve the words parsed for this page.
-                ArrayList<String> words = extractor.getWords();
+                    // Try to retrieve the information about this page to update the
+                    // `m_wordID`.
+                    PageInfo pi = getCurrentPageInfo();
+                    if (pi == null) {
+                        throw new IOException("Could not parse content of PDF source for page " + m_pageID + "/" + m_pagesCount);
+                    }
 
-                // Handle the creation of the page in the internal data.
-                handlePageCreation(id, words);
+                    // We have two main cases: we moved backwards to a page that is not
+                    // already loaded or we moved forward to a page.
+                    if (m_wordID < 0) {
+                        m_wordID += pi.getWordsCount();
+                    }
+                    else {
+                        m_wordID -= pi.getWordsCount();
+                    }
 
-                // Clear the extractor to be ready for the next page.
-                extractor.clear();
+                    // Check whether we reached a valid state.
+                    valid = isValidWord();
+                }
 
-                // Notify progression.
-                publishProgress(1.0f * id / count);
+                PageInfo pi = getCurrentPageInfo();
+                Log.i("main", "Settings start: " + m_pageID + "/" + m_pagesCount + " at word " + m_wordID + "/" + pi.getWordsCount());
             }
+            else {
+                // We want to load the area around the `progress` value provided as
+                // input. Depending on the number of pages defined in the source this
+                // will be translated as loading only specific pages from the read.
+                // At first we will try to distribute the surrounding pages to load
+                // in a manner that is suited for the canonical experience of a read.
+                // Suppose the progress indicates that the user is reading page `10`
+                // we will lay `25%` of the surrounding area on the pages before and
+                // `75%` ahead: indeed the user is most likely to read forward rather
+                // than go back.
+                int pageToLoad = Math.round((int)Math.floor((double)(progress * m_pagesCount)));
 
-            // Once we're done loading the relevant pages we can set the desired progress
-            // as the current one.
-            m_pageID = pageToLoad;
+                int minPage = Math.round((int)Math.floor((double)(pageToLoad - 0.25f * LOAD_SURROUNDING_PAGES_COUNT)));
+                int maxPage = Math.round((int)(Math.floor((double)pageToLoad + 0.75f * LOAD_SURROUNDING_PAGES_COUNT)));
 
-            // To compute the word in the page we need to first interpret the part of the
-            // progress that indicates the page and the rest will indicate which word in
-            // the page should be set as current.
-            PageInfo pi = getCurrentPageInfo();
-            float pagePercentage = 1.0f / m_pagesCount;
-            float wProgress = (progress - 1.0f * m_pageID / m_pagesCount) / pagePercentage;
-            m_wordID = Math.round(wProgress * pi.getWordsCount());
+                // Clamp the pages based on the actual structure of the `PDF` document.
+                minPage = Math.min(reader.getNumberOfPages() - 1, Math.max(0, minPage));
+                maxPage = Math.min(reader.getNumberOfPages() - 1, Math.max(0, maxPage));
 
-            Log.i("main", "Settings start: " + m_pageID + "/" + m_pagesCount + " at word " + m_wordID + "/" + pi.getWordsCount() + " (page: " + pagePercentage + ", word: " + wProgress + ", progress: " + progress + ")");
+                int count = Math.max(1, maxPage - minPage);
+
+                for (int id = minPage ; id <= maxPage && !isCancelled(); ++id) {
+                    loadPage(id, parser);
+
+                    // Notify progression.
+                    publishProgress(1.0f * (id - minPage) / count);
+                }
+
+                // Once all the pages have been loaded we need to update the `m_pageID`
+                // and `m_wordID` to reflect the desired progress. To compute the word
+                // index we first need to interpret the part of the progress indicating
+                // the page and the part indicating the progress inside the page.
+                m_pageID = pageToLoad;
+
+                PageInfo pi = getCurrentPageInfo();
+                float pagePercentage = 1.0f / m_pagesCount;
+                float wProgress = (progress - 1.0f * m_pageID / m_pagesCount) / pagePercentage;
+                m_wordID = Math.round(wProgress * pi.getWordsCount());
+
+                Log.i("main", "Settings start: " + m_pageID + "/" + m_pagesCount + " at word " + m_wordID + "/" + pi.getWordsCount() + " (page: " + pagePercentage + ", word: " + wProgress + ", progress: " + progress + ")");
+            }
         }
         catch (Exception e) {
             // We encountered an error while parsing the `PDF` document, consider
             // the input source as invalid.
             throw new IOException("Cannot parse content of PDF source in parser");
         }
+    }
+
+    /**
+     * Used to perform the loading of the page defined by the input index
+     * from the provided parser. Note that nothing happens in case no such
+     * page can be found in the input parser nothing happens.
+     * A filtering is also applied to determine whether the requested page
+     * already exists in the internal table of pages (to prevent loading
+     * several times the same page).
+     * @param id - the index of the page to load. Starts at `0` and is
+     *             converted internally to match the expected `iText`
+     *             semantic (which starts at `1`).
+     * @param pdf - a reader on the `PDF` document from which the page is
+     *              to be extracted.
+     */
+    private void loadPage(int id, PdfReaderContentParser pdf) throws IOException {
+        // Determine whether we need to load this page at all: indeed we might
+        // already have loaded it before as the loading process can overlap due
+        // to the surrounding area settings.
+        m_locker.lock();
+        if (m_pages.containsKey(id)) {
+            // The page already exists, don't load it again.
+            Log.i("main", "Prevented loading of page " + id + " already existing");
+            m_locker.unlock();
+
+            return;
+        }
+        m_locker.unlock();
+
+        // Parse the paragraphs for this page. Note that as `iText` counts page
+        // starting at `1` we need to account for this this.
+        PdfTextExtractor extractor = new PdfTextExtractor();
+        extractor = pdf.processContent(id + 1, extractor);
+
+        // Retrieve the words parsed for this page.
+        ArrayList<String> words = extractor.getWords();
+
+        // Handle the creation of the page in the internal data.
+        handlePageCreation(id, words);
     }
 }

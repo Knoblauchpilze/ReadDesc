@@ -1,6 +1,7 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
+import android.text.Html;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -174,7 +175,32 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
         // elements.
         m_source.addOnDataLoadingListener(this);
 
-        // Start the loading of the data.
+        // Start the loading of the data. We won't use the `scheduleLoading`
+        // method here as we don't want to copy the `AsyncTask` because it
+        // has never be executed.
+        m_source.execute(m_desc.getDataUri());
+    }
+
+    /**
+     * Used to schedule a loading operation on the source of this parser.
+     */
+    private void scheduleLoading() {
+        // Copy the task.
+        if (m_source instanceof HtmlSourceLoader) {
+            m_source = new HtmlSourceLoader((HtmlSourceLoader)m_source);
+        }
+        else if (m_source instanceof PdfSourceLoader) {
+            m_source = new PdfSourceLoader((PdfSourceLoader)m_source);
+        }
+        else {
+            // We don't know the type of the source, this is clearly a
+            // failure of the loading process.
+            for (ParsingDoneListener listener : m_listeners) {
+                listener.onParsingFailed();
+            }
+        }
+
+        // Schedule the loading of the data from the source.
         m_source.execute(m_desc.getDataUri());
     }
 
@@ -363,7 +389,9 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * This is useful to get back to the beginning of a read.
      */
     public void rewind() {
-        m_source.perform(ReadLoader.Action.Rewind, 0);
+        if (m_source.perform(ReadLoader.Action.Rewind, 0)) {
+            scheduleLoading();
+        }
     }
 
     /**
@@ -374,7 +402,9 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * try to move as far as possible.
      */
     public void moveToPrevious() {
-        m_source.perform(ReadLoader.Action.PreviousStep, m_wordStep);
+        if (m_source.perform(ReadLoader.Action.PreviousStep, m_wordStep)) {
+            scheduleLoading();
+        }
     }
 
     /**
@@ -384,7 +414,9 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * it might not be possible to move all the way through.
      */
     public void moveToNext() {
-        m_source.perform(ReadLoader.Action.NextStep, m_wordStep);
+        if (m_source.perform(ReadLoader.Action.NextStep, m_wordStep)) {
+            scheduleLoading();
+        }
     }
 
     /**
@@ -395,6 +427,8 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * nothing happens.
      */
     public void advance() {
-        m_source.perform(ReadLoader.Action.NextWord, 0);
+        if (m_source.perform(ReadLoader.Action.NextWord, 0)) {
+            scheduleLoading();
+        }
     }
 }
