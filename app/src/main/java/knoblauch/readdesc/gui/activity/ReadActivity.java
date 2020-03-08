@@ -61,7 +61,7 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
 
         // Retrieve the buttons from the layout that should be used to control
         // the reading process.
-        createControls();
+        createControls(savedInstanceState);
 
         // We need to update the properties of the main element to match the colors
         // defined in the preferences.
@@ -70,14 +70,23 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         // Update the title for this activity: we should display the name of the read.
         String title = getResources().getString(R.string.activity_read_title);
         setTitle(String.format(title, m_parser.getName()));
+
+        // Start the loading of the data from the source.
+        m_parser.load();
     }
+
 
     /**
      * Used to retrieve the controls buttons used to interpret user's requests
      * and extract a valid object from it. We will also register this activity
      * as a listener of the controls to be notified of the user's desires.
+     * The input bundle state allows to keep the progression that was actually
+     * reached by the waiter in case it was performing a load operation.
+     * @param savedInstanceState - the saved instance state of a previous use
+     *                             of this activity.
+     *
      */
-    private void createControls() {
+    private void createControls(Bundle savedInstanceState) {
         // Retrieve buttons from the layout.
         ImageButton reset = findViewById(R.id.read_restart_read_id);
         ImageButton prev = findViewById(R.id.read_previous_chapter_id);
@@ -94,7 +103,6 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         // Retrieve text items.
         TextView text = findViewById(R.id.read_current_word);
         ProgressBar waiter = findViewById(R.id.read_progress_bar);
-
         m_textHandler = new ReadingTextHandler(text, waiter, m_parser, new Handler());
 
         // Register this view as a listener of the paragraphs.
@@ -145,12 +153,34 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         String progress = getResources().getString(R.string.activity_read_key_bundle_progress);
         outState.putFloat(progress, m_parser.getCompletion());
 
-        // TODO: We should probably find a way to serialize part of the reader, maybe only the
-        // current paragraph or a span of 10 paragraph around the current position so that we
-        // can load and handle orientation changes more easily.
-
         // Use the base handler.
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // This method is called after the `onCreate` method and is supposed to restore
+        // the `UI` parameters and some custom saved states from previous executions of
+        // the activity.
+        // Notably it should restore the progression reached by the waiter element of
+        // the read view to its previous value. Most of the time this value will be set
+        // to `100%` because it's quite rare that the user orients its device while the
+        // data is being loaded.
+        // More importantly, as we don't quite save the loading progress during changes
+        // in the orientation we always restart from scratch this process. As such it's
+        // an issue if this method restores an invalid progression to the waiter and we
+        // want to prevent that.
+        // So here we will forcibly reset the progression of the waiter to `0` no matter
+        // the saved value.
+
+        // Save the state from the provided instance.
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Also reset the progression *after* the reset so that we are guaranteed to
+        // see the correct progress (i.e. `0`) displayed.
+        ProgressBar waiter = findViewById(R.id.read_progress_bar);
+        waiter.setProgress(0);
+        waiter.setIndeterminate(true);
     }
 
     /**

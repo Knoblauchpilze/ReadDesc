@@ -94,7 +94,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
      * This information is transmitted to the `loadFromSource` method
      * so that inheriting classes can work with it.
      */
-    private float m_progress;
+    float m_progress;
 
     /**
      * Create a new read loader with the specified context. This object

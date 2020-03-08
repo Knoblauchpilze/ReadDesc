@@ -296,8 +296,57 @@ class PdfSourceLoader extends ReadLoader {
         // Assume `0` completion.
         float progress = 0.0f;
 
-        // Update in case this source is in a valid state.
-        if (!isInvalid()) {
+        // Update in case this source is in a valid state. If the source is invalid
+        // we have to make sure that it's not currently loading some data. If this
+        // is the case we can still attempt to define a valid progression.
+        if (isInvalid()) {
+            // If no data exists in this parser, return the desired progression if
+            // the task is still running.
+            if (m_pages.isEmpty() && m_words.isEmpty()) {
+                progress = m_progress;
+            }
+            else {
+                // In case some data already exists we need to return the last valid
+                // progression that was reached by the parser. This usually means the
+                // first/last word of the page after/before the one currently being
+                // pointed at by the `m_pageID`.
+                if (m_wordID < 0) {
+                    // We moved backwards and reached unloaded page: move forward until
+                    // we find a loaded page. The first word of this page will be used
+                    // as the last valid progression reached.
+                    int pageID = m_pageID;
+                    PageInfo pi = m_pages.get(pageID);
+                    while (pi == null && pageID < m_pagesCount) {
+                        ++pageID;
+                        pi = m_pages.get(pageID);
+                    }
+
+                    // Note that we might have fail to find a valid loaded page: in this
+                    // case we're okay we're a progression being reset to `0` as it is
+                    // consistent with what we're trying to achieve.
+                    progress = 1.0f * pageID / m_pagesCount;
+                } else {
+                    // We moved forward and reached unloaded page: move backward until
+                    // we find a loaded page. The last word of this page will be used
+                    // as the last valid progression reached.
+                    int pageID = m_pageID;
+                    PageInfo pi = m_pages.get(pageID);
+                    while (pi == null && pageID >= 0) {
+                        --pageID;
+                        pi = m_pages.get(pageID);
+                    }
+
+                    // Determine whether we reached a valid page: if this is not the case
+                    // we will assume that an empty progression is better than nothing.
+                    if (pi != null) {
+                        float pProgress = 1.0f * Math.max(0, pi.getWordsCount() - 1) / Math.max(1, pi.getWordsCount());
+                        float pagePercentage = 1.0f / m_pagesCount;
+                        progress = 1.0f * pageID / m_pagesCount + pProgress * pagePercentage;
+                    }
+                }
+            }
+        }
+        else {
             PageInfo pi = getCurrentPageInfo();
 
             // The progress is the concatenation of the percentage of the page

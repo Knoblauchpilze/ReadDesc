@@ -1,7 +1,7 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
-import android.text.Html;
+import android.os.AsyncTask;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,6 +94,11 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      * Create a new parser from the specified read. The parser will detect the
      * type of the read and instantiate a valid data source to fetch and load
      * it.
+     * Note that the data is not scheduled for fetching right away: the user
+     * should call the `load` method on this parser to actually start parsing
+     * data. This allows to give time to the caller to register the potential
+     * listeners of this process through the `addOnParsingDoneListener` method
+     * before actually parsing the data.
      * @param read - the read containing information about the data source to
      *               use to get the data.
      * @param context - the context to use to resolve links and resources so
@@ -129,6 +134,19 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
     public void addOnParsingDoneListener(ParsingDoneListener listener) {
         if (listener != null) {
             m_listeners.add(listener);
+        }
+    }
+
+    /**
+     * Used to schedule a load operation on this parser. We will check the
+     * state of the internal `AsyncTask` so as not to try to load it more
+     * than once.
+     */
+    public void load() {
+        // Check whether the source is actually valid and running: if this
+        // is the case we won't try to schedule it again.
+        if (m_source != null && m_source.getStatus() == AsyncTask.Status.PENDING) {
+            scheduleLoading(false);
         }
     }
 
@@ -174,29 +192,30 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
         // source so that we can forward the information to external
         // elements.
         m_source.addOnDataLoadingListener(this);
-
-        // Start the loading of the data. We won't use the `scheduleLoading`
-        // method here as we don't want to copy the `AsyncTask` because it
-        // has never be executed.
-        m_source.execute(m_desc.getDataUri());
     }
 
     /**
      * Used to schedule a loading operation on the source of this parser.
+     * THis method allows to specify whether the internal source should
+     * be cloned before scheduling it. This is useful because we might
+     * schedule several loading operations during the life time of the
+     * parser when the user reaches non loaded part of the document.
+     * @param clone - `true` if the internal `AsyncTask` to schedule is
+     *                to be copied before being scheduled.
      */
-    private void scheduleLoading() {
-        // Copy the task.
-        if (m_source instanceof HtmlSourceLoader) {
-            m_source = new HtmlSourceLoader((HtmlSourceLoader)m_source);
-        }
-        else if (m_source instanceof PdfSourceLoader) {
-            m_source = new PdfSourceLoader((PdfSourceLoader)m_source);
-        }
-        else {
-            // We don't know the type of the source, this is clearly a
-            // failure of the loading process.
-            for (ParsingDoneListener listener : m_listeners) {
-                listener.onParsingFailed();
+    private void scheduleLoading(boolean clone) {
+        // Copy the task if needed.
+        if (clone) {
+            if (m_source instanceof HtmlSourceLoader) {
+                m_source = new HtmlSourceLoader((HtmlSourceLoader) m_source);
+            } else if (m_source instanceof PdfSourceLoader) {
+                m_source = new PdfSourceLoader((PdfSourceLoader) m_source);
+            } else {
+                // We don't know the type of the source, this is clearly a
+                // failure of the loading process.
+                for (ParsingDoneListener listener : m_listeners) {
+                    listener.onParsingFailed();
+                }
             }
         }
 
@@ -390,7 +409,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      */
     public void rewind() {
         if (m_source.perform(ReadLoader.Action.Rewind, 0)) {
-            scheduleLoading();
+            scheduleLoading(true);
         }
     }
 
@@ -403,7 +422,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      */
     public void moveToPrevious() {
         if (m_source.perform(ReadLoader.Action.PreviousStep, m_wordStep)) {
-            scheduleLoading();
+            scheduleLoading(true);
         }
     }
 
@@ -415,7 +434,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      */
     public void moveToNext() {
         if (m_source.perform(ReadLoader.Action.NextStep, m_wordStep)) {
-            scheduleLoading();
+            scheduleLoading(true);
         }
     }
 
@@ -428,7 +447,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
      */
     public void advance() {
         if (m_source.perform(ReadLoader.Action.NextWord, 0)) {
-            scheduleLoading();
+            scheduleLoading(true);
         }
     }
 }

@@ -1,6 +1,7 @@
 package knoblauch.readdesc.gui;
 
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -163,13 +164,23 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         m_text.setVisibility(View.GONE);
         m_waiter.setVisibility(View.VISIBLE);
 
-        // Reset the progression.
+        // Reset the progression (so as to hide previous executions of the waiter)
+        // and set it to `indeterminate` mode so that while waiting for the first
+        // progression notification we still inform the user that the data is loaded.
         m_waiter.setProgress(0);
+        m_waiter.setIndeterminate(true);
     }
 
     @Override
     public void onParsingProgress(float progress) {
         // We want to update the value of the progress bar to reach the input value.
+        // Note that we should also deactivate the `indeterminate` if this is the
+        // first notification of the progression since the parsing started.
+        if (m_waiter.isIndeterminate()) {
+            // TODO: We should refine the indeterminate drawable.
+            m_waiter.setIndeterminate(false);
+        }
+
         m_waiter.setProgress(Math.round(100.0f * progress));
     }
 
