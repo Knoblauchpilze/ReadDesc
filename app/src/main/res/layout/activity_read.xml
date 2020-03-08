@@ -34,7 +34,7 @@
             android:maxHeight="@dimen/activity.read.progress.max.height"
             android:background="@color/activity.settings.pref.color.bg.default"
             android:progressDrawable="@drawable/circle_progress_bar_drawable"
-            android:indeterminateDrawable="@drawable/circle_progress_bar_drawable"
+            android:indeterminateDrawable="@drawable/circle_progress_bar_indeterminate_drawable"
             style="?android:progressBarStyleHorizontal"
             />
 

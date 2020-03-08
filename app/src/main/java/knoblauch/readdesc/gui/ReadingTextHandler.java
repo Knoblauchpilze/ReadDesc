@@ -1,7 +1,6 @@
 package knoblauch.readdesc.gui;
 
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -177,7 +176,6 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // Note that we should also deactivate the `indeterminate` if this is the
         // first notification of the progression since the parsing started.
         if (m_waiter.isIndeterminate()) {
-            // TODO: We should refine the indeterminate drawable.
             m_waiter.setIndeterminate(false);
         }
 

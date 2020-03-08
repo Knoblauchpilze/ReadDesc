@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This topic helped a lot: https://stackoverflow.com/questions/2819778/custom-drawable-for-progressbar-progressdialog -->
 <rotate
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:fromDegrees="270"
-    android:toDegrees="270"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:fromDegrees="0"
+    android:toDegrees="360"
     >
 
     <shape
-        android:innerRadiusRatio="2.5"
         android:shape="ring"
+        android:innerRadiusRatio="2.5"
         android:thickness="4dp"
         android:useLevel="true"
         >
 
         <gradient
-            android:angle="0"
             android:type="sweep"
             android:useLevel="false"
             android:startColor="@color/colorAccent"
