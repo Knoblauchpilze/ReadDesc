@@ -490,6 +490,9 @@ class PdfSourceLoader extends ReadLoader {
                     return;
                 }
 
+                // Keep track of the initial progress to be made.
+                int count = Math.abs(m_wordID);
+
                 boolean valid = false;
                 while (!valid) {
                     // Load the page corresponding to the `m_pageID` and continue until
@@ -511,6 +514,8 @@ class PdfSourceLoader extends ReadLoader {
                         // count of the newly loaded page before checking the validity of
                         // this index.
                         m_wordID += pi.getWordsCount();
+
+                        publishProgress(1.0f * (count + Math.min(m_wordID, 0)) / count);
                     }
                     else {
                         // In the case of a forward motion, we have for sure a positive
@@ -521,10 +526,9 @@ class PdfSourceLoader extends ReadLoader {
                         if (m_wordID >= pi.getWordsCount()) {
                             m_wordID -= pi.getWordsCount();
                         }
-                    }
 
-                    // TODO: Maybe provide some sort of progress based on the remaining number of
-                    // elements to load to bring back the `m_wordID` to a valid number.
+                        publishProgress(1.0f * Math.max(count, count - m_wordID) / count);
+                    }
 
                     // Check whether we reached a valid state.
                     valid = isValidWord();
