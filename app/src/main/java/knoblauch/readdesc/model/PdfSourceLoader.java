@@ -674,7 +674,7 @@ class PdfSourceLoader extends ReadLoader {
 
         // Parse the paragraphs for this page. Note that as `iText` counts page
         // starting at `1` we need to account for this this.
-        PdfTextExtractor extractor = new PdfTextExtractor();
+        PdfSimpleTextExtractor  extractor = new PdfSimpleTextExtractor();
         extractor = pdf.processContent(id + 1, extractor);
 
         // Retrieve the words parsed for this page.
