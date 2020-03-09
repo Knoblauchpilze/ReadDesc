@@ -16,10 +16,10 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
      */
     public enum Action {
         Rewind,
-        PreviousParagraph,
+        Previous,
         Pause,
         Play,
-        NextParagraph
+        Next
     }
 
     /**
@@ -53,7 +53,7 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
     private ImageButton m_reset;
 
     /**
-     * The image button to move to the previous paragraph.
+     * The image button to move to the previous section.
      */
     private ImageButton m_prev;
 
@@ -68,7 +68,7 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
     private ImageButton m_play;
 
     /**
-     * The image button to move to the next paragraph.
+     * The image button to move to the next section.
      */
     private ImageButton m_next;
 
@@ -112,10 +112,10 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
      * @param reader - the reader underlying the controls (i.e. the item
      *                 controlled by the buttons in this object).
      * @param reset - the reset button.
-     * @param prev - the move to previous paragraph button.
+     * @param prev - the move to previous section button.
      * @param pause - the pause button.
      * @param play - the play button.
-     * @param next - the move to next paragraph button.
+     * @param next - the move to next section button.
      */
     public ReadingControls(ReadParser reader, ImageButton reset, ImageButton prev, ImageButton pause, ImageButton play, ImageButton next) {
         // Assign internal attributes.
@@ -203,7 +203,7 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
             action = Action.Rewind;
         }
         else if (v == m_prev) {
-            action = Action.PreviousParagraph;
+            action = Action.Previous;
         }
         else if (v == m_pause) {
             action = Action.Pause;
@@ -212,7 +212,7 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
             action = Action.Play;
         }
         else if (v == m_next) {
-            action = Action.NextParagraph;
+            action = Action.Next;
         }
         else {
             // Unknown view, do nothing.
@@ -232,8 +232,8 @@ public class ReadingControls implements View.OnClickListener, ReadParser.Parsing
                 setState(State.Running);
                 break;
             case Rewind:
-            case PreviousParagraph:
-            case NextParagraph:
+            case Previous:
+            case Next:
                 break;
         }
 

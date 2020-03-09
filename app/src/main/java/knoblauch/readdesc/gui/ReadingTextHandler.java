@@ -13,20 +13,20 @@ import knoblauch.readdesc.model.ReadPref;
 public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runnable {
 
     /**
-     * Internal class allowing to detect whenever a new paragraph has been
+     * Internal class allowing to detect whenever a new section has been
      * reached by this task. This is useful for the caller of such a task
-     * which might want to get notified whenever specific locations of the
-     * read are reached.
-     * The method of this interface is called whenever a new paragraph is
-     * reached in the underlying parser of this task.
+     * which might want to get notified whenever specific locations of
+     * the read are reached.
+     * The method of this interface is called whenever a new section has
+     * been reached in the underlying parser of this task.
      */
-    public interface ParagraphListener {
+    public interface SectionListener {
 
         /**
-         * Called by this task whenever a new paragraph is reached by the
+         * Called by this task whenever a new section is reached by the
          * underlying task.
          */
-        void onParagraphReached();
+        void onSectionReached();
     }
 
     /**
@@ -70,10 +70,10 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     private Handler m_handler;
 
     /**
-     * The list of elements which should be notified whenever a paragraph
+     * The list of elements which should be notified whenever a section
      * is reached by this handler.
      */
-    private ArrayList<ParagraphListener> m_listeners;
+    private ArrayList<SectionListener> m_listeners;
 
     /**
      * Holds a value describing the number of words that should be read at
@@ -146,11 +146,11 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     }
 
     /**
-     * Used to register the specified listener as a new paragraph listener
+     * Used to register the specified listener as a new section listener
      * for this object. Note that it won't be added in case it is `null`.
      * @param listener - the listener to register in this object.
      */
-    public void addOnParagraphListener(ParagraphListener listener) {
+    public void addOnSectionListener(SectionListener listener) {
         if (listener != null) {
             m_listeners.add(listener);
         }
@@ -203,8 +203,8 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     public void run() {
         // Update the word displayed in the main text view with the next
         // one from the parser. We want to detect special cases where the
-        // read is finished or when we reached a paragraph of some sort
-        // in the input data.
+        // read is finished or when we reached a section of some sort in
+        // the input data.
         // This will allow to stop the reading process and allow the user
         // to see whether the reading should pursue or stop.
 
@@ -214,24 +214,24 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         }
 
         // Update the next word: this should be done no matter whether
-        // we reached a paragraph or not as we want to stop *after* the
+        // we reached a section or not as we want to stop *after* the
         // current word anyways.
         m_parser.advance();
 
         // Add `1` to the current read length.
         ++m_currentReadLength;
 
-        // Check whether we reached a paragraph.
+        // Check whether we reached a section.
         if (m_currentReadLength >= m_readLength || m_parser.isAtEnd()) {
-            // We reached a paragraph, notify listeners.
-            for (ParagraphListener listener : m_listeners) {
-                listener.onParagraphReached();
+            // We reached a section, notify listeners.
+            for (SectionListener listener : m_listeners) {
+                listener.onSectionReached();
             }
 
             return;
         }
 
-        // Reschedule this task as we didn't reach any paragraph.
+        // Reschedule this task as we didn't reach any section.
         m_handler.postDelayed(this, m_flipInterval);
     }
 

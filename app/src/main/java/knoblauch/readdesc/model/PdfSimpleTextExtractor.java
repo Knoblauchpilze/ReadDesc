@@ -33,7 +33,7 @@ public class PdfSimpleTextExtractor implements RenderListener {
 
     /**
      * A common pattern describing a string only composed of space characters.
-     * Used to only accept valid words as part of this paragraph.
+     * Used to only accept valid words as part of this section.
      */
     private static final Pattern SPACE_ONLY_PATTERN = Pattern.compile("^\\s*$");
 

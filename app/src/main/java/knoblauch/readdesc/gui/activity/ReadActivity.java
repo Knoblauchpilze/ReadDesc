@@ -20,7 +20,7 @@ import knoblauch.readdesc.model.ReadIntent;
 import knoblauch.readdesc.model.ReadParser;
 import knoblauch.readdesc.model.ReadPref;
 
-public class ReadActivity extends AppCompatActivity implements ReadingControls.ControlsListener, ReadingTextHandler.ParagraphListener, ReadParser.ParsingDoneListener {
+public class ReadActivity extends AppCompatActivity implements ReadingControls.ControlsListener, ReadingTextHandler.SectionListener, ReadParser.ParsingDoneListener {
 
     /**
      * Holds the buttons allowing to control the reading process. This element
@@ -61,7 +61,7 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
 
         // Retrieve the buttons from the layout that should be used to control
         // the reading process.
-        createControls(savedInstanceState);
+        createControls();
 
         // We need to update the properties of the main element to match the colors
         // defined in the preferences.
@@ -80,13 +80,9 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
      * Used to retrieve the controls buttons used to interpret user's requests
      * and extract a valid object from it. We will also register this activity
      * as a listener of the controls to be notified of the user's desires.
-     * The input bundle state allows to keep the progression that was actually
-     * reached by the waiter in case it was performing a load operation.
-     * @param savedInstanceState - the saved instance state of a previous use
-     *                             of this activity.
      *
      */
-    private void createControls(Bundle savedInstanceState) {
+    private void createControls() {
         // Retrieve buttons from the layout.
         ImageButton reset = findViewById(R.id.read_restart_read_id);
         ImageButton prev = findViewById(R.id.read_previous_chapter_id);
@@ -105,8 +101,8 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         ProgressBar waiter = findViewById(R.id.read_progress_bar);
         m_textHandler = new ReadingTextHandler(text, waiter, m_parser, new Handler());
 
-        // Register this view as a listener of the paragraphs.
-        m_textHandler.addOnParagraphListener(this);
+        // Register this view as a listener of the sections.
+        m_textHandler.addOnSectionListener(this);
 
         // Register the text handler as a listener of the parsing.
         m_parser.addOnParsingDoneListener(m_textHandler);
@@ -310,10 +306,10 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
             case Rewind:
                 m_parser.rewind();
                 break;
-            case PreviousParagraph:
+            case Previous:
                 m_parser.moveToPrevious();
                 break;
-            case NextParagraph:
+            case Next:
                 m_parser.moveToNext();
                 break;
             default:
@@ -397,7 +393,7 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
     }
 
     @Override
-    public void onParagraphReached() {
+    public void onSectionReached() {
         // We want to stop the scheduling of the word flip task.
         m_textHandler.stop();
 

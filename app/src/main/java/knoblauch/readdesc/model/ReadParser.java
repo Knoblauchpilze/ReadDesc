@@ -62,15 +62,14 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
     private ReadIntent m_desc;
 
     /**
-     * Describes the actual element able to fetch the data from the
-     * source of the read and to populate the paragraphs (and thus
-     * the content) of this reader.
-     * The source is expected to fill the corresponding interface
-     * and knows what each operation mean in terms of its type. It
-     * notifies this reader whenever the loading is done through the
-     * interface method which allows to not block the process for
-     * too long if the source is either long to respond or heavy to
-     * load.
+     * Describes the actual element able to fetch the data from the source of
+     * the read and to populate the sections (and thus the content) of this
+     * reader.
+     * The source is expected to fill the corresponding interface and knows
+     * what each operation mean in terms of its type. It notifies this reader
+     * whenever the loading is done through the interface method which allows
+     * to not block the process for too long if the source is either long to
+     * respond or heavy to load.
      */
     private ReadLoader m_source;
 

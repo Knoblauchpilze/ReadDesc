@@ -410,10 +410,21 @@ class PdfSourceLoader extends ReadLoader {
                 ++m_wordID;
                 break;
             case PreviousStep:
-                m_wordID -= param;
+                // We want to move either to the beginning of this page in case
+                // we're not already at the beginning and to the beginning of the
+                // previous one if this is the case.
+                if (m_wordID > 0) {
+                    m_wordID = 0;
+                }
+                else {
+                    m_wordID = 0;
+                    if (m_pageID > 0) {
+                        --m_pageID;
+                    }
+                }
                 break;
             case NextStep:
-                m_wordID += param;
+                m_wordID = getCurrentPageInfo().getWordsCount();
                 break;
         }
 
@@ -672,7 +683,7 @@ class PdfSourceLoader extends ReadLoader {
         }
         m_locker.unlock();
 
-        // Parse the paragraphs for this page. Note that as `iText` counts page
+        // Parse the sections for this page. Note that as `iText` counts page
         // starting at `1` we need to account for this this.
         PdfSimpleTextExtractor  extractor = new PdfSimpleTextExtractor();
         extractor = pdf.processContent(id + 1, extractor);
