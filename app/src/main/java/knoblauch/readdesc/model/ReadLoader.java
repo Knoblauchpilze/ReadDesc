@@ -357,6 +357,29 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
     abstract String getCurrentWord();
 
     /**
+     * Similar to `getCurrentWord` but retrieves the previous word that
+     * was pointed at by this loader. Note that in case the data cannot
+     * be fetched (because it is not loaded) a loading operation is set
+     * to be processed. In case the data cannot be retrieved (in case
+     * the parser is at the beginning of the read) the empty string is
+     * returned.
+     * @return - a string corresponding to the previous word or the
+     *           empty string if it does not exist.
+     */
+    abstract String getPreviousWord();
+
+    /**
+     * Similar  to the `getCurrentWord` but returns the next word that
+     * will be pointed at by this loader. In case the word is not yet
+     * loaded in the data a loading operation is triggered. If the word
+     * cannot be retrieved (because the parser is at the end of the
+     * data stream) the empty stirng is returned.
+     * @return - a string corresponding to the next word or the empty
+     *           string.
+     */
+    abstract String getNextWord();
+
+    /**
      * Used internally as a way to actually move the virtual cursor used
      * by this parser to a new position consistent with the requested
      * action.

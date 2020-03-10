@@ -15,10 +15,34 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:id="@+id/read_prev_word"
+            android:layout_weight="25"
+            android:gravity="center_horizontal|bottom"
+            android:textSize="@dimen/activity.read.text.size.secondary"
+            android:background="@color/activity.settings.pref.color.bg.default"
+            android:textColor="@color/activity.settings.pref.color.text.default"
+            android:visibility="gone"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:id="@+id/read_current_word"
-            android:layout_weight="85"
+            android:layout_weight="35"
             android:gravity="center_vertical|center_horizontal"
-            android:textSize="@dimen/activity.read.text.size"
+            android:textSize="@dimen/activity.read.text.size.primary"
+            android:background="@color/activity.settings.pref.color.bg.default"
+            android:textColor="@color/activity.settings.pref.color.text.default"
+            android:visibility="gone"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:id="@+id/read_next_word"
+            android:layout_weight="25"
+            android:gravity="center_horizontal|top"
+            android:textSize="@dimen/activity.read.text.size.secondary"
             android:background="@color/activity.settings.pref.color.bg.default"
             android:textColor="@color/activity.settings.pref.color.text.default"
             android:visibility="gone"

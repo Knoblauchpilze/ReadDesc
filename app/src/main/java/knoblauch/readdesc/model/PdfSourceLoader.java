@@ -388,6 +388,85 @@ class PdfSourceLoader extends ReadLoader {
     }
 
     @Override
+    String getPreviousWord() {
+        m_locker.lock();
+
+        // We need to check that the parser is in a valid state to be able to
+        // retrieve the next word. We should also check that the data loaded
+        // allows to fetch this word. This might not always be the case for
+        // example if the reader is currently loading the first loaded page
+        // and the first word of said page is displayed.
+        if (isInvalid()) {
+            m_locker.unlock();
+            return "";
+        }
+
+        // Retrieve the current page's information.
+        PageInfo pi = getCurrentPageInfo();
+        // Update this in case the current word points to the first word of
+        // the page.
+        if (m_wordID == 0) {
+            pi = m_pages.get(m_pageID - 1);
+        }
+
+        // Check whether this page is valid: this should always be the case
+        // as we perform a preemptive loading in case we reach the second
+        // word of the page.
+        if (pi == null) {
+            m_locker.unlock();
+            return "";
+        }
+
+        // Otherwise return the corresponding word.
+        int wID = (m_wordID == 0 ? pi.getWordsCount() - 1 : m_wordID - 1);
+        int gID = pi.computeWordIndex(wID);
+        String word = m_words.get(gID);
+
+        m_locker.unlock();
+
+        return word;
+    }
+
+    @Override
+    String getNextWord() {
+        m_locker.lock();
+
+        // We need to check that the parser is in a valid state and that the
+        // data for the next word is loaded. This is not always the case if
+        // we're currently displaying the last word of the last loaded page.
+        // Note that in this case we will return an empty string.
+        if (isInvalid()) {
+            m_locker.unlock();
+            return "";
+        }
+
+        // Retrieve the current page's info.
+        PageInfo pi = getCurrentPageInfo();
+        // Update this in case the current word points to the last word of
+        // the page.
+        if (m_wordID == pi.getWordsCount() - 1) {
+            pi = m_pages.get(m_pageID + 1);
+        }
+
+        // Check whether this page is valid: this should always be the case
+        // as we perform a preemptive load of the next page in case we reach
+        // the second to last word.
+        if (pi == null) {
+            m_locker.unlock();
+            return "";
+        }
+
+        // Otherwise return the corresponding word.
+        int wID = (m_wordID == pi.getWordsCount() ? 0 : m_wordID + 1);
+        int gID = pi.computeWordIndex(wID);
+        String word = m_words.get(gID);
+
+        m_locker.unlock();
+
+        return word;
+    }
+
+    @Override
     Pair<Boolean, Boolean> handleMotion(Action action, int param) {
         // We want to first determine whether the parser is in a valid state or
         // not: if this not the case there's no need to try to handle the motion.
@@ -496,6 +575,25 @@ class PdfSourceLoader extends ReadLoader {
             }
         }
 
+        // Perform a final check: in case we reach the first or last word of the
+        // page we will consider that a loading operation is needed as well. As
+        // we are displaying the previous and next word we need to have access
+        // to those and thus if we reach these edge case we won't be able to get
+        // access and perform the display.
+        if (!needsLoading && isValidPage() && isValidWord()) {
+            // Retrieve the information about the current page.
+            pi = getCurrentPageInfo();
+            if (m_wordID == 0 && m_pageID > 0) {
+                // We need to check whether the previous page is accessible.
+                needsLoading = (m_pages.get(m_pageID - 1) != null);
+            }
+            if (m_wordID == pi.getWordsCount() - 1 && m_pageID < m_pagesCount - 1) {
+                // We need to check whether the next page is accessible.
+                needsLoading = (m_pages.get(m_pageID + 1) != null);
+            }
+
+        }
+
         // The return status indicates whether we could move from the position
         // indicated by the virtual cursor a bit and also whether a loading
         // operation is required.
@@ -545,8 +643,25 @@ class PdfSourceLoader extends ReadLoader {
                 // back the word index to consistent values. Note that the `m_pageID`
                 // should already correspond to a non-loaded page so we can start from
                 // there.
+                // Inc ase the page and the word are still valid we will check whether
+                // we are either at the first word of the page or at the last one: it
+                // could indicate that we triggered a preemptive loading operation so
+                // as to be able to serve `next` and `previous` word requests.
                 if (isValidPage() && isValidWord()) {
-                    // Nothing more to do.
+                    PageInfo pi = getCurrentPageInfo();
+
+                    // Check if we should load the previous page in case we're at the
+                    // first word of the current page.
+                    if (m_wordID == 0 && m_pageID > 0 && m_pages.get(m_pageID - 1) == null) {
+                        loadPage(m_pageID - 1, parser);
+                    }
+
+                    // Check if we should load the next page in case we're at the last
+                    // word of the current page.
+                    if (m_wordID == pi.getWordsCount() - 1 && m_pageID < m_pagesCount - 1 && m_pages.get(m_pageID + 1) == null) {
+                        loadPage(m_pageID + 1, parser);
+                    }
+
                     return;
                 }
 

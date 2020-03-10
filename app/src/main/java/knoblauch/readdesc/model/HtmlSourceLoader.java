@@ -63,6 +63,12 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     @Override
+    String getPreviousWord() { return ""; }
+
+    @Override
+    String getNextWord() { return ""; }
+
+    @Override
     Pair<Boolean, Boolean> handleMotion(Action action, int param) {
         return new Pair<>(false, false);
     }

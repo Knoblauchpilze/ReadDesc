@@ -97,9 +97,11 @@ public class ReadActivity extends AppCompatActivity implements ReadingControls.C
         m_controls.addOnControlsListener(this);
 
         // Retrieve text items.
-        TextView text = findViewById(R.id.read_current_word);
+        TextView currText = findViewById(R.id.read_current_word);
+        TextView prevText = findViewById(R.id.read_prev_word);
+        TextView nextText = findViewById(R.id.read_next_word);
         ProgressBar waiter = findViewById(R.id.read_progress_bar);
-        m_textHandler = new ReadingTextHandler(text, waiter, m_parser, new Handler());
+        m_textHandler = new ReadingTextHandler(currText, prevText, nextText, waiter, m_parser, new Handler());
 
         // Register this view as a listener of the sections.
         m_textHandler.addOnSectionListener(this);

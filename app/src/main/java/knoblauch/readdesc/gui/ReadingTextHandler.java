@@ -43,6 +43,20 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     private TextView m_text;
 
     /**
+     * A text view use dto display the previous word displayed by this view
+     * It helps the user by allowing to keep some sort of continuous display
+     * of words.
+     */
+    private TextView m_prev;
+
+    /**
+     * Similar to the `m_prev` text view but contains the next word that
+     * will be displayed by the main view in this component. Allows the
+     * user to prepare for the reading of the word.
+     */
+    private TextView m_next;
+
+    /**
      * Used to hold the progress bar allowing to make the user wait for the
      * content of this read in case it takes some time to be loaded. We use
      * this as a replacement of the text view whenever needed.
@@ -98,6 +112,10 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
      * This element will automatically switch from one element to the other
      * in case it is needed.
      * @param text - the text view to display the text.
+     * @param prev - the word that was displayed in the `text` view right
+     *               before the current one.
+     * @param next - the word that will be displayed in the `text` view just
+     *               after the current one.
      * @param waiter - the progress bar to display when the text is not
      *                 available.
      * @param parser - the read parser that should be used to retrieve the
@@ -105,8 +123,11 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
      * @param handler - base object used to schedule this task within a set
      *                  time interval.
      */
-    public ReadingTextHandler(TextView text, ProgressBar waiter, ReadParser parser, Handler handler) {
+    public ReadingTextHandler(TextView text, TextView prev, TextView next, ProgressBar waiter, ReadParser parser, Handler handler) {
         m_text = text;
+        m_prev = prev;
+        m_next = next;
+
         m_waiter = waiter;
         m_parser = parser;
         m_handler = handler;
@@ -130,8 +151,15 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
      */
     public void updateFromPrefs(ReadPref prefs) {
         // Apply preferences to the controls.
-        m_text.setBackgroundColor(prefs.getBackgroundColor());
-        m_text.setTextColor(prefs.getTextColor());
+        int bg = prefs.getBackgroundColor();
+        m_text.setBackgroundColor(bg);
+        m_next.setBackgroundColor(bg);
+        m_prev.setBackgroundColor(bg);
+
+        int txt = prefs.getTextColor();
+        m_text.setTextColor(txt);
+        m_prev.setTextColor(txt);
+        m_next.setTextColor(txt);
 
         m_waiter.setBackgroundColor(prefs.getBackgroundColor());
 
@@ -161,6 +189,8 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // We need to make the waiter to be visible and hide the text as it probably
         // does not display anything relevant.
         m_text.setVisibility(View.GONE);
+        m_prev.setVisibility(View.GONE);
+        m_next.setVisibility(View.GONE);
         m_waiter.setVisibility(View.VISIBLE);
 
         // Reset the progression (so as to hide previous executions of the waiter)
@@ -188,10 +218,14 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // text of the read. We can hide the progress bar and start display the actual
         // text.
         m_text.setVisibility(View.VISIBLE);
+        m_prev.setVisibility(View.VISIBLE);
+        m_next.setVisibility(View.VISIBLE);
         m_waiter.setVisibility(View.GONE);
 
-        // We can also update the text with the current word provided by the parser.
+        // We can also update the text with the current words provided by the parser.
         m_text.setText(m_parser.getCurrentWord());
+        m_prev.setText(m_parser.getPreviousWord());
+        m_next.setText(m_parser.getNextWord());
     }
 
     @Override

@@ -60,7 +60,7 @@ public class PdfSimpleTextExtractor implements RenderListener {
      * is used as a mitigation factor in order to detect spacing when a block of
      * text is not easily separable in words in a `PDF` document.
      */
-    private static final float SPACING_TO_FONT_FACTOR = 5.2f;
+    private static final float SPACING_TO_FONT_FACTOR = 5.4f;
 
     /**
      * Define the list of punctuations symbols that will be collapsed during
@@ -264,8 +264,6 @@ public class PdfSimpleTextExtractor implements RenderListener {
         // the current word should be terminated and a new one started.
         boolean firstRender = (m_last == null);
         boolean hardReturn = false;
-
-//        Log.i("main", "Handling text \"" + renderInfo.getText() + "\"");
 
         if (!firstRender) {
             Vector x1 = m_last.start;

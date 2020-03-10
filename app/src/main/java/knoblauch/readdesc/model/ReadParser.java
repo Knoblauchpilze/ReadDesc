@@ -391,16 +391,29 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
 
     /**
      * Used for external elements to retrieve the current word pointed at by
-     * this parser. This is somewhat similar to the `getNextWord` method but
-     * it only gets the current word and does not advance on the data used
-     * by this parser.
-     * Calling this method repeatedly will not cause the parser to reach the
-     * end of the data stream.
+     * this parser. This does not make the parser advance in its data stream
+     * so it's safe to call it repeatedly.
      * @return - a string representing the current word.
      */
     public String getCurrentWord() {
         return m_source.getCurrentWord();
     }
+
+    /**
+     * Similar to the `getCurrentWord` but retrieve the previous word instead.
+     * In case the word does not exist (for example when the parser is at the
+     * very beginning of the data stream) the empty string is returned.
+     * @return - a string representing the previous word of the parser.
+     */
+    public String getPreviousWord() { return m_source.getPreviousWord(); }
+
+    /**
+     * Similar to the `getCurrentWord` but retrieve the next word instead. In
+     * case the word does not exist (for example when the parser is at the very
+     * end of the data stream) the empty string is returned.
+     * @return - a string representing the next word of the parser.
+     */
+    public String getNextWord() { return m_source.getNextWord(); }
 
     /**
      * Used to perform a rewind of all the data read so far by the parser.
