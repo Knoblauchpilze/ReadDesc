@@ -107,7 +107,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
      * Based on the type of the read to create we will instantiate a distinct app
      * to browse the source (web browser, file explorer, etc.).
      */
-    private class CreationModeProps {
+    private static class CreationModeProps {
         RadioButton active;
         EditText source;
         Button browse;
@@ -130,7 +130,7 @@ public class CreateReadActivity extends AppCompatActivity implements CompoundBut
      * should be attached. Indeed this property is optional and the user can choose
      * to assign one to a new read by ticking the checkbox.
      */
-    private class ThumbnailSelectionProps {
+    private static class ThumbnailSelectionProps {
         CheckBox active;
         EditText source;
         Button browse;

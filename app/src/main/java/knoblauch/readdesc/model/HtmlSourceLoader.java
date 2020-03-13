@@ -1,7 +1,12 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Pair;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,6 +38,20 @@ class HtmlSourceLoader extends ReadLoader {
 
     @Override
     void loadFromSource(InputStream stream, float progress) throws IOException {
+        // Try to create the document from the input stream.
+        Document doc = Jsoup.parse(stream, null, null);
+
+        Log.i("main", "Successfully parsed document");
+
+        // Retrieve the body of the document: if we can't this is an issue.
+        Element body = doc.body();
+        if (body == null) {
+            throw new IOException("Cannot retrieve body for html page");
+        }
+
+        String str = body.text();
+        Log.i("main", "Doc str is \"" + str.substring(0, 150) + "...\" (size: " + str.length() + ")");
+
         // TODO: Should handle HTML parsing.
         throw new IOException("Could not load HTML from source, not implemented");
     }

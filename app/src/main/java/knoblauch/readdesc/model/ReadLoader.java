@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.util.Pair;
 
 import java.io.IOException;
@@ -191,6 +192,7 @@ abstract class ReadLoader extends AsyncTask<String, Float, Boolean> {
         }
         catch (IOException e) {
             // We failed to load the source, this is an issue.
+            Log.i("main", "Failed to parse doc \"" + uri.toString() + "\": " + e.toString());
             return false;
         }
 

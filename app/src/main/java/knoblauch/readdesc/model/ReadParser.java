@@ -182,6 +182,7 @@ public class ReadParser implements ReadLoader.DataLoadingListener {
         switch (m_desc.getType()) {
             case WebPage:
                 m_source = new HtmlSourceLoader(context, desiredProgress);
+                break;
             case File:
                 m_source = new PdfSourceLoader(context, desiredProgress);
                 break;
