@@ -20,6 +20,14 @@ class HtmlSourceLoader extends ReadLoader {
     private static final String SPACE_PATTERN = "\\s+";
 
     /**
+     * Define the list of separators that are used as a way to mark the new line
+     * and other separations in the `HTML` document but that we don't want to use
+     * while in reading mode.
+     * A word composed of only this character will be discarded.
+     */
+    private static final String SEPARATOR = "*";
+
+    /**
      * A string representing the path to the data source for this loader. This is
      * interesting as the `HTML` parser we're using needs to have access to the
      * base path to reach the `HTML` document in order to be able to resolve links
@@ -113,6 +121,11 @@ class HtmlSourceLoader extends ReadLoader {
         for (String word : words) {
             // In case the word is empty or invalid, do not register it.
             if (word == null || word.isEmpty()) {
+                continue;
+            }
+
+            // Trash words composed only of separators.
+            if (word.length() == 1 && SEPARATOR.contains(word)) {
                 continue;
             }
 

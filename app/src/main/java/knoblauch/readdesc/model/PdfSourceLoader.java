@@ -19,7 +19,7 @@ class PdfSourceLoader extends ReadLoader {
      * needed to find the words associated to a specified page in the general
      * `m_words` map.
      */
-    private class PageInfo {
+    private static class PageInfo {
 
         /**
          * The index of the first word of the page in the general `m_words` map.
