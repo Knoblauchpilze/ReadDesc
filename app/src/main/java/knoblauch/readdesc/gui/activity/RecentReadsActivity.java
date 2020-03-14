@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Pair;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -404,8 +403,6 @@ public class RecentReadsActivity extends AppCompatActivity implements AdapterVie
         Resources res = getResources();
         String key = res.getString(R.string.activity_read_key_in);
         start.putExtra(key, desc.toReadIntent());
-
-        Log.i("main", "Starting reading for mode " + desc.toReadIntent().getType());
 
         startActivityForResult(start, res.getInteger(R.integer.activity_read_res_code));
     }
