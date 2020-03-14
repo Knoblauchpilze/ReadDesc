@@ -18,7 +18,7 @@ public class PdfSimpleTextExtractor implements RenderListener {
      * text parsed by this extractor. It is used to add some implied spaces
      * and information from the `PDF` data.
      */
-    private class LastCoordinates {
+    private static class LastCoordinates {
 
         /**
          * The position of the last starting position for the text.
