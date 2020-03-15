@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.Elements;
 
@@ -191,6 +192,55 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     /**
+     * TODO: Provide comments.
+     */
+    private Pair<Integer, Integer> handleHTMLElementParsing(Node node, int currentWordID, int count, int total) {
+        // Determine whether we have an element or a text node or something else. For now
+        // we only handle these two cases.
+        if (node instanceof TextNode) {
+            // Update the word index based on the text defined in this node.
+            TextNode textNode = (TextNode)node;
+            ArrayList<String> words = sanitizeWords(textNode.text());
+            currentWordID += words.size();
+
+            if (count < 30 && words.size() > 0) {
+                Log.i("main", "Reached text node " + count + "/" + total + " having text \"" + textNode.text() + "\" split into " + words.size() + " word(s), update index to " + currentWordID);
+                ++count;
+            }
+
+            return new Pair<>(currentWordID, count);
+        }
+
+        // Handle the case of a `Element` node.
+        if (node instanceof Element) {
+            Element element = (Element) node;
+
+            // Retrieve the tag for this element.
+            Tag tag = element.tag();
+
+            // Check whether this tag corresponds to a header.
+            if (TITLES.contains(tag.getName())) {
+                // Register this title index. We don't want to update the
+                // `currentWordID` as we consider it will be updated through
+                // the parsing of the children of this node: otherwise the
+                // header tag does not define any text by itself.
+                Log.i("main", "Adding title with tag \"" + tag.getName() + "\" containing " + element.text().length() + " character(s) (text: \"" + element.text() + "\") at index " + currentWordID);
+                m_titlesID.add(currentWordID);
+            }
+
+            // Retrieve the children of this elements and repeat the process.
+            List<Node> nodes = element.childNodes();
+            for (Node child : nodes) {
+                Pair<Integer, Integer> ret = handleHTMLElementParsing(child, currentWordID, count, total);
+                currentWordID = ret.first;
+                count = ret.second;
+            }
+        }
+
+        return new Pair<>(currentWordID, count);
+    }
+
+    /**
      * Used to generate a list of checkpoints referencing the position of the first word of a
      * `HTML` title within the general `m_words` list. This allows to provide more intuitive
      * navigation when the user requests to move to the next/previous section.
@@ -203,12 +253,17 @@ class HtmlSourceLoader extends ReadLoader {
         // used this link:
         // https://stackoverflow.com/questions/7036332/jsoup-select-and-iterate-all-elements
         // to handle the selection of all the elements within the body.
+        // After researching some more to fix the issue where the content would not always
+        // be parsed in the order it was defined in the document we found this topic:
+        // https://stackoverflow.com/questions/10177867/jsoup-extracting-text
+        // which provided some more information about how to traverse the elements in the
+        // `HTML` document.
         if (body == null) {
             return;
         }
 
-        Elements elements = body.children().select("*");
-        if (elements == null || elements.isEmpty()) {
+        List<Node> nodes = body.childNodes();
+        if (nodes == null || nodes.isEmpty()) {
             return;
         }
 
@@ -217,34 +272,10 @@ class HtmlSourceLoader extends ReadLoader {
         // the first position in the read to allow for easy handling of the previous section.
         int titleWordID = 0;
         int count = 0;
-        for (Element elem : elements) {
-            // Retrieve the tag for this element.
-            Tag tag = elem.tag();
-
-            // Check whether this tag corresponds to a header.
-            if (TITLES.contains(tag.getName())) {
-                // Register this title index.
-                Log.i("main", "Adding title with tag \"" + tag.getName() + "\" containing " + elem.text().length() + " character(s) (text: \"" + elem.text() + "\") at index " + titleWordID);
-                m_titlesID.add(titleWordID);
-            }
-
-            // Sanitize the text contained in this node and update the word index of the
-            // next title.
-            titleWordID += sanitizeWords(elem.ownText()).size();
-
-            if (count < 10) {
-                Log.i("main", "Parsed tag \"" + tag.getName() + "\" with text \"" + elem.ownText() + "\" (word id " + titleWordID + ", and size " + sanitizeWords(elem.ownText()).size() + ")");
-                List<Node> nodes = elem.childNodes();
-                for (int id = 0 ; id < nodes.size() ; ++id) {
-                    Log.i("main", "Child " + id + "/" + nodes.size() + " of \"" + tag.getName() + "\" contains \"" + nodes.get(id).toString() + "\"");
-                }
-            }
-
-            ++count;
-        }
-
-        for (int id = 0 ; id < m_titlesID.size() ; ++id) {
-            Log.i("main", "Title " + id + " is at " + m_titlesID.get(id));
+        for (Node node : nodes) {
+            Pair<Integer, Integer> ret = handleHTMLElementParsing(node, titleWordID, count, nodes.size());
+            titleWordID = ret.first;
+            count = ret.second;
         }
 
         // TODO: This does not work very well because imagine the following situation:
@@ -282,6 +313,7 @@ class HtmlSourceLoader extends ReadLoader {
         // Another solution would be to see whether it is possible to determine whether the content of a node is positioned before
         // its children.
         // This link: https://stackoverflow.com/questions/10177867/jsoup-extracting-text could help.
+        // TODO: We should also probably try to merge this process with words gathering.
     }
 
     /**
@@ -568,6 +600,10 @@ class HtmlSourceLoader extends ReadLoader {
         // Once we have a valid text we can analyze it and group it in order to
         // build the `m_words` list of words.
         handlePageLoading(text);
+
+        for (int id = 0 ; id < 140 ; ++id) {
+            Log.i("main", "Word " + id + "/" + m_words.size() + " is \"" + m_words.get(id) + "\"");
+        }
 
         // We will now interpret the list of titles that can be found from the input document.
         // This will allow for more convenient navigation in the document when handling a next
