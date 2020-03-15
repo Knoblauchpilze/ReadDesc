@@ -54,6 +54,22 @@ class HtmlSourceLoader extends ReadLoader {
     private int m_wordID;
 
     /**
+     * Contains the list of the position of titles in the document and in the `m_words`
+     * index. The list is sequentially sorted (meaning that iterating from `0` to the
+     * size of the array will yield increasing values) and represent the list of titles
+     * and their associated position. This allows to move to the next title when asked.
+     */
+    private ArrayList<Integer> m_titlesID;
+
+    /**
+     * Holds the current index of the last title we passed. This means that the current
+     * word index is *at least* greater than the index of this title. This value is used
+     * as a base reference point when searching to move to the next/previous section to
+     * avoid searching the entire `m_titlesID` array.
+     */
+    private int m_currentTitleID;
+
+    /**
      * Create a new `HTML` source loader from the specified arguments. Will call
      * the base class constructor and forward the arguments.
      * The `HTML` parser we're using requires to have knowledge of the base `uri`
@@ -76,6 +92,9 @@ class HtmlSourceLoader extends ReadLoader {
         // Define words cursor variables.
         m_words = new ArrayList<>();
         m_wordID = -1;
+
+        m_titlesID = new ArrayList<>();
+        m_currentTitleID = -1;
     }
 
     /**
@@ -93,6 +112,9 @@ class HtmlSourceLoader extends ReadLoader {
 
         m_words = other.m_words;
         m_wordID = other.m_wordID;
+
+        m_titlesID = other.m_titlesID;
+        m_currentTitleID = other.m_currentTitleID;
     }
 
     /**
@@ -135,6 +157,19 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     /**
+     * Used to generate a list of checkpoints referencing the position of the first word of a
+     * `HTML` title within the general `m_words` list. This allows to provide more intuitive
+     * navigation when the user requests to move to the next/previous section.
+     * The goal is to find all the elements having the `header` tag in the input document so
+     * as to provide the most detailed navigation.
+     * @param body - the body of the document associated to this source.
+     */
+    private void generateTitleCheckpoints(Element body) {
+        // TODO: Handle title creation and fetching.
+        // TODO: We should generate a first title at 0 all the time.
+    }
+
+    /**
      * Used to determine whether this parser contains some data. Note that the
      * locker is not acquired by this method so it can be used internally.
      * @return - `true` if this object defines some words and `false` otherwise.
@@ -152,6 +187,26 @@ class HtmlSourceLoader extends ReadLoader {
      */
     private boolean isValidWord() {
         return hasWords() && m_wordID >= 0 && m_wordID < m_words.size();
+    }
+
+    /**
+     * Used to determine whether the `HTML` source of this document defines some
+     * titles. This can be used before trying to access the `m_currentTitleID`.
+     * @return - `true` if this document defines at least one title.
+     */
+    private boolean hasTitles() {
+        return m_titlesID != null && !m_titlesID.isEmpty();
+    }
+
+    /**
+     * Used internally to determine whether the current title is consistent in
+     * regard to the titles parsed from the `HTML` source. This method does not
+     * try to acquire the internal lock on this object so it is safe to use it
+     * internally.
+     * @return - `true` if it is safe to access the current title.
+     */
+    private boolean isValidTitle() {
+        return hasTitles() && m_currentTitleID >= 0 && m_currentTitleID < m_titlesID.size();
     }
 
     @Override
@@ -277,14 +332,88 @@ class HtmlSourceLoader extends ReadLoader {
         // Perform the action.
         switch (action) {
             case Rewind:
+                // Move to the first word.
                 m_wordID = 0;
+
+                // Try to update the title's index. We will assume that the first
+                // title is the one to select: indeed even if this title is located
+                // after the current word's index we can't do better than that in
+                // terms of index.
+                if (hasTitles()) {
+                    m_currentTitleID = 0;
+                }
                 break;
             case NextWord:
+                // Move to the next word.
                 ++m_wordID;
+
+                // Try to update the title's index: to do so we need to fetch the
+                // position of the next title and see whether it is located before
+                // the current word's index.
+                if (isValidTitle()) {
+                    // Start with the current title index.
+                    int nexTitleWordID = m_titlesID.get(m_currentTitleID);
+
+                    // Try to fetch the next one.
+                    if (m_currentTitleID < m_titlesID.size() - 1) {
+                        nexTitleWordID = m_titlesID.get(m_currentTitleID + 1);
+                    }
+
+                    // In case the next title is located before the current word's
+                    // position, move to the next one.
+                    if (m_wordID >= nexTitleWordID) {
+                        ++m_currentTitleID;
+                    }
+                }
                 break;
             case PreviousStep:
+                // In case we want to reach the previous title we need to compute
+                // the different between the position of the current word and the
+                // position of the previous title: if we're not right at the start
+                // of the current section we will move to the beginning of it. In
+                // case we're already at the start we will move to the start of
+                // the previous section.
+                // In case no titles are defined we won't move.
+                if (isValidTitle()) {
+                    int titleWordID = m_titlesID.get(m_currentTitleID);
+                    if (m_wordID > titleWordID) {
+                        m_wordID = titleWordID;
+                    }
+                    else if (m_currentTitleID > 0) {
+                        --m_currentTitleID;
+                        m_wordID = m_titlesID.get(m_currentTitleID);
+                    }
+                }
+                break;
             case NextStep:
-                // TODO: Should handle motion to the next paragraph or title ?
+                // We will follow a similar process to the `previous step` case but
+                // trying to move forward in the read. Note that it is simpler in
+                // this case as no matter the position of the word in the current
+                // section we will always move to the next one (as long as a valid
+                // title can be found in the read).
+                if (isValidTitle()) {
+                    // Try to find the next position to move to. We will start by
+                    // moving to the current title's position (which should always
+                    // fail as it is meant to represent the *last title reached*.
+                    int titleWordID = m_titlesID.get(m_currentTitleID);
+
+                    // Try to move to the next title: this might fail if we reached
+                    // the last title.
+                    if (m_currentTitleID < m_titlesID.size() - 1) {
+                        ++m_currentTitleID;
+                        titleWordID = m_titlesID.get(m_currentTitleID);
+                    }
+
+                    // In case the value is larger than the current word index we
+                    // can move to this position. Otherwise we will move to the end
+                    // of the read as there's no title beyond the last one we reached.
+                    if (m_wordID < titleWordID) {
+                        m_wordID = titleWordID;
+                    }
+                    else {
+                        m_wordID = m_words.size() - 1;
+                    }
+                }
                 break;
         }
 
@@ -321,6 +450,11 @@ class HtmlSourceLoader extends ReadLoader {
         // build the `m_words` list of words.
         handlePageLoading(text);
 
+        // We will now interpret the list of titles that can be found from the input document.
+        // This will allow for more convenient navigation in the document when handling a next
+        // or previous section motion request.
+        generateTitleCheckpoints(body);
+
         // Now we need to interpret the input parsing progress: we know that the desired
         // progression is defined by the `progress` value in input. We will consider that
         // it represents some fraction of the total number of words. Note that some control
@@ -328,5 +462,21 @@ class HtmlSourceLoader extends ReadLoader {
         // the data contained in the `m_words` data.
         float cProgress = Math.min(1.0f, Math.max(0.0f, progress));
         m_wordID = Math.round((int)Math.floor(cProgress * m_words.size()));
+
+        // We should also find the corresponding title index from the compute word position.
+        if (hasTitles()) {
+            // Traverse the list of titles until we reach one that is after the current word
+            // index.
+            int titleWordID = 0;
+            int titleID = 0;
+
+            while (titleWordID < m_wordID && titleID < m_titlesID.size()) {
+                titleWordID = m_titlesID.get(titleID);
+                ++titleID;
+            }
+
+            // Register the found title.
+            m_currentTitleID = Math.min(m_titlesID.size(), titleID);
+        }
     }
 }
