@@ -192,7 +192,14 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     /**
-     * TODO: Provide comments.
+     * Handle the parsing of a `HTML` node retrieved while parsing the source. It
+     * should be either parsed to extract some text or analyzed to determine some
+     * properties about it (like whether it is a title or not).
+     * The input arguments allow to perform some recursion easily by propagating
+     * the current words count.
+     * @param node - the node to analyze. This is the current element parsed by
+     *               the `HTML` reading process.
+     * TODO: Remove additional arguments.
      */
     private Pair<Integer, Integer> handleHTMLElementParsing(Node node, int currentWordID, int count, int total) {
         // Determine whether we have an element or a text node or something else. For now
@@ -314,6 +321,7 @@ class HtmlSourceLoader extends ReadLoader {
         // its children.
         // This link: https://stackoverflow.com/questions/10177867/jsoup-extracting-text could help.
         // TODO: We should also probably try to merge this process with words gathering.
+        // TODO: Basically we just have to replace the code in case of a `TextNode` with the actual creation of words.
     }
 
     /**
