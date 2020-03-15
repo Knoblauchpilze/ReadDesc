@@ -1,15 +1,22 @@
 package knoblauch.readdesc.model;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.Pair;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.parser.Tag;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 class HtmlSourceLoader extends ReadLoader {
 
@@ -26,6 +33,13 @@ class HtmlSourceLoader extends ReadLoader {
      * A word composed of only this character will be discarded.
      */
     private static final String SEPARATOR = "*";
+
+    /**
+     * A definition of all the titles tag that can be defined in a `HTML` document.
+     * This helps identify the titles in the document and build the navigation map
+     * when loading the document.
+     */
+    private static final String TITLES = "h1h2h3h4h5h6";
 
     /**
      * A string representing the path to the data source for this loader. This is
@@ -118,29 +132,31 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     /**
-     * Used internally to handle the creation of the list of words from the input
-     * text string. This string is usually retrieved from the actual data source
-     * and is analyzed to extract words from it. Each individual word is then set
-     * as an entry in the `m_words` list for further usage.
-     * Note that the virtual cursors defined by this object are not modified by
-     * this method and that if any data is already registered in this object it
-     * is not modified (basically we append the input content to the existing one).
-     * @param text - the complete list of words to append to the `m_words` list.
+     * Used internally to sanitize an input string assumed to represent a string of
+     * space separated words. The output vector will contain only words that are
+     * considered valid according to the internal semantic (i.e. no empty words, no
+     * words composed only of spaces, no separators, etc.).
+     * The resulting list can be added to a parser for usage in reading mode.
+     * @param text - the input string representing the words to sanitize.
+     * @return - a vector of words representing the tokenized version of the input
+     *           string.
      */
-    private void handlePageLoading(String text) {
+    private static ArrayList<String> sanitizeWords(String text) {
+        ArrayList<String> words = new ArrayList<>();
+
         // Discard obviously trivial cases.
         if (text == null || text.isEmpty()) {
-            return;
+            return words;
         }
 
         // Trim the space characters from the input string.
         text = text.trim();
 
         // Split the input text based on space characters.
-        String[] words = text.split(SPACE_PATTERN);
+        String[] tokens = text.split(SPACE_PATTERN);
 
         // Interpret each word.
-        for (String word : words) {
+        for (String word : tokens) {
             // In case the word is empty or invalid, do not register it.
             if (word == null || word.isEmpty()) {
                 continue;
@@ -152,8 +168,26 @@ class HtmlSourceLoader extends ReadLoader {
             }
 
             // Add this word to the internal list.
-            m_words.add(word);
+            words.add(word);
         }
+
+        return words;
+    }
+
+    /**
+     * Used internally to handle the creation of the list of words from the input
+     * text string. This string is usually retrieved from the actual data source
+     * and is analyzed to extract words from it. Each individual word is then set
+     * as an entry in the `m_words` list for further usage.
+     * Note that the virtual cursors defined by this object are not modified by
+     * this method and that if any data is already registered in this object it
+     * is not modified (basically we append the input content to the existing one).
+     * @param text - the complete list of words to append to the `m_words` list.
+     */
+    private void handlePageLoading(String text) {
+        // Use the internal handler to perform the analysis and sanitation of the
+        // input text.
+        m_words.addAll(sanitizeWords(text));
     }
 
     /**
@@ -165,8 +199,89 @@ class HtmlSourceLoader extends ReadLoader {
      * @param body - the body of the document associated to this source.
      */
     private void generateTitleCheckpoints(Element body) {
-        // TODO: Handle title creation and fetching.
-        // TODO: We should generate a first title at 0 all the time.
+        // Handle trivial cases where the body does not contain anything or is invalid. We
+        // used this link:
+        // https://stackoverflow.com/questions/7036332/jsoup-select-and-iterate-all-elements
+        // to handle the selection of all the elements within the body.
+        if (body == null) {
+            return;
+        }
+
+        Elements elements = body.children().select("*");
+        if (elements == null || elements.isEmpty()) {
+            return;
+        }
+
+        // Traverse the list of elements described in the body and build the list of titles
+        // registered in it. We will always add a first title (virtual if needed) located at
+        // the first position in the read to allow for easy handling of the previous section.
+        int titleWordID = 0;
+        int count = 0;
+        for (Element elem : elements) {
+            // Retrieve the tag for this element.
+            Tag tag = elem.tag();
+
+            // Check whether this tag corresponds to a header.
+            if (TITLES.contains(tag.getName())) {
+                // Register this title index.
+                Log.i("main", "Adding title with tag \"" + tag.getName() + "\" containing " + elem.text().length() + " character(s) (text: \"" + elem.text() + "\") at index " + titleWordID);
+                m_titlesID.add(titleWordID);
+            }
+
+            // Sanitize the text contained in this node and update the word index of the
+            // next title.
+            titleWordID += sanitizeWords(elem.ownText()).size();
+
+            if (count < 10) {
+                Log.i("main", "Parsed tag \"" + tag.getName() + "\" with text \"" + elem.ownText() + "\" (word id " + titleWordID + ", and size " + sanitizeWords(elem.ownText()).size() + ")");
+                List<Node> nodes = elem.childNodes();
+                for (int id = 0 ; id < nodes.size() ; ++id) {
+                    Log.i("main", "Child " + id + "/" + nodes.size() + " of \"" + tag.getName() + "\" contains \"" + nodes.get(id).toString() + "\"");
+                }
+            }
+
+            ++count;
+        }
+
+        for (int id = 0 ; id < m_titlesID.size() ; ++id) {
+            Log.i("main", "Title " + id + " is at " + m_titlesID.get(id));
+        }
+
+        // TODO: This does not work very well because imagine the following situation:
+        // <div id="book">
+        //      <p>A novel by Charles Stross</p>
+        //      <p>Copyright © Charles Stross, 2005</p>
+        //      <p></p>
+        //      <p>Published by</p>
+        //      <p>Ace Books, New York, July 2005, ISBN 0441012841</p>
+        //      <p>Orbit Books, London, August 2005, ISBN 1841493902</p>
+        //      <h3>License</h3>
+        //
+        //
+        //      <!-- Creative Commons License -->
+        //      <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.5/">
+        //          <img src="./Accelerando_files/somerights20.gif" alt="Creative Commons License" border="0">
+        //      </a>
+        //      <br>
+        //      <br>
+        //      Copyright © Charles Stross, 2005.
+        //      <br>
+        //      <br>
+        //      This work is licensed under a
+        //      <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.5/">
+        //          Creative Commons Attribution-NonCommercial-NoDerivs 2.5 License
+        //      </a>.
+        //      <!-- /Creative Commons License -->
+        //
+        // We will first reach the `div` and interpret its text `Copyright C Charles Stross, 2005. This work is licensed under a .`
+        // and add the corresponding word count.
+        // Then reach the `p` tag and add its content which will be at index `13` while the content of the `div` is actually set
+        // after the `p` content: this will effectively lead to some inconsistencies in the word index.
+        // To fix the issue we could try to find the text of each node in the complete text from the body but it would probably
+        // be not super cool in terms of performance.
+        // Another solution would be to see whether it is possible to determine whether the content of a node is positioned before
+        // its children.
+        // This link: https://stackoverflow.com/questions/10177867/jsoup-extracting-text could help.
     }
 
     /**
@@ -378,9 +493,11 @@ class HtmlSourceLoader extends ReadLoader {
                     int titleWordID = m_titlesID.get(m_currentTitleID);
                     if (m_wordID > titleWordID) {
                         m_wordID = titleWordID;
+                        Log.i("main", "Moved from " + m_wordID + " to beginning of current title " + m_currentTitleID + " at " + titleWordID);
                     }
                     else if (m_currentTitleID > 0) {
                         --m_currentTitleID;
+                        Log.i("main", "Moved from " + m_wordID + " to previous title " + m_currentTitleID + " at " + m_titlesID.get(m_currentTitleID));
                         m_wordID = m_titlesID.get(m_currentTitleID);
                     }
                 }
@@ -408,10 +525,12 @@ class HtmlSourceLoader extends ReadLoader {
                     // can move to this position. Otherwise we will move to the end
                     // of the read as there's no title beyond the last one we reached.
                     if (m_wordID < titleWordID) {
+                        Log.i("main", "Moved from " + m_wordID + " to title " + m_currentTitleID + " at " + titleWordID);
                         m_wordID = titleWordID;
                     }
                     else {
                         m_wordID = m_words.size() - 1;
+                        Log.i("main", "Moved from " + m_wordID + " to last word " + (m_words.size() - 1));
                     }
                 }
                 break;
@@ -470,12 +589,18 @@ class HtmlSourceLoader extends ReadLoader {
             int titleWordID = 0;
             int titleID = 0;
 
+            Log.i("main", "Word progress is " + progress + ", reached word " + m_wordID + "/" + m_words.size());
+
             while (titleWordID < m_wordID && titleID < m_titlesID.size()) {
                 titleWordID = m_titlesID.get(titleID);
-                ++titleID;
+                Log.i("main", "Title " + titleID + "/" + m_titlesID.size() + " is at " + titleWordID);
+                if (titleWordID < m_wordID) {
+                    ++titleID;
+                }
             }
 
             // Register the found title.
+            Log.i("main", "Reached title " + titleID + " at " + titleWordID + " to match word index " + m_wordID);
             m_currentTitleID = Math.min(m_titlesID.size(), titleID);
         }
     }
