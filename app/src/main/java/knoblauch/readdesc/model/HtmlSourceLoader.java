@@ -10,14 +10,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.parser.Tag;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 class HtmlSourceLoader extends ReadLoader {
 
@@ -34,6 +31,19 @@ class HtmlSourceLoader extends ReadLoader {
      * A word composed of only this character will be discarded.
      */
     private static final String SEPARATOR = "*";
+
+    /**
+     * Define the list of punctuations symbols that will be collapsed during the
+     * sanitize operation taking place when extracting the words from the `HTML`
+     * document.
+     */
+    private static final String PUNCTUATION = ",?;.:!()°\"'";
+
+    /**
+     * Define the list of currencies that will be collapsed during a sanitize
+     * operation to be linked to their associated numerical value.
+     */
+    private static final String CURRENCIES = "€$£";
 
     /**
      * A definition of all the titles tag that can be defined in a `HTML` document.
@@ -176,22 +186,6 @@ class HtmlSourceLoader extends ReadLoader {
     }
 
     /**
-     * Used internally to handle the creation of the list of words from the input
-     * text string. This string is usually retrieved from the actual data source
-     * and is analyzed to extract words from it. Each individual word is then set
-     * as an entry in the `m_words` list for further usage.
-     * Note that the virtual cursors defined by this object are not modified by
-     * this method and that if any data is already registered in this object it
-     * is not modified (basically we append the input content to the existing one).
-     * @param text - the complete list of words to append to the `m_words` list.
-     */
-    private void handlePageLoading(String text) {
-        // Use the internal handler to perform the analysis and sanitation of the
-        // input text.
-        m_words.addAll(sanitizeWords(text));
-    }
-
-    /**
      * Handle the parsing of a `HTML` node retrieved while parsing the source. It
      * should be either parsed to extract some text or analyzed to determine some
      * properties about it (like whether it is a title or not).
@@ -199,9 +193,10 @@ class HtmlSourceLoader extends ReadLoader {
      * the current words count.
      * @param node - the node to analyze. This is the current element parsed by
      *               the `HTML` reading process.
-     * TODO: Remove additional arguments.
+     * @return - the index of the last word parsed from the input node. This can
+     *           be used to chain calls to this method to parse several nodes.
      */
-    private Pair<Integer, Integer> handleHTMLElementParsing(Node node, int currentWordID, int count, int total) {
+    private int handleHTMLElementParsing(Node node, int currentWordID) {
         // Determine whether we have an element or a text node or something else. For now
         // we only handle these two cases.
         if (node instanceof TextNode) {
@@ -210,12 +205,27 @@ class HtmlSourceLoader extends ReadLoader {
             ArrayList<String> words = sanitizeWords(textNode.text());
             currentWordID += words.size();
 
-            if (count < 30 && words.size() > 0) {
-                Log.i("main", "Reached text node " + count + "/" + total + " having text \"" + textNode.text() + "\" split into " + words.size() + " word(s), update index to " + currentWordID);
-                ++count;
+            // Register the words that we created from this text node.
+            if (!words.isEmpty()) {
+                // We need to take care of punctuation and currencies symbols which might
+                // be described as standalone characters: indeed we will try to collapse
+                // them with the previous word if possible.
+                for (String word : words) {
+                    // If the current word is a single punctuation or currency character,
+                    // attempt to collapse it to the previous word.
+                    if (!m_words.isEmpty() && word.length() == 1 && (PUNCTUATION.contains(word) || CURRENCIES.contains(word))) {
+                        String c = m_words.get(m_words.size() - 1).concat(word);
+                        m_words.set(m_words.size() - 1, c);
+
+                        continue;
+                    }
+
+                    // Add the word as a regular one.
+                    m_words.add(word);
+                }
             }
 
-            return new Pair<>(currentWordID, count);
+            return currentWordID;
         }
 
         // Handle the case of a `Element` node.
@@ -227,24 +237,25 @@ class HtmlSourceLoader extends ReadLoader {
 
             // Check whether this tag corresponds to a header.
             if (TITLES.contains(tag.getName())) {
-                // Register this title index. We don't want to update the
-                // `currentWordID` as we consider it will be updated through
-                // the parsing of the children of this node: otherwise the
-                // header tag does not define any text by itself.
-                Log.i("main", "Adding title with tag \"" + tag.getName() + "\" containing " + element.text().length() + " character(s) (text: \"" + element.text() + "\") at index " + currentWordID);
-                m_titlesID.add(currentWordID);
+                // Register this title index. We don't want to update the `currentWordID` as
+                // we consider it will be updated through the parsing of the children of this
+                // node: otherwise the header tag does not define any text by itself.
+                // Note that we will also check whether this title is at least one word ahead
+                // of the previous one: this will avoid situations where several titles with
+                // no content are concatenated (and thus useless).
+                if (m_titlesID.isEmpty() || m_titlesID.get(m_titlesID.size() - 1) < currentWordID) {
+                    m_titlesID.add(currentWordID);
+                }
             }
 
             // Retrieve the children of this elements and repeat the process.
             List<Node> nodes = element.childNodes();
             for (Node child : nodes) {
-                Pair<Integer, Integer> ret = handleHTMLElementParsing(child, currentWordID, count, total);
-                currentWordID = ret.first;
-                count = ret.second;
+                currentWordID = handleHTMLElementParsing(child, currentWordID);
             }
         }
 
-        return new Pair<>(currentWordID, count);
+        return currentWordID;
     }
 
     /**
@@ -278,50 +289,9 @@ class HtmlSourceLoader extends ReadLoader {
         // registered in it. We will always add a first title (virtual if needed) located at
         // the first position in the read to allow for easy handling of the previous section.
         int titleWordID = 0;
-        int count = 0;
         for (Node node : nodes) {
-            Pair<Integer, Integer> ret = handleHTMLElementParsing(node, titleWordID, count, nodes.size());
-            titleWordID = ret.first;
-            count = ret.second;
+            titleWordID = handleHTMLElementParsing(node, titleWordID);
         }
-
-        // TODO: This does not work very well because imagine the following situation:
-        // <div id="book">
-        //      <p>A novel by Charles Stross</p>
-        //      <p>Copyright © Charles Stross, 2005</p>
-        //      <p></p>
-        //      <p>Published by</p>
-        //      <p>Ace Books, New York, July 2005, ISBN 0441012841</p>
-        //      <p>Orbit Books, London, August 2005, ISBN 1841493902</p>
-        //      <h3>License</h3>
-        //
-        //
-        //      <!-- Creative Commons License -->
-        //      <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.5/">
-        //          <img src="./Accelerando_files/somerights20.gif" alt="Creative Commons License" border="0">
-        //      </a>
-        //      <br>
-        //      <br>
-        //      Copyright © Charles Stross, 2005.
-        //      <br>
-        //      <br>
-        //      This work is licensed under a
-        //      <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.5/">
-        //          Creative Commons Attribution-NonCommercial-NoDerivs 2.5 License
-        //      </a>.
-        //      <!-- /Creative Commons License -->
-        //
-        // We will first reach the `div` and interpret its text `Copyright C Charles Stross, 2005. This work is licensed under a .`
-        // and add the corresponding word count.
-        // Then reach the `p` tag and add its content which will be at index `13` while the content of the `div` is actually set
-        // after the `p` content: this will effectively lead to some inconsistencies in the word index.
-        // To fix the issue we could try to find the text of each node in the complete text from the body but it would probably
-        // be not super cool in terms of performance.
-        // Another solution would be to see whether it is possible to determine whether the content of a node is positioned before
-        // its children.
-        // This link: https://stackoverflow.com/questions/10177867/jsoup-extracting-text could help.
-        // TODO: We should also probably try to merge this process with words gathering.
-        // TODO: Basically we just have to replace the code in case of a `TextNode` with the actual creation of words.
     }
 
     /**
@@ -603,19 +573,10 @@ class HtmlSourceLoader extends ReadLoader {
         if (body == null) {
             throw new IOException("Cannot retrieve body from html page");
         }
-        String text = body.text();
 
-        // Once we have a valid text we can analyze it and group it in order to
-        // build the `m_words` list of words.
-        handlePageLoading(text);
-
-        for (int id = 0 ; id < 140 ; ++id) {
-            Log.i("main", "Word " + id + "/" + m_words.size() + " is \"" + m_words.get(id) + "\"");
-        }
-
-        // We will now interpret the list of titles that can be found from the input document.
-        // This will allow for more convenient navigation in the document when handling a next
-        // or previous section motion request.
+        // We will now interpret the list of titles that can be found from the input
+        // document. This will allow for more convenient navigation in the document
+        // when handling a next or previous section motion request.
         generateTitleCheckpoints(body);
 
         // Now we need to interpret the input parsing progress: we know that the desired
@@ -637,7 +598,6 @@ class HtmlSourceLoader extends ReadLoader {
 
             while (titleWordID < m_wordID && titleID < m_titlesID.size()) {
                 titleWordID = m_titlesID.get(titleID);
-                Log.i("main", "Title " + titleID + "/" + m_titlesID.size() + " is at " + titleWordID);
                 if (titleWordID < m_wordID) {
                     ++titleID;
                 }
