@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -17,14 +19,14 @@ import knoblauch.readdesc.gui.NotifierDialog;
 import knoblauch.readdesc.gui.ResetPreferencesDialog;
 import knoblauch.readdesc.model.ReadPref;
 
-public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NotifierDialog.NoticeDialogListener {
+public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener, NotifierDialog.NoticeDialogListener, CheckBox.OnCheckedChangeListener {
 
     /**
      * Describe a useful collection of seek bars representing the possible channels
      * associated to a color. It also contains information about a button that is
      * used to display a preview of the color defined by the seek bars.
      */
-    private class ColorSeekBars {
+    private static class ColorSeekBars {
         SeekBar red;
         SeekBar green;
         SeekBar blue;
@@ -58,6 +60,12 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
      * easily detect changes from this element.
      */
     private SeekBar m_wordFlipValue;
+
+    /**
+     * Holds the checkbox allowing to control whether the context of the reading
+     * word should be displayed. Also used to detect changes to this element.
+     */
+    private CheckBox m_disableContextValue;
 
     /**
      * Holds the text view displaying the current word step value expressed in
@@ -96,6 +104,8 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         // Register this view as a listener of relevant properties.
         m_wordFlipValue.setOnSeekBarChangeListener(this);
         m_wordStepValue.setOnSeekBarChangeListener(this);
+
+        m_disableContextValue.setOnCheckedChangeListener(this);
 
         m_bgColor.red.setOnSeekBarChangeListener(this);
         m_bgColor.green.setOnSeekBarChangeListener(this);
@@ -141,6 +151,14 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        // Check whether the button comes from the display context checkbox.
+        if (buttonView == m_disableContextValue) {
+            m_prefs.setDisplayContext(!isChecked);
         }
     }
 
@@ -267,6 +285,9 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_wordStepText = findViewById(R.id.settings_word_step_value);
         m_wordStepValue = findViewById(R.id.settings_word_step_seek_bar);
 
+        // Retrieve display context.
+        m_disableContextValue = findViewById(R.id.settings_disable_context_words);
+
         // Save relevant views in order to be able to change the suited properties.
         // Also we need to connect signals from various sliders.
         m_bgColor = new ColorSeekBars();
@@ -318,6 +339,9 @@ public class SettingsActivity extends AppCompatActivity implements SeekBar.OnSee
         m_wordStepText.setText(wordStepText);
         m_wordStepValue.setProgress(wordStep);
 
+        // Display context.
+        boolean displayContext = m_prefs.getDisplayContext();
+        m_disableContextValue.setChecked(!displayContext);
 
         // Background color while in reading mode.
         int bgColor = m_prefs.getBackgroundColor();

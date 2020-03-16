@@ -57,6 +57,15 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
     private TextView m_next;
 
     /**
+     * Holds the visibility status to apply to both the previous and next
+     * words views as specified by the preferences. This allows to keep a
+     * view as clean as possible to avoid distractions for the user. This
+     * status is kept as an attribute in order to be able to reapply it
+     * in case of a loading operation.
+     */
+    private int m_contextDisplay;
+
+    /**
      * Used to hold the progress bar allowing to make the user wait for the
      * content of this read in case it takes some time to be loaded. We use
      * this as a replacement of the text view whenever needed.
@@ -139,6 +148,8 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         m_readLength = READ_LENGTH;
         m_currentReadLength = 0;
 
+        m_contextDisplay = View.VISIBLE;
+
         m_listeners = new ArrayList<>();
     }
 
@@ -165,6 +176,11 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
 
         // Update the word flip interval.
         m_flipInterval = prefs.getWordFlipInterval();
+
+        // Set whether the next and previous words should be visible.
+        m_contextDisplay = (prefs.getDisplayContext() ? View.VISIBLE : View.GONE);
+        m_prev.setVisibility(m_contextDisplay);
+        m_next.setVisibility(m_contextDisplay);
 
         // Retrieve the read length: we will assume that it is similar to
         // the value defined for the word step. Indeed it makes sense to
@@ -218,8 +234,8 @@ public class ReadingTextHandler implements ReadParser.ParsingDoneListener, Runna
         // text of the read. We can hide the progress bar and start display the actual
         // text.
         m_text.setVisibility(View.VISIBLE);
-        m_prev.setVisibility(View.VISIBLE);
-        m_next.setVisibility(View.VISIBLE);
+        m_prev.setVisibility(m_contextDisplay);
+        m_next.setVisibility(m_contextDisplay);
         m_waiter.setVisibility(View.GONE);
 
         // We can also update the text with the current words provided by the parser.

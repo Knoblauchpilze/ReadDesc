@@ -3,6 +3,7 @@
     <!-- Default values for the configuration of the preferences -->
     <integer name="activity.settings.pref.word.flip.default">200</integer>
     <integer name="activity.settings.pref.word.step.default">20</integer>
+    <bool name="activity.settings.pref.context.display.default">true</bool>
     <color name="activity.settings.pref.color.bg.default">#303030</color>
     <color name="activity.settings.pref.color.text.default">#FFF700</color>
 

@@ -77,6 +77,14 @@
 
             </LinearLayout>
 
+            <CheckBox
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/settings_disable_context_words"
+                android:text="@string/activity.settings.context.text"
+                style="@style/SecondaryItem"
+                />
+
             <View style="@style/Divider"/>
 
             <TextView

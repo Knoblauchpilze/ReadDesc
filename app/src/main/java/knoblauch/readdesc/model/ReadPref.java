@@ -49,6 +49,13 @@ public class ReadPref {
     private int m_wordStep;
 
     /**
+     * A boolean indicating whether the previous or next words should be displayed
+     * in the read activity. This allows to provide some sort of light-weight view
+     * of the read where only the current word is displayed.
+     */
+    private boolean m_displayContext;
+
+    /**
      * Create a default read preference object with no associated preferences. The context is
      * used to retrieve the properties saved in the application and if none are defined, we
      * use the default values.
@@ -125,6 +132,20 @@ public class ReadPref {
     public void setWordStep(int wordStep) { m_wordStep = wordStep; }
 
     /**
+     * Retrieve `true` if some context should be displayed in the read activity. This
+     * is usually done by displaying the previous and next words of the current one to
+     * help the user remember what the reading is about.
+     * @return - `true` if the context should be displayed and `false` otherwise.
+     */
+    public boolean getDisplayContext() { return m_displayContext; }
+
+    /**
+     * Assign a new value for the display context status for the read.
+     * @param display - the new display context status.
+     */
+    public void setDisplayContext(boolean display) { m_displayContext = display; }
+
+    /**
      * Used in order to load the preferences from the values saved on the disk. Uses the
      * internal context to retrieve the previously saved values or uses the default ones
      * if none have been saved already.
@@ -147,6 +168,14 @@ public class ReadPref {
         key = res.getString(R.string.activity_settings_pref_xml_key_word_flip);
         if (pref.contains(key)) {
             m_wordFlipInterval = pref.getInt(key, m_wordFlipInterval);
+        }
+
+        // Retrieve the display context status or create it from default value if it
+        // does not exist.
+        m_displayContext = res.getBoolean(R.bool.activity_settings_pref_context_display_default);
+        key = res.getString(R.string.activity_settings_pref_xml_key_context_display);
+        if (pref.contains(key)) {
+            m_displayContext = pref.getBoolean(key, m_displayContext);
         }
 
         // Restore the word step or create it from default value if it does not exist.
@@ -195,6 +224,10 @@ public class ReadPref {
         // Save the word step.
         key = res.getString(R.string.activity_settings_pref_xml_key_word_step);
         editor.putInt(key, m_wordStep);
+
+        // Save the display context status.
+        key = res.getString(R.string.activity_settings_pref_xml_key_context_display);
+        editor.putBoolean(key, m_displayContext);
 
         // Save the background color while in reading mode.
         key = res.getString(R.string.activity_settings_pref_xml_key_color_bg);
