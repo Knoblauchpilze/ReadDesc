@@ -16,7 +16,7 @@ The application defines three main views:
 
 ## Recent reads
 
-![Recent read activity](img_recent_reads.png=108x192)
+<img src="img_recent_reads.png" width="10%">
 
 This activity keeps track of the reads already registered by the user and sort them on the last accessed date. The name of the read is displayed along with its thumbnail (if any) and the percentage of completion reached by the user. One can remove a read or select it for reading mode. The user can also create a read with the dedicated floating action button or access the settings.
 
